@@ -2,7 +2,7 @@
 
 このプロジェクトは、[THE SEED ONLINE](https://seed.online/) の 3D オブジェクトを、協同して制作するための試みです。
 
-Unity のプロジェクトをオープンソースの下に公開していますので、すぐにアイテム作成やアイディアの追加を行えるようになっています。
+Unity のプロジェクトファイルをオープンソースで公開していますので、すぐにアイテム作成やアイディアの追加を行えるようになっています。
 
 **ひとりの力ですべてをなすには、人生はあまりにも短い。されど、多様性を認めるとき、世界はまわりだす。**
 
@@ -18,10 +18,15 @@ Unity のプロジェクトをオープンソースの下に公開していま�
 
 - [GIMP](https://www.gimp.org/) 2.10
 
-# GitHub のプロジェクトの扱い方
-- Git の扱い方になじみがない方は、公式ツールの [GitHub Desktop](https://desktop.github.com/) があります。
+# [Git](https://git-scm.com/)
 
-- 詳しい使い方は、Web で検索してみてください。
+- [GitHub for Unity](https://unity.github.com/) を導入しています。
+
+- [Git Large File Storage (LFS)](https://git-lfs.github.com/) を導入しています。
+
+- [Smart Merge (UnityYAMLMerge)](https://docs.unity3d.com/ja/2018.2/Manual/SmartMerge.html)
+
+- そのほかの Git に関する詳しい情報は、Web で検索してください。
 
 # License
 - Assets 以下に、適切な制作単位でサブディレクトリを作成し、制作単位ごとに LICENSE ファイルを用意します。
