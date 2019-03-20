@@ -1,11 +1,12 @@
-# cytanb-tso-collab
+# [cytanb-tso-collab](https://github.com/oocytanb/cytanb-tso-collab)
 
 このプロジェクトは、[THE SEED ONLINE](https://seed.online/) の 3D オブジェクトを、協同して制作するための試みです。
 
-**ひとりの力ですべてをなすには、人生はあまりにも短い。
-されど、多様性を認めるとき、世界はまわりだす。**
+Unity のプロジェクトをオープンソースの下に公開していますので、すぐにアイテム作成やアイディアの追加を行えるようになっています。
 
-# Software
+**ひとりの力ですべてをなすには、人生はあまりにも短い。されど、多様性を認めるとき、世界はまわりだす。**
+
+# Softwares
 
 - [Unity](https://unity3d.com/) 2018.2
 
@@ -18,7 +19,7 @@
 - [GIMP](https://www.gimp.org/) 2.10
 
 # GitHub のプロジェクトの扱い方
-- Git の扱い方になじみがない方は、[GitHub Desktop](https://desktop.github.com/) という公式ツールがあります。
+- Git の扱い方になじみがない方は、公式ツールの [GitHub Desktop](https://desktop.github.com/) があります。
 
 - 詳しい使い方は、Web で検索してみてください。
 

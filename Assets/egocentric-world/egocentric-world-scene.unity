@@ -329,11 +329,11 @@ MonoBehaviour:
   Meta:
     title: cytanb-egocentric-world
     author: oO
-    contactInformation: https://github.com/oocytanb/cytanb-tso-collab
+    contactInformation: 
     reference: 
     thumbnail: {fileID: 2800000, guid: 28d505800ad2e1c47963bba3d22e8e76, type: 3}
-    version: 0.0.3
-    description: 
+    version: 0.0.4
+    description: "\u6607\u964D\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u306E\u5B9F\u9A13\u7528\u30A2\u30A4\u30C6\u30E0\u3067\u3059\u3002\r\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)"
     exporterVersion: 0.17
     specVersion: 
     modelDataLicenseType: 8
@@ -374,7 +374,7 @@ MonoBehaviour:
       0)\r\n            vci.assets._ALL_SetMaterialColorFromName(EGO_BASKET_SWITCH_MATERIAL_NAME,
       EGO_BASKET_SWITCH_NORMAL_COLOR)\r\n        end\r\n    elseif worldState == 3
       and (ego_world_wrapper.GetLocalPosition() + ego_world.GetLocalPosition()).y
-      >= -0.1 then\r\n        -- \u4E16\u754C\u3092\u4E0A\u6607\u4E2D\u306B\u3001\u5730\u9762\u306B\u8FD1\u3065\u3044\u305F\u306E\u3067\u3001\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u3092\u505C\u6B62\u3055\u305B\u308B\u3002\r\n
+      >= -0.2 then\r\n        -- \u4E16\u754C\u3092\u4E0A\u6607\u4E2D\u306B\u3001\u5730\u9762\u306B\u8FD1\u3065\u3044\u305F\u306E\u3067\u3001\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u3092\u505C\u6B62\u3055\u305B\u308B\u3002\r\n
       \       -- (\u4E16\u754C\u306E\u4E0B\u964D\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u3092\u3001\u7DCA\u6025\u505C\u6B62\u3055\u305B\u305F\u5834\u5408\u306F\u3001\u9014\u4E2D\u4F4D\u7F6E\u304B\u3089\u4E0A\u6607\u3055\u305B\u308B\u305F\u3081\u3001\u5730\u9762\u3092\u8D8A\u3048\u3066\u3057\u307E\u3046\u5BFE\u7B56)\r\n
       \       print(\"world-rise anim: position rised near the ground. stop animation.\")\r\n
       \       vci.assets._ALL_StopAnimation()\r\n        ego_world_wrapper.SetLocalPosition(Vector3.zero)\r\n
