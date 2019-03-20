@@ -1,6 +1,6 @@
 # cytanb-tso-collab
 
-このプロジェクトは、[THE SEED ONLINE](https://seed.online/) の 3D オブジェクトを、複数人で制作するための試みです。
+このプロジェクトは、[THE SEED ONLINE](https://seed.online/) の 3D オブジェクトを、協同して制作するための試みです。
 
 **ひとりの力ですべてをなすには、人生はあまりにも短い。
 されど、多様性を認めるとき、世界はまわりだす。**
