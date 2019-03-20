@@ -352,9 +352,9 @@ MonoBehaviour:
       \u30A8\u30EC\u30D9\u30FC\u30BF\u30FC\u306E\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u6642\u9593\u3002+1
       \u79D2\u306F\u30DE\u30FC\u30B8\u30F3\u3002\r\nlocal EGO_ELEVATOR_ANIM_TIME =
       TimeSpan.FromSeconds(10 + 1)\r\n\r\n-- \u4E16\u754C\u3092\u4E0A\u6607\u3055\u305B\u308B\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u306E\u3001\u958B\u59CB\u30AD\u30FC\u30D5\u30EC\u30FC\u30E0\u306E\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u4F4D\u7F6E\u3002\r\nlocal
-      EGO_WORLD_RISE_ANIM_START_POSITION = Vector3.__new(0, -30, 0)\r\n\r\nlocal EGO_BASKET_SWITCH_NORMAL_COLOR
-      = Color.__new(0.8, 0.8, 0.25)\r\nlocal EGO_BASKET_SWITCH_ELEVATING_COLOR = Color.__new(0.8,
-      0.25, 0.25)\r\nlocal EGO_BASKET_SWITCH_MATERIAL_NAME = \"ego_basket_switch\"\r\n\r\n--
+      EGO_WORLD_RISE_ANIM_START_POSITION = Vector3.__new(0.0, -30, 0.0)\r\n\r\nlocal
+      EGO_BASKET_SWITCH_NORMAL_COLOR = Color.__new(0.8, 0.8, 0.25)\r\nlocal EGO_BASKET_SWITCH_ELEVATING_COLOR
+      = Color.__new(0.8, 0.25, 0.25)\r\nlocal EGO_BASKET_SWITCH_MATERIAL_NAME = \"ego_basket_switch\"\r\n\r\n--
       \u30BC\u30ED\u5730\u70B9\u3092\u78BA\u8A8D\u3059\u308B\u305F\u3081\u306E\u30B3\u30FC\u30F3\u3002\r\nlocal
       zero_cone = vci.assets.GetSubItem(\"zero_cone\")\r\n\r\nlocal ego_set = vci.assets.GetSubItem(\"ego_set\")\r\nlocal
       ego_world_wrapper = vci.assets.GetSubItem(\"ego_world_wrapper\")\r\nlocal ego_world
