@@ -18,9 +18,12 @@ Unity のプロジェクトファイルをオープンソースで公開して�
 
 - [GIMP](https://www.gimp.org/) 2.10
 
-# [Git](https://git-scm.com/)
+- [Git](https://git-scm.com/)
+
+# Git
 
 - [GitHub for Unity](https://unity.github.com/) を導入しています。
+    - `Unity Editor Menu > Window > GitHub` からアクセス出来ます。
 
 - [Git Large File Storage (LFS)](https://git-lfs.github.com/) を導入しています。
 
