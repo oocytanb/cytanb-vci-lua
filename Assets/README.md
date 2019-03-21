@@ -18,14 +18,17 @@ Unity のプロジェクトファイルをオープンソースで公開して�
 
 - [GIMP](https://www.gimp.org/) 2.10
 
-- [Git](https://git-scm.com/)
-
 # Git
+
+- [Git 公式サイト](https://git-scm.com/)
+
+- [GitHub Desktop](https://desktop.github.com/) : GitHub 公式のGUIクライアント
 
 - [GitHub for Unity](https://unity.github.com/) を導入しています。
     - `Unity Editor Menu > Window > GitHub` からアクセス出来ます。
 
 - [Git Large File Storage (LFS)](https://git-lfs.github.com/) を導入しています。
+    - **このため、Git LFS に対応した Git クライアントを使って、プロジェクトを clone する必要があります。**
 
 - [Smart Merge (UnityYAMLMerge)](https://docs.unity3d.com/ja/2018.2/Manual/SmartMerge.html)
 
