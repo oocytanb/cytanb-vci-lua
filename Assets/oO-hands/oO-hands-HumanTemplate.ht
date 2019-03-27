@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1105 &110500000
+HumanTemplate:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: oO-hands-HumanTemplate
+  m_BoneTemplate:
+    Chest: Character_Chest
+    Head: Character_Head
+    Hips: Character_Hips
+    Left Index Distal: Character_Fingers_Index_Distal_L
+    Left Index Intermediate: Character_Fingers_Index_Intermediate_L
+    Left Index Proximal: Character_Fingers_Index_Proximal_L
+    Left Little Distal: Character_Fingers_Little_Distal_L
+    Left Little Intermediate: Character_Fingers_Little_Intermediate_L
+    Left Little Proximal: Character_Fingers_Little_Proximal_L
+    Left Middle Distal: Character_Fingers_Middle_Distal_L
+    Left Middle Intermediate: Character_Fingers_Middle_Intermediate_L
+    Left Middle Proximal: Character_Fingers_Middle_Proximal_L
+    Left Ring Distal: Character_Fingers_Ring_Distal_L
+    Left Ring Intermediate: Character_Fingers_Ring_Intermediate_L
+    Left Ring Proximal: Character_Fingers_Ring_Proximal_L
+    Left Thumb Distal: Character_Fingers_Thumb_Distal_L
+    Left Thumb Intermediate: Character_Fingers_Thumb_Intermediate_L
+    Left Thumb Proximal: Character_Fingers_Thumb_Proximal_L
+    LeftFoot: Character_Foot_L
+    LeftHand: Character_Hand_L
+    LeftLowerArm: Character_LowerArm_L
+    LeftLowerLeg: Character_LowerLeg_L
+    LeftShoulder: Character_Shoulder_L
+    LeftUpperArm: Character_UpperArm_L
+    LeftUpperLeg: Character_UpperLeg_L
+    Neck: Character_Neck
+    Right Index Distal: Character_Fingers_Index_Distal_R
+    Right Index Intermediate: Character_Fingers_Index_Intermediate_R
+    Right Index Proximal: Character_Fingers_Index_Proximal_R
+    Right Little Distal: Character_Fingers_Little_Distal_R
+    Right Little Intermediate: Character_Fingers_Little_Intermediate_R
+    Right Little Proximal: Character_Fingers_Little_Proximal_R
+    Right Middle Distal: Character_Fingers_Middle_Distal_R
+    Right Middle Intermediate: Character_Fingers_Middle_Intermediate_R
+    Right Middle Proximal: Character_Fingers_Middle_Proximal_R
+    Right Ring Distal: Character_Fingers_Ring_Distal_R
+    Right Ring Intermediate: Character_Fingers_Ring_Intermediate_R
+    Right Ring Proximal: Character_Fingers_Ring_Proximal_R
+    Right Thumb Distal: Character_Fingers_Thumb_Distal_R
+    Right Thumb Intermediate: Character_Fingers_Thumb_Intermediate_R
+    Right Thumb Proximal: Character_Fingers_Thumb_Proximal_R
+    RightFoot: Character_Foot_R
+    RightHand: Character_Hand_R
+    RightLowerArm: Character_LowerArm_R
+    RightLowerLeg: Character_LowerLeg_R
+    RightShoulder: Character_Shoulder_R
+    RightUpperArm: Character_UpperArm_R
+    RightUpperLeg: Character_UpperLeg_R
+    Spine: Character_Spine
