@@ -212,7 +212,7 @@ MonoBehaviour:
     contactInformation: 
     reference: 
     thumbnail: {fileID: 2800000, guid: 04679ef7249a43e43a248fc855c3927c, type: 3}
-    version: 0.0.1
+    version: 0.0.2
     description: "\u30B5\u30F3\u30D7\u30EB\u7528\u306E\u5358\u7D14\u306A VCI \u3067\u3059\u3002\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)"
     exporterVersion: 0.17
     specVersion: 
