@@ -63,7 +63,28 @@ namespace cytanb
 
                 var gltf = new glTF();
 
-                if (root.GetComponent<VRMMeta>())
+                // Meta
+                VRMMetaObject meta = null;
+#if true
+                // refer MetaObject of prefab
+                if (prefab)
+                {
+                    var prefabComponent = prefab.GetComponent<VRMMeta>();
+                    if (prefabComponent)
+                    {
+                        meta = prefabComponent.Meta;
+                    }
+                }
+#else
+                // generate MetaObject (deprecated)
+                meta = ScriptableObject.CreateInstance<VRMMetaObject>();
+                meta.name = "Meta";
+                meta.ExporterVersion = gltf.extensions.VRM.exporterVersion;
+                meta.Title = root.name;
+#endif
+
+                var metaComponent = root.GetComponent<VRMMeta>();
+                if (metaComponent && metaComponent.Meta)
                 {
                     var msg = "[Skip] VRM Meta component already exists.";
                     longMsg += msg + "\n";
@@ -71,25 +92,11 @@ namespace cytanb
                 }
                 else
                 {
-                    VRMMetaObject meta = null;
-#if true
-                    // refer MetaObject of prefab
-                    if (prefab)
+                    if (!metaComponent)
                     {
-                        var prefabComponent = prefab.GetComponent<VRMMeta>();
-                        if (prefabComponent)
-                        {
-                            meta = prefabComponent.Meta;
-                        }
+                        metaComponent = root.AddComponent<VRMMeta>();
                     }
-#else
-                    // generate MetaObject (deprecated)
-                    meta = ScriptableObject.CreateInstance<VRMMetaObject>();
-                    meta.name = "Meta";
-                    meta.ExporterVersion = gltf.extensions.VRM.exporterVersion;
-                    meta.Title = root.name;
-#endif
-                    var metaComponent = root.AddComponent<VRMMeta>();
+
                     if (meta)
                     {
                         metaComponent.Meta = meta;
@@ -106,7 +113,32 @@ namespace cytanb
                     }
                 }
 
-                if (root.GetComponent<VRMBlendShapeProxy>())
+                // BlendShape
+                BlendShapeAvatar blendShapeAvatar = null;
+#if true
+                // refer BlendShapeAvatar of prefab
+                if (prefab)
+                {
+                    var prefabComponent = prefab.GetComponent<VRMBlendShapeProxy>();
+                    if (prefabComponent)
+                    {
+                        blendShapeAvatar = prefabComponent.BlendShapeAvatar;
+                    }
+                }
+#else
+                // generate BlendShapeAvatar (deprecated)
+                blendShapeAvatar = ScriptableObject.CreateInstance<BlendShapeAvatar>();
+                blendShapeAvatar.name = "BlendShape";
+                blendShapeAvatar.CreateDefaultPreset();
+
+                foreach (var clip in blendShapeAvatar.Clips)
+                {
+                    clip.Prefab = root;
+                }
+#endif
+
+                var blendShapeAvatarComponent = root.GetComponent<VRMBlendShapeProxy>();
+                if (blendShapeAvatarComponent && blendShapeAvatarComponent.BlendShapeAvatar)
                 {
                     var msg = "[Skip] VRM Blend Shape Proxy component already exists.";
                     longMsg += msg + "\n";
@@ -114,29 +146,11 @@ namespace cytanb
                 }
                 else
                 {
-                    BlendShapeAvatar blendShapeAvatar = null;
-#if true
-                    // refer BlendShapeAvatar of prefab
-                    if (prefab)
+                    if (!blendShapeAvatarComponent)
                     {
-                        var prefabComponent = prefab.GetComponent<VRMBlendShapeProxy>();
-                        if (prefabComponent)
-                        {
-                            blendShapeAvatar = prefabComponent.BlendShapeAvatar;
-                        }
+                        blendShapeAvatarComponent = root.AddComponent<VRMBlendShapeProxy>();
                     }
-#else
-                    // generate BlendShapeAvatar (deprecated)
-                    blendShapeAvatar = ScriptableObject.CreateInstance<BlendShapeAvatar>();
-                    blendShapeAvatar.name = "BlendShape";
-                    blendShapeAvatar.CreateDefaultPreset();
 
-                    foreach (var clip in blendShapeAvatar.Clips)
-                    {
-                        clip.Prefab = root;
-                    }
-#endif
-                    var blendShapeAvatarComponent = root.AddComponent<VRMBlendShapeProxy>();
                     if (blendShapeAvatar)
                     {
                         blendShapeAvatarComponent.BlendShapeAvatar = blendShapeAvatar;
@@ -152,6 +166,7 @@ namespace cytanb
                     }
                 }
 
+                // secondary
                 if (root.transform.Find("secondary"))
                 {
                     var msg = "[Skip] secondary object already exists.";

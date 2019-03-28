@@ -332,7 +332,7 @@ MonoBehaviour:
     contactInformation: 
     reference: 
     thumbnail: {fileID: 2800000, guid: 28d505800ad2e1c47963bba3d22e8e76, type: 3}
-    version: 0.0.5
+    version: 0.0.6
     description: "\u6607\u964D\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u306E\u5B9F\u9A13\u7528\u30A2\u30A4\u30C6\u30E0\u3067\u3059\u3002\r\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)"
     exporterVersion: 0.17
     specVersion: 
@@ -361,8 +361,8 @@ MonoBehaviour:
       zero_cone = vci.assets.GetSubItem(\"zero_cone\")\r\n\r\nlocal ego_set = vci.assets.GetSubItem(\"ego_set\")\r\nlocal
       ego_world_wrapper = vci.assets.GetSubItem(\"ego_world_wrapper\")\r\nlocal ego_world
       = vci.assets.GetSubItem(\"ego_world\")\r\n\r\nlocal worldState = 0\r\nlocal
-      elevatorAnimStartTime = TimeSpan.MinValue\r\nlocal elevatorAnimWaitTime = TimeSpan.MinValue\r\n\r\n--
-      \u30A2\u30A4\u30C6\u30E0\u3092\u8A2D\u7F6E\u3057\u305F\u3068\u304D\u306E\u521D\u671F\u5316\u51E6\u7406\r\nif
+      waitingForNextState = false;\r\nlocal elevatorAnimStartTime = TimeSpan.MinValue\r\nlocal
+      elevatorAnimWaitTime = TimeSpan.MinValue\r\n\r\n-- \u30A2\u30A4\u30C6\u30E0\u3092\u8A2D\u7F6E\u3057\u305F\u3068\u304D\u306E\u521D\u671F\u5316\u51E6\u7406\r\nif
       vci.assets.IsMine then\r\n    vci.state.Set(\"worldState\", worldState)\r\n
       \   vci.assets._ALL_SetMaterialColorFromName(EGO_BASKET_SWITCH_MATERIAL_NAME,
       EGO_BASKET_SWITCH_NORMAL_COLOR)\r\n\r\n    zero_cone.SetPosition(Vector3.zero)\r\n
@@ -376,17 +376,24 @@ MonoBehaviour:
       \           print(\"sync world position\")\r\n            elevatorAnimWaitTime
       = TimeSpan.MaxValue\r\n\r\n            local position = ego_world_wrapper.GetLocalPosition()
       + ego_world.GetLocalPosition()\r\n            ego_world_wrapper.SetLocalPosition(Vector3.zero)\r\n
-      \           ego_world.SetLocalPosition(position)\r\n        end\r\n    end\r\nend\r\n\r\n--
-      \u5168\u30E6\u30FC\u30B6\u30FC\u3067\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
+      \           ego_world.SetLocalPosition(position)\r\n        end\r\n    end\r\nend\r\n\r\nlocal
+      function resetWorldPosition()\r\n    elevatorAnimStartTime = TimeSpan.MinValue\r\n
+      \   elevatorAnimWaitTime = TimeSpan.MinValue\r\n    vci.assets.StopAnimation()\r\n
+      \   if ego_world_wrapper.GetLocalPosition() ~= Vector3.zero then\r\n        ego_world_wrapper.SetLocalPosition(Vector3.zero)\r\n
+      \   end\r\n    if ego_world.GetLocalPosition() then\r\n        ego_world.SetLocalPosition(Vector3.zero)\r\n
+      \   end\r\n    vci.assets.SetMaterialColorFromName(EGO_BASKET_SWITCH_MATERIAL_NAME,
+      EGO_BASKET_SWITCH_NORMAL_COLOR)\r\nend\r\n\r\n-- \u5168\u30E6\u30FC\u30B6\u30FC\u3067\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
       updateAll()\r\n    local newState = vci.state.Get(\"worldState\")\r\n    if
       (newState == nil) then\r\n        return\r\n    end\r\n\r\n    local stateChanged
-      = newState ~= worldState\r\n    worldState = newState\r\n\r\n    if worldState
-      == 0 then\r\n        -- \u521D\u671F\u4F4D\u7F6E\u3067\u505C\u6B62\u3057\u3066\u3044\u308B\u72B6\u614B\r\n
-      \       if stateChanged then\r\n            elevatorAnimStartTime = TimeSpan.MinValue\r\n
-      \           elevatorAnimWaitTime = TimeSpan.MinValue\r\n            vci.assets.SetMaterialColorFromName(EGO_BASKET_SWITCH_MATERIAL_NAME,
-      EGO_BASKET_SWITCH_NORMAL_COLOR)\r\n        end\r\n        delaySyncWorldPosition()\r\n
-      \   elseif worldState == 1 then\r\n        if stateChanged then\r\n            elevatorAnimStartTime
-      = TimeSpan.MinValue\r\n            elevatorAnimWaitTime = vci.me.Time\r\n            vci.assets.SetMaterialColorFromName(EGO_BASKET_SWITCH_MATERIAL_NAME,
+      = newState ~= worldState\r\n    worldState = newState\r\n\r\n    if waitingForNextState
+      then\r\n        if stateChanged then\r\n            -- \u6B21\u306E\u72B6\u614B\u3078\u79FB\u884C\u3057\u305F\u306E\u3067\u3001\u5F85\u6A5F\u30D5\u30E9\u30B0\u3092\u30AF\u30EA\u30A2\u3059\u308B\r\n
+      \           waitingForNextState = false\r\n        else\r\n            -- \u6B21\u306E\u72B6\u614B\u3078\u79FB\u884C\u3059\u308B\u306E\u3092\u5F85\u3063\u3066\u3044\u308B\r\n
+      \           return\r\n        end\r\n    end\r\n\r\n    if worldState == 0 then\r\n
+      \       -- \u521D\u671F\u4F4D\u7F6E\u3067\u505C\u6B62\u3057\u3066\u3044\u308B\u72B6\u614B\r\n
+      \       if stateChanged then\r\n            resetWorldPosition()\r\n        end\r\n
+      \       delaySyncWorldPosition()\r\n    elseif worldState == 1 then\r\n        if
+      stateChanged then\r\n            elevatorAnimStartTime = TimeSpan.MinValue\r\n
+      \           elevatorAnimWaitTime = vci.me.Time\r\n            vci.assets.SetMaterialColorFromName(EGO_BASKET_SWITCH_MATERIAL_NAME,
       EGO_BASKET_SWITCH_DARK_COLOR)\r\n        end\r\n\r\n        if elevatorAnimStartTime
       < TimeSpan.Zero then\r\n            -- \u30B9\u30A4\u30C3\u30C1\u304C\u62BC\u3055\u308C\u3001\u4E16\u754C\u3092\u4E0B\u964D\u3055\u305B\u308B\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u3092\u958B\u59CB\u3059\u308B\u307E\u3067\u306E\u3001\u5F85\u6A5F\u72B6\u614B\u3002\r\n\r\n
       \           if vci.me.Time >= elevatorAnimWaitTime + EGO_ELEVATOR_ANIM_WAIT_TIME
@@ -397,8 +404,8 @@ MonoBehaviour:
       false)\r\n            end\r\n        elseif vci.me.Time >= elevatorAnimStartTime
       + EGO_ELEVATOR_ANIM_TIME then\r\n           print(\"world-fall anim finished.\")\r\n
       \          elevatorAnimStartTime = TimeSpan.MinValue\r\n           elevatorAnimWaitTime
-      = TimeSpan.MinValue\r\n           worldState = 3\r\n           if ego_set.IsMine
-      then\r\n               vci.state.Set(\"worldState\", worldState)\r\n              end\r\n
+      = TimeSpan.MinValue\r\n           waitingForNextState = true\r\n           if
+      ego_set.IsMine then\r\n               vci.state.Set(\"worldState\", 3)\r\n           end\r\n
       \          vci.assets.SetMaterialColorFromName(EGO_BASKET_SWITCH_MATERIAL_NAME,
       EGO_BASKET_SWITCH_NORMAL_COLOR)\r\n       end\r\n    elseif worldState == 2
       then\r\n        -- \u4E16\u754C\u3092\u4E0B\u964D\u3055\u305B\u308B\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u3092\u3001\u7DCA\u6025\u505C\u6B62\u3057\u305F\u72B6\u614B\u3002\r\n
@@ -425,21 +432,16 @@ MonoBehaviour:
       \           end\r\n        elseif vci.me.Time >= elevatorAnimStartTime + EGO_ELEVATOR_ANIM_TIME
       then\r\n            print(\"world-rise anim finished.\")\r\n            elevatorAnimStartTime
       = TimeSpan.MinValue\r\n            elevatorAnimWaitTime = TimeSpan.MinValue\r\n
-      \           worldState = 0\r\n            if ego_set.IsMine then\r\n                vci.state.Set(\"worldState\",
-      worldState)\r\n            end\r\n            vci.assets.SetMaterialColorFromName(EGO_BASKET_SWITCH_MATERIAL_NAME,
+      \           waitingForNextState = true\r\n            if ego_set.IsMine then\r\n
+      \               vci.state.Set(\"worldState\", 0)\r\n            end\r\n            vci.assets.SetMaterialColorFromName(EGO_BASKET_SWITCH_MATERIAL_NAME,
       EGO_BASKET_SWITCH_NORMAL_COLOR)\r\n        elseif (ego_world_wrapper.GetLocalPosition()
       + ego_world.GetLocalPosition()).y >= -0.1 then\r\n            -- \u4E16\u754C\u3092\u4E0A\u6607\u4E2D\u306B\u3001\u5730\u9762\u306B\u8FD1\u3065\u3044\u305F\u306E\u3067\u3001\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u3092\u505C\u6B62\u3055\u305B\u308B\u3002\r\n
       \           -- (\u9014\u4E2D\u4F4D\u7F6E\u304B\u3089\u4E0A\u6607\u3055\u305B\u305F\u5834\u5408\u306F\u3001\u5730\u9762\u3092\u8D8A\u3048\u3066\u3057\u307E\u3046\u306E\u3067\u5BFE\u7B56)\r\n
       \           print(\"stop world-rise anim: position rised near the ground.\")\r\n
-      \           elevatorAnimStartTime = TimeSpan.MinValue\r\n            elevatorAnimWaitTime
-      = TimeSpan.MinValue\r\n            vci.assets.StopAnimation()\r\n            if
-      ego_world_wrapper.GetLocalPosition() ~= Vector3.zero then\r\n                ego_world_wrapper.SetLocalPosition(Vector3.zero)\r\n
-      \           end\r\n            if ego_world.GetLocalPosition() then\r\n                ego_world.SetLocalPosition(Vector3.zero)\r\n
-      \           end\r\n            worldState = 0\r\n            if ego_set.IsMine
-      then\r\n                vci.state.Set(\"worldState\", worldState)\r\n            end\r\n
-      \           vci.assets.SetMaterialColorFromName(EGO_BASKET_SWITCH_MATERIAL_NAME,
-      EGO_BASKET_SWITCH_NORMAL_COLOR)\r\n        end\r\n    elseif worldState == 5
-      then\r\n        -- \u4E16\u754C\u3092\u4E0A\u6607\u3055\u305B\u308B\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u3092\u3001\u7DCA\u6025\u505C\u6B62\u3057\u305F\u72B6\u614B\u3002\r\n
+      \           resetWorldPosition()\r\n            waitingForNextState = true\r\n
+      \           if ego_set.IsMine then\r\n                vci.state.Set(\"worldState\",
+      0)\r\n            end\r\n        end\r\n    elseif worldState == 5 then\r\n
+      \       -- \u4E16\u754C\u3092\u4E0A\u6607\u3055\u305B\u308B\u30A2\u30CB\u30E1\u30FC\u30B7\u30E7\u30F3\u3092\u3001\u7DCA\u6025\u505C\u6B62\u3057\u305F\u72B6\u614B\u3002\r\n
       \       if stateChanged then\r\n            print(\"emergency stop world-rise
       anim.\")\r\n            elevatorAnimStartTime = TimeSpan.MinValue\r\n            elevatorAnimWaitTime
       = TimeSpan.MinValue\r\n            vci.assets.StopAnimation()\r\n            vci.assets.SetMaterialColorFromName(EGO_BASKET_SWITCH_MATERIAL_NAME,
@@ -449,10 +451,9 @@ MonoBehaviour:
       then\r\n        -- \u30B9\u30A4\u30C3\u30C1\u304C\u4F7F\u7528\u3055\u308C\u305F\u3002\r\n
       \       if worldState == 2 then\r\n            vci.state.Set(\"worldState\",
       4)\r\n        elseif worldState >= 5 then\r\n            -- \u4E16\u754C\u306E\u4E0A\u6607\u4E2D\u306B\u7DCA\u6025\u505C\u6B62\u3057\u305F\u72B6\u614B\u3067\u3001\u518D\u5EA6\u30B9\u30A4\u30C3\u30C1\u3092\u4F7F\u7528\u3057\u305F\u72B6\u614B\u3002\u4E16\u754C\u3092\u30BC\u30ED\u5730\u70B9\u306B\u30EA\u30BB\u30C3\u30C8\u3059\u308B\u3002\r\n
-      \           print(\"reset world position.\")\r\n            ego_world_wrapper.SetLocalPosition(Vector3.zero)\r\n
-      \           ego_world.SetLocalPosition(Vector3.zero)\r\n            vci.state.Set(\"worldState\",
-      0)\r\n        else\r\n            vci.state.Set(\"worldState\", worldState +
-      1)\r\n        end\r\n    end\r\nend\r\n"
+      \           print(\"reset world position.\")\r\n            resetWorldPosition()\r\n
+      \           vci.state.Set(\"worldState\", 0)\r\n        else\r\n            vci.state.Set(\"worldState\",
+      worldState + 1)\r\n        end\r\n    end\r\nend\r\n"
 --- !u!1 &2072858644 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100018, guid: 73c7a6c9a4d7a6142944d3e4efb3dab0,
