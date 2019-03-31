@@ -8,4 +8,4 @@
 
 ![エクスポート画像](docs/export-tinker-star.png)
 
-[^1]: Tinkercadは、Autodesk,Inc.の商標です。
+[^1]: Tinkercad は、Autodesk, Inc. の商標です。
