@@ -1,4 +1,4 @@
-# cytanb-utility-cripts
+# cytanb-utility-scripts
 
 ユーティリティスクリプト集です。
 
