@@ -7,6 +7,7 @@ LICENSE text eol=lf
 *.json text eol=lf
 *.lua text eol=lf
 *.md text eol=lf
+*.p5js text eol=lf
 *.txt text eol=lf
 
 # Unity

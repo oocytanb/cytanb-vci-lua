@@ -1,0 +1,68 @@
+/*
+ * Copyright (c) 2019 oO (https://github.com/oocytanb)
+ * MIT Licensed
+ *
+ * カラーパーターンを生成するためのスクリプトです。
+ * [p5.js](https://p5js.org/) の環境で動作します。
+ */
+ 
+ function setup() {
+  const WIDTH = 1024;
+  const HEIGHT = 1024;
+  
+  const HUE_SAMPLES = 16;
+  const LIGHTNESS_SAMPLES = 16;
+
+  let canvasWidth = WIDTH | 0;
+  let canvasHeight = HEIGHT | 0;
+
+  if (canvasWidth < 1 || canvasHeight < 1) {
+    throw new RangeError('Invalid canvas size.');
+  }
+
+  let hueN = Math.max(Math.min(HUE_SAMPLES | 0, canvasWidth), 1);
+  let lightnessN = Math.max(Math.min(LIGHTNESS_SAMPLES | 0, canvasHeight), 1);
+
+  createCanvas(canvasWidth, canvasHeight);
+  background(255);
+  colorMode(HSL);
+  noStroke();
+
+  //
+  let x = y = nextX = nextY = 0;
+  for (let hi = 0; hi < hueN - 1; ++hi) {
+    nextX = Math.round(canvasWidth * (hi + 1) / hueN);
+    let h = 360.0 * hi / (hueN - 1);
+
+    y = 0;
+    for (let li = 0; li < lightnessN; ++li) {
+      nextY = Math.round(canvasHeight * (li + 1) / lightnessN);
+      let s = 100.0;
+      let l = 50.0 + 50.0 * li / lightnessN;
+
+      fill(h, s, l);
+      rect(x, y, nextX - x, nextY - y);
+
+      y = nextY;
+    }
+    x = nextX;
+  }
+
+  //
+  nextX = canvasWidth;
+  y = 0;
+  for (let li = 0; li < lightnessN; ++li) {
+    nextY = Math.round(canvasHeight * (li + 1) / lightnessN);
+    let l = 100.0 * li / (lightnessN - 1);
+    let s = 0.0;
+    let h = 0.0;
+
+    fill(h, s, l);
+    rect(x, y, nextX - x, nextY - y);
+
+    y = nextY;
+  }
+}
+
+function draw() {
+}

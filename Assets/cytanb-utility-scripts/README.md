@@ -1,6 +1,10 @@
-# UniCytanbScripts
+# cytanb-utility-cripts
 
-Unity のユーティリティスクリプトです。
+ユーティリティスクリプト集です。
+
+## cytanb-color-pattern
+
+カラーパーターンを生成するためのスクリプトです。
 
 ## VRMBindExtComponentsMenu
 
