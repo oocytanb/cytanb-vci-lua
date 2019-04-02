@@ -5,64 +5,74 @@
  * カラーパーターンを生成するためのスクリプトです。
  * [p5.js](https://p5js.org/) の環境で動作します。
  */
- 
- function setup() {
-  const WIDTH = 1024;
-  const HEIGHT = 1024;
-  
-  const HUE_SAMPLES = 16;
-  const LIGHTNESS_SAMPLES = 16;
 
-  let canvasWidth = WIDTH | 0;
-  let canvasHeight = HEIGHT | 0;
+function setup () {
+  const WIDTH = 1024
+  const HEIGHT = 1024
+
+  const HUE_SAMPLES = 16
+  const LIGHTNESS_SAMPLES = 16
+  const SATURATION = 100.0
+
+  const APPEND_GRAYSCALE = true
+
+  const canvasWidth = WIDTH | 0
+  const canvasHeight = HEIGHT | 0
 
   if (canvasWidth < 1 || canvasHeight < 1) {
-    throw new RangeError('Invalid canvas size.');
+    throw new RangeError('Invalid canvas size.')
   }
 
-  let hueN = Math.max(Math.min(HUE_SAMPLES | 0, canvasWidth), 1);
-  let lightnessN = Math.max(Math.min(LIGHTNESS_SAMPLES | 0, canvasHeight), 1);
+  const hueN = Math.max(Math.min(HUE_SAMPLES | 0, canvasWidth), 1)
+  const toneN = APPEND_GRAYSCALE ? hueN - 1 : hueN
+  const lightnessN = Math.max(Math.min(LIGHTNESS_SAMPLES | 0, canvasHeight), 1)
+  const saturation = Math.max(Math.min(SATURATION, 100.0), 0)
 
-  createCanvas(canvasWidth, canvasHeight);
-  background(255);
-  colorMode(HSL);
-  noStroke();
+  createCanvas(canvasWidth, canvasHeight)
+  background(255)
+  colorMode(HSL)
+  noStroke()
 
   //
-  let x = y = nextX = nextY = 0;
-  for (let hi = 0; hi < hueN - 1; ++hi) {
-    nextX = Math.round(canvasWidth * (hi + 1) / hueN);
-    let h = 360.0 * hi / (hueN - 1);
+  let x = 0
+  let y = 0
+  let nextX = 0
+  let nextY = 0
 
-    y = 0;
+  for (let hi = 0; hi < toneN; ++hi) {
+    nextX = Math.round(canvasWidth * (hi + 1) / hueN)
+    let h = 360.0 * hi / toneN
+
+    y = 0
     for (let li = 0; li < lightnessN; ++li) {
-      nextY = Math.round(canvasHeight * (li + 1) / lightnessN);
-      let s = 100.0;
-      let l = 50.0 + 50.0 * li / lightnessN;
+      nextY = Math.round(canvasHeight * (li + 1) / lightnessN)
+      let l = 50.0 + 50.0 * li / lightnessN
 
-      fill(h, s, l);
-      rect(x, y, nextX - x, nextY - y);
+      fill(h, saturation, l)
+      rect(x, y, nextX - x, nextY - y)
 
-      y = nextY;
+      y = nextY
     }
-    x = nextX;
+    x = nextX
   }
 
   //
-  nextX = canvasWidth;
-  y = 0;
-  for (let li = 0; li < lightnessN; ++li) {
-    nextY = Math.round(canvasHeight * (li + 1) / lightnessN);
-    let l = 100.0 * li / (lightnessN - 1);
-    let s = 0.0;
-    let h = 0.0;
+  if (APPEND_GRAYSCALE) {
+    nextX = canvasWidth
+    y = 0
+    for (let li = 0; li < lightnessN; ++li) {
+      nextY = Math.round(canvasHeight * (li + 1) / lightnessN)
+      let l = 100.0 * li / (lightnessN - 1)
+      let s = 0.0
+      let h = 0.0
 
-    fill(h, s, l);
-    rect(x, y, nextX - x, nextY - y);
+      fill(h, s, l)
+      rect(x, y, nextX - x, nextY - y)
 
-    y = nextY;
+      y = nextY
+    }
   }
 }
 
-function draw() {
+function draw () {
 }

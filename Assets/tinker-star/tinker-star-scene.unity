@@ -373,7 +373,7 @@ MonoBehaviour:
     contactInformation: 
     reference: 
     thumbnail: {fileID: 2800000, guid: 7054eac09fd29a04391539e44752f35b, type: 3}
-    version: 0.0.1
+    version: 0.0.2
     description: "\u30B5\u30F3\u30D7\u30EB\u7528\u306E\u5358\u7D14\u306A VCI \u3067\u3059\u3002\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)"
     exporterVersion: 0.17
     specVersion: 
@@ -392,15 +392,18 @@ MonoBehaviour:
       \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\n\r\nlocal
       COLOR_LIST = {\r\n    Color.__new(0.9, 0.7, 0.133),\r\n    Color.__new(0.04,
       0.9, 0.04),\r\n    Color.__new(0.0, 0.66, 0.04),\r\n    Color.__new(0.0, 0.58,
-      0.85),\r\n    Color.__new(0.4, 0.19, 0.56),\r\n    Color.__new(0.93, 0.2, 0.31)\r\n}\r\n\r\nlocal
-      colorIndex = 1\r\n\r\n-- SubItem \u3092\u30C8\u30EA\u30AC\u30FC\u3067\u3064\u304B\u3080\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
+      0.85),\r\n    Color.__new(0.4, 0.19, 0.56),\r\n    Color.__new(0.93, 0.2, 0.31)\r\n}\r\n\r\n--
+      \u30A2\u30A4\u30C6\u30E0\u3092\u8A2D\u7F6E\u3057\u305F\u3068\u304D\u306E\u521D\u671F\u5316\u51E6\u7406\r\nif
+      vci.assets.IsMine then\r\n    vci.state.Set(\"colorIndex\", 1)\r\n    vci.assets._ALL_SetMaterialColorFromIndex(0,
+      COLOR_LIST[1])\r\nend\r\n\r\n-- SubItem \u3092\u30C8\u30EA\u30AC\u30FC\u3067\u3064\u304B\u3080\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
       onGrab(target)\r\n    print(\"onGrab: \" .. target)\r\nend\r\n\r\n-- SubItem
       \u306E\u64CD\u4F5C\u6A29\u304C\u3042\u308B\u72B6\u614B\u3067\u3001\u30B0\u30EA\u30C3\u30D7\u3057\u3066\u4F7F\u7528\u3059\u308B\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
-      onUse(use)\r\n    if (colorIndex < #COLOR_LIST) then\r\n        colorIndex =
-      colorIndex + 1\r\n    else\r\n        colorIndex = 1\r\n    end\r\n\r\n    local
-      color = COLOR_LIST[colorIndex]\r\n    print(\"onUse: \" .. use .. \"  color
-      = \" .. tostring(color))\r\n\r\n    vci.assets._ALL_SetMaterialColorFromIndex(0,
-      color)\r\nend\r\n"
+      onUse(use)\r\n    local colorIndex = vci.state.Get(\"colorIndex\")\r\n    if
+      colorIndex == nil then\r\n        colorIndex = 1\r\n    end\r\n    colorIndex
+      = colorIndex % #COLOR_LIST + 1\r\n    vci.state.Set(\"colorIndex\", colorIndex)\r\n\r\n
+      \   local color = COLOR_LIST[colorIndex]\r\n    print(\"onUse: \" .. use ..
+      \"    colorIndex=\" .. colorIndex .. \"    color=\" .. tostring(color))\r\n\r\n
+      \   vci.assets._ALL_SetMaterialColorFromIndex(0, color)\r\nend\r\n"
 --- !u!54 &1380032257
 Rigidbody:
   m_ObjectHideFlags: 0
