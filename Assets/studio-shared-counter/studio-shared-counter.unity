@@ -301,7 +301,7 @@ MonoBehaviour:
     contactInformation: 
     reference: 
     thumbnail: {fileID: 2800000, guid: 171cd3115590f0c4caad60a161814cee, type: 3}
-    version: 0.0.1
+    version: 0.0.2
     description: "\u5171\u6709\u5909\u6570\u306E\u5B9F\u9A13\u7528\u30A2\u30A4\u30C6\u30E0\u3067\u3059\u3002\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)"
     exporterVersion: 0.17
     specVersion: 
@@ -319,21 +319,21 @@ MonoBehaviour:
     source: "----------------------------------------------------------------\r\n--
       \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\n\r\nlocal
       SHARED_COUNTER_NAME = \"com.github.oocytanb.cytanb-tso-collab.studio-shared-counter\"\r\n\r\nlocal
-      initialTime = vci.me.Time\r\nlocal itemInitialized = false\r\n\r\nfunction setCounterUV(counter)\r\n
+      lastUpdateTime = vci.me.Time\r\nlocal lastCounter = -1\r\n\r\nfunction setCounterUV(counter)\r\n
       \   -- 0 \uFF5E 9 \u307E\u3067\u306E UV \u5EA7\u6A19\u3092\u8A2D\u5B9A\u3059\u308B\u3002\r\n
       \   local x = (counter % 10) / 10.0\r\n    local offset = Vector2.__new(x, 0)\r\n
       \   vci.assets._ALL_SetMaterialTextureOffsetFromIndex(0, offset)\r\nend\r\n\r\nfunction
-      update()\r\n    -- \u521D\u671F\u51E6\u7406\u3092\u9045\u5EF6\u3055\u305B\u308B\r\n
-      \   if not itemInitialized and (vci.me.Time - initialTime).TotalSeconds >= 1
-      then\r\n        initialTime = vci.me.Time\r\n        local counter = vci.studio.shared.Get(SHARED_COUNTER_NAME)\r\n
-      \       if counter ~= nil then\r\n            print(\"initial counter: \" ..
-      counter)\r\n            itemInitialized = true\r\n            setCounterUV(counter)\r\n
-      \       end\r\n    end\r\nend\r\n\r\n-- SubItem \u3092\u30C8\u30EA\u30AC\u30FC\u3067\u3064\u304B\u3080\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
+      update()\r\n    local currentTime = vci.me.Time\r\n    if (currentTime - lastUpdateTime).TotalSeconds
+      >= 1 then\r\n        lastUpdateTime = currentTime\r\n        local counter =
+      vci.studio.shared.Get(SHARED_COUNTER_NAME)\r\n        if counter ~= nil and
+      counter ~= lastCounter then\r\n            print(\"update counter: \" .. counter)\r\n
+      \           lastCounter = counter\r\n            setCounterUV(counter)\r\n        end\r\n
+      \   end\r\nend\r\n\r\n-- SubItem \u3092\u30C8\u30EA\u30AC\u30FC\u3067\u3064\u304B\u3080\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
       onGrab(target)\r\n    print(\"onGrab: \" .. target)\r\nend\r\n\r\n-- SubItem
       \u306E\u64CD\u4F5C\u6A29\u304C\u3042\u308B\u72B6\u614B\u3067\u3001\u30B0\u30EA\u30C3\u30D7\u3057\u3066\u4F7F\u7528\u3059\u308B\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
       onUse(use)\r\n    local counter = (vci.studio.shared.Get(SHARED_COUNTER_NAME)
-      or 0) + 1\r\n    itemInitialized = true\r\n\r\n    print(\"onUse: \" .. use
-      .. \"    counter=\" .. counter)\r\n    vci.studio.shared.Set(SHARED_COUNTER_NAME,
+      or 0) + 1\r\n    print(\"onUse: \" .. use .. \"    counter=\" .. counter)\r\n
+      \   lastUpdateTime = vci.me.Time\r\n    lastCounter = counter\r\n    vci.studio.shared.Set(SHARED_COUNTER_NAME,
       counter)\r\n    setCounterUV(counter)\r\nend\r\n"
 --- !u!1 &1650073607
 GameObject:
