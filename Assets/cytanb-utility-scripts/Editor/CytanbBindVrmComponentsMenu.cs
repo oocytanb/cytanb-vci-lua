@@ -14,7 +14,8 @@ namespace cytanb
 {
     public static class CytanbBindVrmComponentsMenu
     {
-        const string MENU_ITEM_KEY = "Cytanb/Bind VRM Components";
+        const string ACTION_NAME = "Bind VRM Components";
+        const string MENU_ITEM_KEY = "Cytanb/" + ACTION_NAME;
 
         [MenuItem(MENU_ITEM_KEY, true)]
         static bool ValidatBindVrmComponentsMenu()
@@ -41,6 +42,8 @@ namespace cytanb
 
             try
             {
+                var groupId = Undo.GetCurrentGroup();
+
                 var root = Selection.activeObject as GameObject;
                 if (!root)
                 {
@@ -55,27 +58,44 @@ namespace cytanb
                     longMsg += msg + "\n";
                 }
 
+                
+                Undo.RecordObject(root, ACTION_NAME);
+
                 var gltf = new glTF();
 
                 // Meta
-                VRMMetaObject meta = null;
+                SerializedObject serMeta = null;
 #if true
                 // refer MetaObject of prefab
                 if (prefab)
                 {
                     var prefabComponent = prefab.GetComponent<VRMMeta>();
-                    if (prefabComponent)
+                    if (prefabComponent && prefabComponent.Meta)
                     {
-                        meta = prefabComponent.Meta;
-                        meta.Thumbnail = ResolveThumbnail(prefabComponent.Meta.Thumbnail, prefab);
+                        serMeta = new SerializedObject(prefabComponent.Meta);
+                        var targetThumbnail = ResolveThumbnail(prefabComponent.Meta.Thumbnail, prefab);
+                        if (targetThumbnail != prefabComponent.Meta.Thumbnail)
+                        {
+                            var serThumbnail = serMeta.FindProperty("Thumbnail");
+                            serThumbnail.objectReferenceValue = targetThumbnail;
+                            serMeta.ApplyModifiedProperties();
+
+                            var msg = "[OK] VRM Meta thumbnail was replaced.";
+                            longMsg += msg + "\n";
+                            Debug.Log(msg);
+                        }
                     }
                 }
+
 #else
                 // generate MetaObject (deprecated)
-                meta = ScriptableObject.CreateInstance<VRMMetaObject>();
-                meta.name = "Meta";
-                meta.ExporterVersion = gltf.extensions.VRM.exporterVersion;
-                meta.Title = root.name;
+                {
+                    var meta = ScriptableObject.CreateInstance<VRMMetaObject>();
+                    meta.name = "Meta";
+                    meta.ExporterVersion = gltf.extensions.VRM.exporterVersion;
+                    meta.Title = root.name;
+                    serMeta = new SerializedObject(meta);
+                }
 #endif
 
                 var metaComponent = root.GetComponent<VRMMeta>();
@@ -89,12 +109,12 @@ namespace cytanb
                 {
                     if (!metaComponent)
                     {
-                        metaComponent = root.AddComponent<VRMMeta>();
+                        metaComponent = Undo.AddComponent<VRMMeta>(root);
                     }
 
-                    if (meta)
+                    if (serMeta != null)
                     {
-                        metaComponent.Meta = meta;
+                        metaComponent.Meta = (VRMMetaObject) serMeta.targetObject;
 
                         var msg = "[OK] VRM Meta component was bound.";
                         longMsg += msg + "\n";
@@ -143,12 +163,16 @@ namespace cytanb
                 {
                     if (!blendShapeAvatarComponent)
                     {
-                        blendShapeAvatarComponent = root.AddComponent<VRMBlendShapeProxy>();
+                        blendShapeAvatarComponent = Undo.AddComponent<VRMBlendShapeProxy>(root);
                     }
 
                     if (blendShapeAvatar)
                     {
-                        blendShapeAvatarComponent.BlendShapeAvatar = blendShapeAvatar;
+                        var serBlendShapeAvatarComponent = new SerializedObject(blendShapeAvatarComponent);
+                        var serBlendShapeAvatar = serBlendShapeAvatarComponent.FindProperty("BlendShapeAvatar");
+                        serBlendShapeAvatar.objectReferenceValue = blendShapeAvatar;
+                        serBlendShapeAvatarComponent.ApplyModifiedProperties();
+
                         var msg = "[OK] VRM Blend Shape Proxy component was bound.";
                         longMsg += msg + "\n";
                         Debug.Log(msg);
@@ -198,7 +222,11 @@ namespace cytanb
                         longMsg += msg + "\n";
                         Debug.LogWarning(msg);
                     }
+
+                    Undo.RegisterCreatedObjectUndo(secondary, ACTION_NAME);
                 }
+
+                Undo.CollapseUndoOperations(groupId);
             }
             catch (Exception e)
             {
