@@ -6,9 +6,9 @@
 
 カラーパーターンを生成するためのスクリプトです。
 
-## VRMBindExtComponentsMenu
+## CytanbBindVrmComponentsMenu
 
-「外部のモデリングツールで修正 -> VRM へエクスポート」にかかる手順を、なるべく減らすためのスクリプトです。
+「外部のモデリングツールで修正 -> VRM へエクスポート」にかかる手順を、簡略化するためのスクリプトです。
 
 **このスクリプトは、公式で案内されている手順とは、異なる方法で VRM を出力しますので、正しい結果を得られない可能性があります。よく理解されている方のみお使いください。**
 
@@ -18,7 +18,7 @@
 
 1. 完成した VRM ファイルを、`[ルートオブジェクト名]-normalized.vrm` としてインポートします。
 
-1. シーンに外部のモデリングツールで作成したオブジェクトを配置し、`VRM > UniVRM - [Version] > Bind ExtComponents` を実行します。
+1. シーンに外部のモデリングツールで作成したオブジェクトを配置し、`Cytanb > Bind VRM Components` を実行します。
 
 1. すると、prefab の情報を利用して、VRM 用のコンポーネントが追加されます。
 (VRM Meta, VRM Blend Shape Proxy, secondary オブジェクト & VRM Spring Bone

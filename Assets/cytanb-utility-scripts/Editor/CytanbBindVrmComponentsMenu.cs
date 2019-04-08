@@ -4,6 +4,7 @@
  */
 
 using System;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UniGLTF;
@@ -11,12 +12,12 @@ using VRM;
 
 namespace cytanb
 {
-    public static class VRMBindExtComponentsMenu
+    public static class CytanbBindVrmComponentsMenu
     {
-        const string MENU_ITEM_KEY = VRMVersion.MENU + "/Bind ExtComponents";
+        const string MENU_ITEM_KEY = "Cytanb/Bind VRM Components";
 
         [MenuItem(MENU_ITEM_KEY, true)]
-        static bool ValidatBindExtComponentsMenu()
+        static bool ValidatBindVrmComponentsMenu()
         {
             var root = Selection.activeObject as GameObject;
             if (!root)
@@ -34,7 +35,7 @@ namespace cytanb
         }
 
         [MenuItem(MENU_ITEM_KEY, false)]
-        static void BindExtComponentsMenu()
+        static void BindVrmComponentsMenu()
         {
             var longMsg = "";
 
@@ -47,17 +48,10 @@ namespace cytanb
                     return;
                 }
 
-                GameObject prefab = null;
-                var prefabName = root.name + "-normalized";
-                foreach (var guid in AssetDatabase.FindAssets("t:prefab " + prefabName))
-                {
-                    prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
-                    break;
-                }
-
+                var prefab = ResolvePrefab(root.name);
                 if (!prefab)
                 {
-                    var msg = "[Warning] " + prefabName + ".prefab was not found.";
+                    var msg = "[Warning] " + prefab.name + ".prefab was not found.";
                     longMsg += msg + "\n";
                 }
 
@@ -73,6 +67,7 @@ namespace cytanb
                     if (prefabComponent)
                     {
                         meta = prefabComponent.Meta;
+                        meta.Thumbnail = ResolveThumbnail(prefabComponent.Meta.Thumbnail, prefab);
                     }
                 }
 #else
@@ -211,11 +206,130 @@ namespace cytanb
                 Debug.LogException(e);
             }
 
-            if (!String.IsNullOrEmpty(longMsg))
+            if (!string.IsNullOrEmpty(longMsg))
             {
                 var assembly = typeof(UnityEditor.EditorWindow).Assembly;
                 EditorWindow.GetWindow(assembly.GetType("UnityEditor.ProjectBrowser")).ShowNotification(new GUIContent(longMsg));
             }
+        }
+
+        private static GameObject ResolvePrefab(string rootObjectName)
+        {
+            string prefabSearchName = rootObjectName + "-normalized";
+            foreach (var guid in AssetDatabase.FindAssets("t:prefab " + prefabSearchName))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                if (string.IsNullOrEmpty(path))
+                {
+                    continue;
+                }
+
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (prefab && !string.IsNullOrEmpty(prefab.name) && prefabSearchName.ToLower().Equals(prefab.name.ToLower()))
+                {
+                    return prefab;
+                }
+            }
+            return null;
+        }
+
+        private static Texture2D ResolveThumbnail(Texture2D thumbnail, GameObject prefab)
+        {
+            if (!thumbnail || string.IsNullOrEmpty(thumbnail.name))
+            {
+                return thumbnail;
+            }
+
+            if (!prefab)
+            {
+                return thumbnail;
+            }
+
+            string prefabPath = AssetDatabase.GetAssetPath(prefab);
+            if (string.IsNullOrEmpty(prefabPath))
+            {
+                return thumbnail;
+            }
+
+            string prefabTextureDir = Path.Combine(Path.GetDirectoryName(prefabPath), prefab.name + ".Textures");
+
+            string thumbnailPath = AssetDatabase.GetAssetPath(thumbnail);
+            if (string.IsNullOrEmpty(thumbnailPath))
+            {
+                return thumbnail;
+            }
+
+            string thumbnailDir = Path.GetDirectoryName(thumbnailPath);
+            string thumbnailFileName = Path.GetFileName(thumbnailPath);
+            if (thumbnailDir != prefabTextureDir)
+            {
+                return thumbnail;
+            }
+
+            foreach (var guid in AssetDatabase.FindAssets("t:Texture2D " + thumbnail.name))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                string dir = Path.GetDirectoryName(path);
+                string fileName = Path.GetFileName(path);
+                if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(dir) || path == thumbnailPath || fileName != thumbnailFileName)
+                {
+                    continue;
+                }
+
+                var targetThumbnail = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+                if (!targetThumbnail) {
+                    continue;
+                }
+                
+                if (targetThumbnail.imageContentsHash.Equals(thumbnail.imageContentsHash) || IsSameFacility(dir, thumbnailDir))
+                {
+                    // matched
+                    return targetThumbnail;
+                }
+            }
+
+            return thumbnail;
+        }
+
+        private static bool IsSameFacility(string dir1, string dir2)
+        {
+            if (dir1 == dir2)
+            {
+                return true;
+            }
+
+            if (string.IsNullOrEmpty(dir1) || string.IsNullOrEmpty(dir2))
+            {
+                return false;
+            }
+
+            string shortDir, longDir;
+            if (dir1.Length < dir2.Length)
+            {
+                shortDir = dir1;
+                longDir = dir2;
+            }
+            else
+            {
+                shortDir = dir2;
+                longDir = dir1;
+            }
+
+            string shortParentDir = Path.GetDirectoryName(shortDir);
+            if (string.IsNullOrEmpty(shortParentDir))
+            {
+                // need parent directory
+                return false;
+            }
+
+            string longParentDir = Path.GetDirectoryName(longDir);
+            if (string.IsNullOrEmpty(longParentDir))
+            {
+                // need parent directory
+                return false;
+            }
+
+            return IsSameFacility(shortDir, longParentDir);
         }
     }
 }
