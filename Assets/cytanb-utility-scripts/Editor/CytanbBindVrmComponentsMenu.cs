@@ -3,7 +3,6 @@
  * MIT Licensed
  */
 
-using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -35,7 +34,7 @@ namespace cytanb
             return true;
         }
 
-        [MenuItem(MENU_ITEM_KEY, false)]
+        [MenuItem(MENU_ITEM_KEY, false, 1)]
         static void BindVrmComponentsMenu()
         {
             var longMsg = "";
@@ -54,7 +53,7 @@ namespace cytanb
                 var prefab = ResolvePrefab(root.name);
                 if (!prefab)
                 {
-                    var msg = "[Warning] " + prefab.name + ".prefab was not found.";
+                    var msg = "[Warning] " + root.name + ".prefab was not found.";
                     longMsg += msg + "\n";
                 }
 
@@ -228,7 +227,7 @@ namespace cytanb
 
                 Undo.CollapseUndoOperations(groupId);
             }
-            catch (Exception e)
+            catch (System.Exception e)
             {
                 longMsg += "Failed to bind components: Unsupported operation.";
                 Debug.LogException(e);

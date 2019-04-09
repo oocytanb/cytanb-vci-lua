@@ -11,8 +11,8 @@ function setup () {
   const HEIGHT = 1024
 
   const HUE_SAMPLES = 16
-  const LIGHTNESS_SAMPLES = 16
-  const SATURATION = 100.0
+  const SATURATION_SAMPLES = 16
+  const BASE_VALUE = 100.0
 
   const APPEND_GRAYSCALE = true
 
@@ -25,12 +25,12 @@ function setup () {
 
   const hueN = Math.max(Math.min(HUE_SAMPLES | 0, canvasWidth), 1)
   const toneN = APPEND_GRAYSCALE ? hueN - 1 : hueN
-  const lightnessN = Math.max(Math.min(LIGHTNESS_SAMPLES | 0, canvasHeight), 1)
-  const saturation = Math.max(Math.min(SATURATION, 100.0), 0)
+  const saturationN = Math.max(Math.min(SATURATION_SAMPLES | 0, canvasHeight), 1)
+  const baseValue = Math.max(Math.min(BASE_VALUE, 100.0), 0)
 
   createCanvas(canvasWidth, canvasHeight)
   background(255)
-  colorMode(HSL)
+  colorMode(HSB)
   noStroke()
 
   //
@@ -44,11 +44,11 @@ function setup () {
     let h = 360.0 * hi / toneN
 
     y = 0
-    for (let li = 0; li < lightnessN; ++li) {
-      nextY = Math.round(canvasHeight * (li + 1) / lightnessN)
-      let l = 50.0 + 50.0 * li / lightnessN
+    for (let si = 0; si < saturationN; ++si) {
+      nextY = Math.round(canvasHeight * (si + 1) / saturationN)
+      let s = 100.0 * (1.0 - si / saturationN)
 
-      fill(h, saturation, l)
+      fill(h, s, baseValue)
       rect(x, y, nextX - x, nextY - y)
 
       y = nextY
@@ -60,13 +60,11 @@ function setup () {
   if (APPEND_GRAYSCALE) {
     nextX = canvasWidth
     y = 0
-    for (let li = 0; li < lightnessN; ++li) {
-      nextY = Math.round(canvasHeight * (li + 1) / lightnessN)
-      let l = 100.0 * li / (lightnessN - 1)
-      let s = 0.0
-      let h = 0.0
+    for (let vi = 0; vi < saturationN; ++vi) {
+      nextY = Math.round(canvasHeight * (vi + 1) / saturationN)
+      let v = 100.0 * vi / (saturationN - 1)
 
-      fill(h, s, l)
+      fill(0.0, 0.0, v)
       rect(x, y, nextX - x, nextY - y)
 
       y = nextY
