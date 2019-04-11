@@ -14,7 +14,7 @@ function setup () {
   const SATURATION_SAMPLES = 16
   const BASE_VALUE = 100.0
 
-  const APPEND_GRAYSCALE = true
+  const OMIT_GRAYSCALE = false
 
   const canvasWidth = WIDTH | 0
   const canvasHeight = HEIGHT | 0
@@ -24,7 +24,7 @@ function setup () {
   }
 
   const hueN = Math.max(Math.min(HUE_SAMPLES | 0, canvasWidth), 1)
-  const toneN = APPEND_GRAYSCALE ? hueN - 1 : hueN
+  const toneN = OMIT_GRAYSCALE ? hueN : hueN - 1
   const saturationN = Math.max(Math.min(SATURATION_SAMPLES | 0, canvasHeight), 1)
   const baseValue = Math.max(Math.min(BASE_VALUE, 100.0), 0)
 
@@ -41,12 +41,12 @@ function setup () {
 
   for (let hi = 0; hi < toneN; ++hi) {
     nextX = Math.round(canvasWidth * (hi + 1) / hueN)
-    let h = 360.0 * hi / toneN
+    const h = 360.0 * hi / toneN
 
     y = 0
     for (let si = 0; si < saturationN; ++si) {
       nextY = Math.round(canvasHeight * (si + 1) / saturationN)
-      let s = 100.0 * (1.0 - si / saturationN)
+      const s = 100.0 * (1.0 - si / saturationN)
 
       fill(h, s, baseValue)
       rect(x, y, nextX - x, nextY - y)
@@ -57,12 +57,12 @@ function setup () {
   }
 
   //
-  if (APPEND_GRAYSCALE) {
+  if (!OMIT_GRAYSCALE) {
     nextX = canvasWidth
     y = 0
     for (let vi = 0; vi < saturationN; ++vi) {
       nextY = Math.round(canvasHeight * (vi + 1) / saturationN)
-      let v = 100.0 * vi / (saturationN - 1)
+      const v = baseValue * vi / (saturationN - 1)
 
       fill(0.0, 0.0, v)
       rect(x, y, nextX - x, nextY - y)

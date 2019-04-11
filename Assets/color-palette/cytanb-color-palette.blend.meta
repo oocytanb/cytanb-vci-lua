@@ -15,6 +15,13 @@ ModelImporter:
     100018: current-color
     100020: palette-colors
     100022: current-color_001
+    100024: brightness-switch
+    100026: collision-switch
+    100028: dummy-color
+    100030: brightness-switch-panel
+    100032: collision-switch-panel
+    100034: picker-switch
+    100036: picker-switch-panel
     400000: color-index-0
     400002: color-index-1
     400004: //RootNode
@@ -27,11 +34,26 @@ ModelImporter:
     400018: current-color
     400020: palette-colors
     400022: current-color_001
+    400024: brightness-switch
+    400026: collision-switch
+    400028: dummy-color
+    400030: brightness-switch-panel
+    400032: collision-switch-panel
+    400034: picker-switch
+    400036: picker-switch-panel
     2100000: color-index-mat
     2100002: color-palette-mat__color-palette-tex_png
     2100004: color-palette-mat
     2100006: current-color-mat
     2100008: current-color-mat__color-palette-tex_png
+    2100010: collision-switch-mat__color-palette-tex_png
+    2100012: brightness-switch-mat__color-palette-tex_png
+    2100014: picker-switch-mat__color-palette-tex_png
+    2100016: color-palette-matT__color-palette-tex_png
+    2100018: current-color-matT
+    2100020: color-index-matT
+    2100022: brightness-switch-matT__color-palette-tex_png
+    2100024: palette-base__color-palette-tex_png
     2300000: color-index-0
     2300002: color-index-1
     2300004: palette-body
@@ -43,6 +65,13 @@ ModelImporter:
     2300016: current-color
     2300018: palette-colors
     2300020: current-color_001
+    2300022: brightness-switch
+    2300024: collision-switch
+    2300026: dummy-color
+    2300028: brightness-switch-panel
+    2300030: collision-switch-panel
+    2300032: picker-switch
+    2300034: picker-switch-panel
     3300000: color-index-0
     3300002: color-index-1
     3300004: palette-body
@@ -54,6 +83,13 @@ ModelImporter:
     3300016: current-color
     3300018: palette-colors
     3300020: current-color_001
+    3300022: brightness-switch
+    3300024: collision-switch
+    3300026: dummy-color
+    3300028: brightness-switch-panel
+    3300030: collision-switch-panel
+    3300032: picker-switch
+    3300034: picker-switch-panel
     4300000: color-index-1
     4300002: color-index-0
     4300004: palette-body
@@ -65,9 +101,31 @@ ModelImporter:
     4300016: current-color
     4300018: palette-colors
     4300020: current-color_001
+    4300022: dummy-color
+    4300024: brightness-switch
+    4300026: collision-switch
+    4300028: brightness-switch-panel
+    4300030: collision-switch-panel
+    4300032: picker-switch
+    4300034: picker-switch-panel
     7400000: Default Take
     9500000: //RootNode
   externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: brightness-switch-matT__color-palette-tex_png
+    second: {fileID: 2100000, guid: 18aff4083889b1846994ebb2bcb2bdc3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: brightness-switch-mat__color-palette-tex_png
+    second: {fileID: 2100000, guid: 18aff4083889b1846994ebb2bcb2bdc3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: collision-switch-mat__color-palette-tex_png
+    second: {fileID: 2100000, guid: e6165ad02ee0c944795f507e60f79877, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -76,13 +134,28 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: color-palette-matT__color-palette-tex_png
+    second: {fileID: 2100000, guid: 0008257edf95e784084d546ec3253b97, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: color-palette-mat__color-palette-tex_png
-    second: {fileID: 2100000, guid: 0e0239e4e01030646ac5a9d763363e40, type: 2}
+    second: {fileID: 2100000, guid: 0008257edf95e784084d546ec3253b97, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: current-color-mat
     second: {fileID: 2100000, guid: 66746d91456ee41409f945f10d7c03d3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: palette-base__color-palette-tex_png
+    second: {fileID: 2100000, guid: fac96ee6047401f4ba1c6fd334d7ab27, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: picker-switch-mat__color-palette-tex_png
+    second: {fileID: 2100000, guid: c3f8b1c2e6e5209438320a19ab5db6a7, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
