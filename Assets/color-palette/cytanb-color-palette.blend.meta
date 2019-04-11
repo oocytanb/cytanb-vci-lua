@@ -13,6 +13,8 @@ ModelImporter:
     100014: palette-base
     100016: palette-base_001
     100018: current-color
+    100020: palette-colors
+    100022: current-color_001
     400000: color-index-0
     400002: color-index-1
     400004: //RootNode
@@ -23,10 +25,13 @@ ModelImporter:
     400014: palette-base
     400016: palette-base_001
     400018: current-color
+    400020: palette-colors
+    400022: current-color_001
     2100000: color-index-mat
     2100002: color-palette-mat__color-palette-tex_png
     2100004: color-palette-mat
     2100006: current-color-mat
+    2100008: current-color-mat__color-palette-tex_png
     2300000: color-index-0
     2300002: color-index-1
     2300004: palette-body
@@ -36,6 +41,8 @@ ModelImporter:
     2300012: palette-base
     2300014: palette-base_001
     2300016: current-color
+    2300018: palette-colors
+    2300020: current-color_001
     3300000: color-index-0
     3300002: color-index-1
     3300004: palette-body
@@ -45,6 +52,8 @@ ModelImporter:
     3300012: palette-base
     3300014: palette-base_001
     3300016: current-color
+    3300018: palette-colors
+    3300020: current-color_001
     4300000: color-index-1
     4300002: color-index-0
     4300004: palette-body
@@ -54,6 +63,8 @@ ModelImporter:
     4300012: palette-base
     4300014: palette-base_001
     4300016: current-color
+    4300018: palette-colors
+    4300020: current-color_001
     7400000: Default Take
     9500000: //RootNode
   externalObjects:

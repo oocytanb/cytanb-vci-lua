@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: current-color-mat
+  m_Name: small-chalk-mat
   m_Shader: {fileID: 4800000, guid: 8c17b56f4bf084c47872edcb95237e4a, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -63,7 +63,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0
+    - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
@@ -76,5 +76,5 @@ Material:
     - _VColBlendMode: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.5019608, g: 0.3764706, b: 0.1254902, a: 1}
-    - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
+    - _Color: {r: 0.90588236, g: 0.90588236, b: 0.90588236, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

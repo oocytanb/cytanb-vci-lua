@@ -126,7 +126,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 1
+      value: 1.1
       objectReference: {fileID: 0}
     - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
       propertyPath: m_LocalPosition.z
@@ -162,7 +162,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1103079979861700, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
       propertyPath: m_Name
-      value: cytanb-color-picker-large-chalk
+      value: large-chalk#cytanb-color-picker
       objectReference: {fileID: 0}
     - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
       propertyPath: m_LocalScale.x
@@ -209,9 +209,9 @@ MonoBehaviour:
     contactInformation: 
     reference: 
     thumbnail: {fileID: 2800000, guid: 419c26b2665bf5344a45e42e99786e83, type: 3}
-    version: 0.0.1
+    version: 0.1.0
     description: "\u8272\u3092\u5909\u66F4\u3067\u304D\u308B\u30C1\u30E7\u30FC\u30AF\u3067\u3059\u3002\n\u5225\u30A2\u30A4\u30C6\u30E0\u306E
-      cytanb-color-palette \u3068\u9023\u52D5\u3055\u305B\u3066\u4F7F\u7528\u3057\u307E\u3059\u3002\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)"
+      cytanb-color-palette \u3068\u9023\u52D5\u3055\u305B\u308B VCI \u306E\u30B5\u30F3\u30D7\u30EB\u3067\u3059\u3002\n\u8272\u3092\u5909\u66F4\u3059\u308B\u4EE5\u5916\u306E\u6A5F\u80FD\u306F\u3042\u308A\u307E\u305B\u3093\u3002\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)"
     exporterVersion: 0.17
     specVersion: 
     modelDataLicenseType: 8
@@ -227,14 +227,15 @@ MonoBehaviour:
     targetEngine: 0
     source: "----------------------------------------------------------------\r\n--
       \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\n\r\nlocal
-      ITEM_MATERIAL_TABLE = {\r\n    [\"cytanb-color-picker-large-chalk\"] = \"large-chalk-mat\",\r\n
-      \   [\"cytanb-color-picker-middle-chalk\"] = \"middle-chalk-mat\"\r\n}\r\n\r\n---
-      ARGB 32 bit \u5024\u304B\u3089\u3001Color \u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3078\u5909\u63DB\u3059\u308B\u3002\r\nfunction
+      ITEM_MATERIAL_TABLE = {\r\n    [\"large-chalk#cytanb-color-picker\"] = \"large-chalk-mat\",\r\n
+      \   [\"middle-chalk#cytanb-color-picker\"] = \"middle-chalk-mat\",\r\n    [\"small-chalk#cytanb-color-picker\"]
+      = \"small-chalk-mat\"\r\n}\r\n\r\n--- ARGB 32 bit \u5024\u304B\u3089\u3001Color
+      \u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3078\u5909\u63DB\u3059\u308B\u3002\r\nfunction
       cytanbColorFromARGB32(argb32)\r\n    local n = (type(argb32) == \"number\")
-      and argb32 or 0xFF000000\r\n    local a = bit32.band(bit32.rshift(n, 24), 0xFF)
-      / 0xFF\r\n    local r = bit32.band(bit32.rshift(n, 16), 0xFF) / 0xFF\r\n    local
-      g = bit32.band(bit32.rshift(n, 8), 0xFF) / 0xFF\r\n    local b = bit32.band(n,
-      0xFF) / 0xFF\r\n    return Color.__new(r, g, b, a);\r\nend\r\n\r\n-- \u30B0\u30EA\u30C3\u30D7\u3057\u3066\u30A2\u30A4\u30C6\u30E0\u3092\u4F7F\u7528\u3059\u308B\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
+      and argb32 or 0xFF000000\r\n    return Color.__new(\r\n        bit32.band(bit32.rshift(n,
+      16), 0xFF) / 0xFF,\r\n        bit32.band(bit32.rshift(n, 8), 0xFF) / 0xFF,\r\n
+      \       bit32.band(n, 0xFF) / 0xFF,\r\n        bit32.band(bit32.rshift(n, 24),
+      0xFF) / 0xFF\r\n    )\r\nend\r\n\r\n-- \u30B0\u30EA\u30C3\u30D7\u3057\u3066\u30A2\u30A4\u30C6\u30E0\u3092\u4F7F\u7528\u3059\u308B\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
       onUse(use)\r\n    local color = cytanbColorFromARGB32(vci.studio.shared.Get(\"com.github.oocytanb.cytanb-tso-collab.color-palette.argb32\"))\r\n
       \   print(\"onUse: \" .. use .. \"    color: \" .. tostring(color))\r\n    local
       material = ITEM_MATERIAL_TABLE[use]\r\n    if material then\r\n        vci.assets._ALL_SetMaterialColorFromName(material,
@@ -251,6 +252,7 @@ Transform:
   m_Children:
   - {fileID: 1458778849}
   - {fileID: 2108253068}
+  - {fileID: 853906646}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -320,6 +322,69 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1001 &561146052
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 334311412}
+    m_Modifications:
+    - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: -0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_LocalScale.y
+      value: 0.12
+      objectReference: {fileID: 0}
+    - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_LocalScale.z
+      value: 0.02
+      objectReference: {fileID: 0}
+    - target: {fileID: 1103079979861700, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_Name
+      value: small-chalk#cytanb-color-picker
+      objectReference: {fileID: 0}
+    - target: {fileID: 23385422088022066, guid: 218ae469475096e48b321d4aa7b1350e,
+        type: 2}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 282624a4b43cd03488d54d8fa9c6032d, type: 2}
+    - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_LocalScale.x
+      value: 0.02
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+  m_IsPrefabAsset: 0
 --- !u!1 &628318284
 GameObject:
   m_ObjectHideFlags: 0
@@ -397,6 +462,131 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &853906645
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 1103079979861700, guid: 218ae469475096e48b321d4aa7b1350e,
+    type: 2}
+  m_PrefabInternal: {fileID: 561146052}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 853906646}
+  - component: {fileID: 853906651}
+  - component: {fileID: 853906650}
+  - component: {fileID: 853906649}
+  - component: {fileID: 853906648}
+  - component: {fileID: 853906647}
+  m_Layer: 0
+  m_Name: small-chalk#cytanb-color-picker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &853906646
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e,
+    type: 2}
+  m_PrefabInternal: {fileID: 561146052}
+  m_GameObject: {fileID: 853906645}
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.2, y: 0.7, z: 0}
+  m_LocalScale: {x: 0.02, y: 0.12, z: 0.02}
+  m_Children: []
+  m_Father: {fileID: 334311412}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!54 &853906647
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 54261072080180042, guid: 218ae469475096e48b321d4aa7b1350e,
+    type: 2}
+  m_PrefabInternal: {fileID: 561146052}
+  m_GameObject: {fileID: 853906645}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &853906648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 114335749960460570, guid: 218ae469475096e48b321d4aa7b1350e,
+    type: 2}
+  m_PrefabInternal: {fileID: 561146052}
+  m_GameObject: {fileID: 853906645}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed42f86ebdb20ba4597c4e753b47ee4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Grabbable: 1
+  Scalable: 1
+  UniformScaling: 0
+  GroupId: 0
+--- !u!136 &853906649
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 136111926225577432, guid: 218ae469475096e48b321d4aa7b1350e,
+    type: 2}
+  m_PrefabInternal: {fileID: 561146052}
+  m_GameObject: {fileID: 853906645}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  m_Radius: 0.5000001
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!23 &853906650
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 23385422088022066, guid: 218ae469475096e48b321d4aa7b1350e,
+    type: 2}
+  m_PrefabInternal: {fileID: 561146052}
+  m_GameObject: {fileID: 853906645}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
+  m_Materials:
+  - {fileID: 2100000, guid: 282624a4b43cd03488d54d8fa9c6032d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!33 &853906651
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 33595150738151172, guid: 218ae469475096e48b321d4aa7b1350e,
+    type: 2}
+  m_PrefabInternal: {fileID: 561146052}
+  m_GameObject: {fileID: 853906645}
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1001 &1269292365
 Prefab:
   m_ObjectHideFlags: 0
@@ -410,7 +600,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 0.8
+      value: 0.9
       objectReference: {fileID: 0}
     - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
       propertyPath: m_LocalPosition.z
@@ -434,7 +624,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
       propertyPath: m_RootOrder
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
       propertyPath: m_LocalScale.y
@@ -443,6 +633,10 @@ Prefab:
     - target: {fileID: 4824502358817642, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
       propertyPath: m_LocalScale.z
       value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 1103079979861700, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
+      propertyPath: m_Name
+      value: middle-chalk#cytanb-color-picker
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 218ae469475096e48b321d4aa7b1350e, type: 2}
@@ -462,7 +656,7 @@ GameObject:
   - component: {fileID: 1458778851}
   - component: {fileID: 1458778850}
   m_Layer: 0
-  m_Name: cytanb-color-picker-large-chalk
+  m_Name: large-chalk#cytanb-color-picker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -476,7 +670,7 @@ Transform:
   m_PrefabInternal: {fileID: 141218050}
   m_GameObject: {fileID: 1458778848}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0.2, y: 1, z: 0}
+  m_LocalPosition: {x: 0.2, y: 1.1, z: 0}
   m_LocalScale: {x: 0.08, y: 0.3, z: 0.08}
   m_Children: []
   m_Father: {fileID: 334311412}
@@ -587,7 +781,7 @@ GameObject:
   - component: {fileID: 2108253070}
   - component: {fileID: 2108253069}
   m_Layer: 0
-  m_Name: cytanb-color-picker-middle-chalk
+  m_Name: middle-chalk#cytanb-color-picker
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -601,7 +795,7 @@ Transform:
   m_PrefabInternal: {fileID: 1269292365}
   m_GameObject: {fileID: 2108253067}
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0.8, z: 0}
+  m_LocalPosition: {x: 0, y: 0.9, z: 0}
   m_LocalScale: {x: 0.05, y: 0.2, z: 0.05}
   m_Children: []
   m_Father: {fileID: 334311412}
