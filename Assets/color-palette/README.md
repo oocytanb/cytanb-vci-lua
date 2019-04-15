@@ -1,30 +1,86 @@
 # cytanb-color-palette
 
 カラーパレットのアイテムです。
-別の VCI から、選択した色の取得が可能です。
+別の VCI から、パレットで選択した色情報を、共有変数 `vci.studio.shared` あるいはメッセージ `vci.message` のいずれかの方法で取得可能です。
 
 ## パレットの色選択
-アバターの手、または名前にハッシュタグ `#cytanb-color-picker` が含まれるアイテムが、パレットに当たると、その場所の色が、共有変数に設定されます。
 
-## サンプルコード
+- アバターの手、または名前にハッシュタグ `#cytanb-color-picker` が含まれるアイテムが、パレットに当たると、その場所の色が設定されます。
+
+- パレットの左側にある `Picker` スイッチをつかんでグリップ(使用)すると、上記のコライダーに `制限する[LIMIT]/しない[ANY]` を切り換えます。
+
+- パレットの右側にある `Brightness` スイッチに触れると、パレットの明度を切り替えます。
+
+## 共有変数 `vci.studio.shared` から色情報を取得する方法 (シンプルな利用方法)
+
+サンプルコード
+
 ```
 --- ARGB 32 bit 値から、Color オブジェクトへ変換する。
 function cytanbColorFromARGB32(argb32)
-    local n = (type(argb32) == "number") and argb32 or 0xFF000000
-    return Color.__new(
-        bit32.band(bit32.rshift(n, 16), 0xFF) / 0xFF,
-        bit32.band(bit32.rshift(n, 8), 0xFF) / 0xFF,
-        bit32.band(n, 0xFF) / 0xFF,
-        bit32.band(bit32.rshift(n, 24), 0xFF) / 0xFF
-    )
+	local n = (type(argb32) == 'number') and argb32 or 0xFF000000
+	return Color.__new(
+		bit32.band(bit32.rshift(n, 16), 0xFF) / 0xFF,
+		bit32.band(bit32.rshift(n, 8), 0xFF) / 0xFF,
+		bit32.band(n, 0xFF) / 0xFF,
+		bit32.band(bit32.rshift(n, 24), 0xFF) / 0xFF
+	)
 end
 
 -- カラーパレットの共有変数から値を取得する。
-local color = cytanbColorFromARGB32(vci.studio.shared.Get("com.github.oocytanb.cytanb-tso-collab.color-palette.argb32"))
+local color = cytanbColorFromARGB32(vci.studio.shared.Get('com.github.oocytanb.cytanb-tso-collab.color-palette.argb32'))
 ```
 
 [共有変数に関する情報](https://gist.github.com/oocytanb/e35ab915f0ef9cf4f5948707f52da7af)
 
+## カラーパレットのメッセージ `vci.message` の詳細 (高度な利用方法)
+
+### メッセージの一般形式
+- メッセージ内容: パラメーターマップ (テーブル) を JSON エンコードした文字列です。
+
+- ただし、MoonSharpの `json.parse` は、負の数値が含まれているとエラーとなるため (https://github.com/xanathar/moonsharp/issues/163)、その場合はパラメーター名に '#__CYTANB_NEGATIVE_NUMBER' タグを付加し、負の数値を文字列に変換します。
+
+- パラメーターのシリアライズ / デシリアライズは、`cytanbEmitMessage` / `cytanbBindMessage` によって透過的に行われます。
+
+### カラーパレットが送出するメッセージ
+- 概要: カラーパレットの状態 (インスタンス ID、オブジェクトのトランスフォーム、選択色) を通知します。
+    パレットで新しい色が選択されたとき、および、問い合わせメッセージ 'com.github.oocytanb.cytanb-tso-collab.color-palette.query-status' を受けたときに、このメッセージを送出します。
+
+- メッセージ名: 'com.github.oocytanb.cytanb-tso-collab.color-palette.item-status'
+
+- パラメーター一覧:
+    - version: メッセージのバージョン数値。
+    - instanceId: カラーパレットのインスタンス ID 文字列。
+    - positionX, positionY, positionZ: オブジェクトの座標値。
+    - rotationX, rotationY, rotationZ, rotationW: オブジェクトの回転値。
+    - scaleX, scaleY, scaleZ: オブジェクトのスケール値。
+    - argb32: パレットで選択した色の ARGB 32 bit 値。
+
+- サンプルコード:
+    ```
+    cytanbBindMessage('com.github.oocytanb.cytanb-tso-collab.color-palette.item-status', 0x10000, function (sender, name, parameterMap)
+        -- vci.message から色情報を取得する。
+        -- 複数のパレットを区別しない場合は、色情報だけを処理するとよい。
+        local color = cytanbColorFromARGB32(parameterMap['argb32'])
+
+        -- カラーパレットのインスタンス ID や、位置によって、複数のパレットを区別する事も出来る。
+        local instanceId = parameterMap['instanceId']
+        local position = Vector3.__new(parameterMap['positionX'], parameterMap['positionY'], parameterMap['positionZ'])
+    end)
+    ```
+
+### カラーパレットが受け付けるメッセージ
+
+- 概要: カラーパレットの状態を問い合わせます。
+
+- メッセージ名: 'com.github.oocytanb.cytanb-tso-collab.color-palette.query-status'
+
+- パラメーター: なし。
+
+- サンプルコード:
+    ```
+    cytanbEmitMessage('com.github.oocytanb.cytanb-tso-collab.color-palette.query-status', 0x10000)
+    ```
 
 ## カラーパレットを使用する VCI のサンプル
-[colored-chalk](../colored-chalk/README.md)
+[colored-chalk-and-panels](../colored-chalk-and-panels/README.md)
