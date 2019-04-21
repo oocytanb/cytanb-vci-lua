@@ -39,6 +39,8 @@ Unity のプロジェクトファイルをオープンソースで公開して�
 
 - ライセンスの種類は、オープンソースライセンスのうち、現在のところ以下のいずれかから選択しています。
     - [MIT License](https://opensource.org/licenses/MIT)
+    - [ISC License](https://opensource.org/licenses/ISC)
+    - [BSD 2-Clause License](https://opensource.org/licenses/BSD-2-Clause)
     - [Apache License, Version 2.0](https://opensource.org/licenses/Apache-2.0)
     - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 

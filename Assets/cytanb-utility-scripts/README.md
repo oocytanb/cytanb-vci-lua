@@ -4,7 +4,7 @@
 
 ## lua
 
-VCI のスクリプトから利用できる LUA のモジュールです。
+VCI のスクリプトから利用できる Lua のモジュールです。
 
 ## cytanb-color-pattern
 
