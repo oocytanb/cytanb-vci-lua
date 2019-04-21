@@ -1,7 +1,7 @@
 # cytanb-color-palette
 
 カラーパレットのアイテムです。
-別の VCI から、パレットで選択した色情報を、共有変数 `vci.studio.shared` あるいはメッセージ `vci.message` のいずれかの方法で取得可能です。
+別の VCI から、パレットで選択した色情報を取得可能です。
 
 ## パレットの色選択
 
@@ -11,7 +11,7 @@
 
 - パレットの右側にある `Brightness` スイッチに触れると、パレットの明度を切り替えます。
 
-## 共有変数 `vci.studio.shared` から色情報を取得する方法 (シンプルな利用方法)
+## 共有変数 `vci.studio.shared` から色情報を取得する方法
 
 サンプルコード
 
@@ -33,7 +33,7 @@ local color = cytanbColorFromARGB32(vci.studio.shared.Get('com.github.oocytanb.c
 
 [共有変数に関する情報](https://gist.github.com/oocytanb/e35ab915f0ef9cf4f5948707f52da7af)
 
-## カラーパレットのメッセージ `vci.message` の詳細 (高度な利用方法)
+## カラーパレットのメッセージ `vci.message` の詳細 (**実験的機能 - 仕様変更される可能性があります**)
 
 ### メッセージの一般形式
 - メッセージ内容: パラメーターマップ (テーブル) を JSON エンコードした文字列です。
