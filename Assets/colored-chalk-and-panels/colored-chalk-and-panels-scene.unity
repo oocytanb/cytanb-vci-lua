@@ -359,7 +359,7 @@ MonoBehaviour:
     contactInformation: 
     reference: 
     thumbnail: {fileID: 2800000, guid: 419c26b2665bf5344a45e42e99786e83, type: 3}
-    version: 0.2.0
+    version: 0.3.0
     description: "\u8272\u3092\u5909\u66F4\u3067\u304D\u308B\u30C1\u30E7\u30FC\u30AF\u3068\u30D1\u30CD\u30EB\u3067\u3059\u3002\n\u5225\u30A2\u30A4\u30C6\u30E0\u306E
       cytanb-color-palette \u3068\u9023\u52D5\u3055\u305B\u308B VCI \u306E\u30B5\u30F3\u30D7\u30EB\u3067\u3059\u3002\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)"
     exporterVersion: 0.17
@@ -376,78 +376,58 @@ MonoBehaviour:
     mimeType: 0
     targetEngine: 0
     source: "----------------------------------------------------------------\r\n--
-      \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\n\r\nmath.randomseed(os.time())\r\n\r\n---
-      \u30ED\u30B0\u30EC\u30D9\u30EB\u3002\r\n__CYTANB_LOG_LEVEL = 500\r\n\r\n--[[--\r\n\t\u30ED\u30B0\u3092\u51FA\u529B\u3059\u308B\u3002\r\n\r\n\t@param
-      logLevel \u30ED\u30B0\u30EC\u30D9\u30EB\u3092\u6307\u5B9A\u3059\u308B\u3002`logLevel
-      <= __CYTANB_LOG_LEVEL` \u306E\u3068\u304D\u306B\u30ED\u30B0\u304C\u51FA\u529B\u3055\u308C\u308B\u3002\r\n\t@param
-      ... \u30ED\u30B0\u306B\u51FA\u529B\u3059\u308B\u4EFB\u610F\u306E\u6570\u306E\u5F15\u6570\u3092\u6307\u5B9A\u3059\u308B\u3002\r\n]]\r\nfunction
-      cytanbLog(logLevel, ...)\r\n\tif logLevel <= __CYTANB_LOG_LEVEL then\r\n\t\tlocal
-      args = table.pack(...)\r\n\t\tif args.n == 1 then\r\n\t\t\tprint(args[1] ~=
-      nil and tostring(args[1]) or '')\r\n\t\telse\r\n\t\t\tlocal str = ''\r\n\t\t\tfor
-      i = 1, args.n do\r\n\t\t\t\tif args[i] ~= nil then\r\n\t\t\t\t\tstr = str ..
-      tostring(args[i])\r\n\t\t\t\tend\r\n\t\t\tend\r\n\t\t\tprint(str)\r\n\t\tend\r\n\tend\r\nend\r\n\r\nfunction
-      cytanbFatalLog(...) cytanbLog(100, ...) end\r\nfunction cytanbErrorLog(...)
-      cytanbLog(200, ...) end\r\nfunction cytanbWarnLog(...) cytanbLog(300, ...) end\r\nfunction
-      cytanbInfoLog(...) cytanbLog(400, ...) end\r\nfunction cytanbDebugLog(...) cytanbLog(500,
-      ...) end\r\nfunction cytanbTraceLog(...) cytanbLog(600, ...) end\r\n\r\n---
-      \u6587\u5B57\u5217\u304C\u6307\u5B9A\u3057\u305F\u30D7\u30EC\u30D5\u30A3\u30C3\u30AF\u30B9\u3067\u59CB\u307E\u308B\u304B\u3092\u8ABF\u3079\u308B\u3002\r\nfunction
-      cytanbStringStartsWith(str, prefix)\r\n\tif not str or not prefix then\r\n\t\treturn
-      false\r\n\tend\r\n\r\n\tlocal prefixLen = string.len(prefix)\r\n\treturn string.len(str)
-      >= prefixLen and string.sub(str, 1, prefixLen) == prefix\r\nend\r\n\r\n--- \u6587\u5B57\u5217\u304C\u6307\u5B9A\u3057\u305F\u30B5\u30D5\u30A3\u30C3\u30AF\u30B9\u3067\u7D42\u308F\u308B\u304B\u3092\u8ABF\u3079\u308B\u3002\r\nfunction
-      cytanbStringEndsWith(str, suffix)\r\n\tif not str or not suffix then\r\n\t\treturn
-      false\r\n\tend\r\n\r\n\tlocal suffixLen = string.len(suffix)\r\n\tlocal strLen
-      = string.len(str)\r\n\treturn strLen >= suffixLen and string.sub(str, 1 + strLen
-      - suffixLen, strLen) == suffix\r\nend\r\n\r\n--- ARGB 32 bit \u5024\u304B\u3089\u3001Color
-      \u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3078\u5909\u63DB\u3059\u308B\u3002\r\nfunction
-      cytanbColorFromARGB32(argb32)\r\n\tlocal n = (type(argb32) == 'number') and
-      argb32 or 0xFF000000\r\n\treturn Color.__new(\r\n\t\tbit32.band(bit32.rshift(n,
-      16), 0xFF) / 0xFF,\r\n\t\tbit32.band(bit32.rshift(n, 8), 0xFF) / 0xFF,\r\n\t\tbit32.band(n,
-      0xFF) / 0xFF,\r\n\t\tbit32.band(bit32.rshift(n, 24), 0xFF) / 0xFF\r\n\t)\r\nend\r\n\r\n---
-      Color \u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u304B\u3089 ARGB 32 bit \u5024\u3078\u5909\u63DB\u3059\u308B\u3002\r\nfunction
-      cytanbColorToARGB32(color)\r\n\treturn bit32.bor(\r\n\t\tbit32.lshift(math.floor(255
-      * color.a + 0.5), 24),\r\n\t\tbit32.lshift(math.floor(255 * color.r + 0.5),
-      16),\r\n\t\tbit32.lshift(math.floor(255 * color.g + 0.5), 8),\r\n\t\tmath.floor(255
-      * color.b + 0.5)\r\n\t)\r\nend\r\n\r\n__CYTANB_NEGATIVE_NUMBER_TAG = '#__CYTANB_NEGATIVE_NUMBER'\r\n\r\n--[[--\r\n\t\u30D1\u30E9\u30E1\u30FC\u30BF\u30FC\u3092
-      JSON \u30A8\u30F3\u30B3\u30FC\u30C9\u3057\u3066 `vci.message.Emit` \u3059\u308B\u3002\r\n\r\n\t@param
-      name \u30E1\u30C3\u30BB\u30FC\u30B8\u540D\u3092\u6307\u5B9A\u3059\u308B\u3002\r\n\t@param
-      version \u30E1\u30C3\u30BB\u30FC\u30B8\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u6B63\u306E\u6574\u6570\u3067\u6307\u5B9A\u3059\u308B\u3002\r\n\t@param
-      instanceId VCI \u306E\u30A4\u30F3\u30B9\u30BF\u30F3\u30B9 ID \u306E\u6587\u5B57\u5217\u3092\u6307\u5B9A\u3059\u308B\u3002\u7701\u7565\u53EF\u80FD\u3002\r\n\t@param
-      parameterMap \u30D1\u30E9\u30E1\u30FC\u30BF\u30FC\u306E\u30C6\u30FC\u30D6\u30EB\u3092\u6307\u5B9A\u3059\u308B\u3002\u7701\u7565\u53EF\u80FD\u3002\r\n]]\r\nfunction
-      cytanbEmitMessage(name, version, instanceId, parameterMap)\r\n\tlocal table
-      = {\r\n\t\tversion = version,\r\n\t\tinstanceId = instanceId or ''\r\n\t}\r\n\r\n\tif
-      parameterMap then\r\n\t\tfor k, v in pairs(parameterMap) do\r\n\t\t\tif type(v)
-      == 'number' and v < 0 then\r\n\t\t\t\t-- json.parse \u304C\u8CA0\u306E\u6570\u5024\u3092\u6271\u3048\u306A\u3044\u554F\u984C\u306E\u30EF\u30FC\u30AF\u30A2\u30E9\u30A6\u30F3\u30C9\u3002\r\n\t\t\t\t--
-      https://github.com/xanathar/moonsharp/issues/163\r\n\t\t\t\ttable[k .. __CYTANB_NEGATIVE_NUMBER_TAG]
-      = tostring(v)\r\n\t\t\telse\r\n\t\t\t\ttable[k] = v\r\n\t\t\tend\r\n\t\tend\r\n\tend\r\n\r\n\tvci.message.Emit(name,
-      json.serialize(table))\r\nend\r\n\r\n--[[--\r\n\t\u30E1\u30C3\u30BB\u30FC\u30B8\u30CF\u30F3\u30C9\u30E9\u3092\u30D0\u30A4\u30F3\u30C9\u3059\u308B\u3002\r\n\r\n\t@param
-      name \u30E1\u30C3\u30BB\u30FC\u30B8\u540D\u3092\u6307\u5B9A\u3059\u308B\u3002\r\n\t@param
-      minVersion \u30E1\u30C3\u30BB\u30FC\u30B8\u306E\u6700\u5C0F\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u6307\u5B9A\u3059\u308B\u3002nil
-      \u3092\u6307\u5B9A\u3057\u305F\u5834\u5408\u306F\u3001\u30D0\u30FC\u30B8\u30E7\u30F3\u30C1\u30A7\u30C3\u30AF\u3092\u884C\u308F\u306A\u3044\u3002\r\n\t@param
-      callback Type: fun(sender, name, parameterMap) \u30B3\u30FC\u30EB\u30D0\u30C3\u30AF\u95A2\u6570\u3092\u6307\u5B9A\u3059\u308B\u3002\r\n]]\r\nfunction
-      cytanbBindMessage(name, minVersion, callback)\r\n\tlocal f = function (sender,
-      messageName, message)\r\n\t\tlocal pcallStatus, result = pcall(json.parse, message)\r\n\t\tif
-      not pcallStatus or type(result) ~= 'table' then\r\n\t\t\treturn\r\n\t\tend\r\n\r\n\t\tif
-      minVersion then\r\n\t\t\tlocal messageVersion = result['version']\r\n\t\t\tif
-      type(messageVersion) ~= 'number' or messageVersion < minVersion then\r\n\t\t\t\treturn\r\n\t\t\tend\r\n\t\tend\r\n\r\n\t\t--
-      json.parse \u304C\u8CA0\u306E\u6570\u5024\u3092\u6271\u3048\u306A\u3044\u554F\u984C\u306E\u30EF\u30FC\u30AF\u30A2\u30E9\u30A6\u30F3\u30C9\u3002\r\n\t\t--
-      https://github.com/xanathar/moonsharp/issues/163\r\n\t\tlocal parameterMap =
-      {}\r\n\t\tfor k, v in pairs(result) do\r\n\t\t\tif type(v) == 'string' and cytanbStringEndsWith(k,
-      __CYTANB_NEGATIVE_NUMBER_TAG) then\r\n\t\t\t\tparameterMap[string.sub(k, 1,
-      #k - #__CYTANB_NEGATIVE_NUMBER_TAG)] = tonumber(v)\r\n\t\t\telse\r\n\t\t\t\tparameterMap[k]
-      = v\r\n\t\t\tend\r\n\t\tend\r\n\r\n\t\tcallback(sender, messageName, parameterMap)\r\n\tend\r\n\r\n\tvci.message.On(name,
-      f)\r\n\t\r\n\treturn {\r\n\t\tUnbind = function()\r\n\t\t\tif f then\r\n\t\t\t\t--
-      Unbind \u304C\u5B9F\u88C5\u3055\u308C\u305F\u3089\u3001\u3053\u3053\u3067\u51E6\u7406\u3092\u3059\u308B\u3002\r\n\t\t\t\t--
-      vci.message.Unbind(name, f)\r\n\t\t\t\tf = nil\r\n\t\t\tend\r\n\t\tend\r\n\t}\r\nend\r\n\r\n---
-      \u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u306E\u30D1\u30C3\u30B1\u30FC\u30B8\u540D\u3002\r\nlocal
-      COLOR_PALETTE_PACKAGE_NAME = 'com.github.oocytanb.cytanb-tso-collab.color-palette'\r\n\r\n---
+      \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\ncytanb=(function()math.randomseed(os.time())local
+      a='__CYTANB_INSTANCE_ID'local b=10;local c=4;local d=4;local e=b*c*d;local f='#__CYTANB_NEGATIVE_NUMBER'local
+      g=400;local h;local cytanb={InstanceId=function()if h==''then h=vci.state.Get(a)or''end;return
+      h end,LOG_LEVEL_FATAL=100,LOG_LEVEL_ERROR=200,LOG_LEVEL_WARN=300,LOG_LEVEL_INFO=400,LOG_LEVEL_DEBUG=500,LOG_LEVEL_TRACE=600,GetLogLevel=function()return
+      g end,SetLogLevel=function(i)g=i end,Log=function(i,...)if i<=g then local j=table.pack(...)if
+      j.n==1 then print(j[1]~=nil and tostring(j[1])or'')else local k=''for l=1,j.n
+      do if j[l]~=nil then k=k..tostring(j[l])end end;print(k)end end end,FatalLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_FATAL,...)end,ErrorLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_ERROR,...)end,WarnLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_WARN,...)end,InfoLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_INFO,...)end,DebugLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_DEBUG,...)end,TraceLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_TRACE,...)end,Vars=function(m,n,o)if
+      n==nil then n=''end;if o==nil then o={}end;local p=type(m)if p=='table'then
+      o[m]=o[m]and o[m]+1 or 1;local k='('..tostring(m)..') {\\n'local q=n..'  'for
+      r,s in pairs(m)do if type(s)=='table'and o[s]and o[s]>0 then k=k..q..r..': ('..tostring(s)..')\\n'else
+      k=k..q..r..': '..cytanb.Vars(s,q,o)..'\\n'end end;k=k..n..'}'o[m]=o[m]-1;if
+      o[m]<=0 then o[m]=nil end;return k elseif p=='function'or p==\"thread\"or p==\"userdata\"then
+      return'('..p..')'elseif p=='string'then return'('..p..') '..string.format('%q',m)else
+      return'('..p..') '..tostring(m)end end,ListToDictionary=function(t,u)local table={}local
+      v=u==nil;for w,m in pairs(t)do table[m]=v and m or u end;return table end,RandomUUID=function()return{math.random(0,0xFFFFFFFF),bit32.bor(0x4000,bit32.band(math.random(0,0xFFFFFFFF),0xFFFF0FFF)),bit32.bor(0x80000000,bit32.band(math.random(0,0xFFFFFFFF),0x3FFFFFFF)),math.random(0,0xFFFFFFFF)}end,UUIDString=function(x)local
+      y=x[2]or 0;local z=x[3]or 0;return string.format('%08x-%04x-%04x-%04x-%04x%08x',bit32.band(x[1]or
+      0,0xFFFFFFFF),bit32.band(bit32.rshift(y,16),0xFFFF),bit32.band(y,0xFFFF),bit32.band(bit32.rshift(z,16),0xFFFF),bit32.band(z,0xFFFF),bit32.band(x[4]or
+      0,0xFFFFFFFF))end,ColorFromARGB32=function(A)local B=type(A)=='number'and A
+      or 0xFF000000;return Color.__new(bit32.band(bit32.rshift(B,16),0xFF)/0xFF,bit32.band(bit32.rshift(B,8),0xFF)/0xFF,bit32.band(B,0xFF)/0xFF,bit32.band(bit32.rshift(B,24),0xFF)/0xFF)end,ColorToARGB32=function(C)return
+      bit32.bor(bit32.lshift(math.floor(255*C.a+0.5),24),bit32.lshift(math.floor(255*C.r+0.5),16),bit32.lshift(math.floor(255*C.g+0.5),8),math.floor(255*C.b+0.5))end,GetDefaultHueSamples=function()return
+      b end,GetDefaultSaturationSamples=function()return c end,GetDefaultBrightnessSamples=function()return
+      d end,GetDefaultColorMapSize=function()return e end,ColorFromIndex=function(D,E,F,G,H)local
+      I=math.max(math.floor(E or b),1)local J=H and I or I-1;local K=math.max(math.floor(F
+      or c),1)local L=math.max(math.floor(G or d),1)local M=math.max(math.min(math.floor(D
+      or 0),I*K*L-1),0)local N=M%I;local O=math.floor(M/I)local P=O%K;local Q=math.floor(O/K)if
+      H or N~=J then local R=N/J;local S=(K-P)/K;local m=(L-Q)/L;return Color.HSVToRGB(R,S,m)else
+      local m=(L-Q)/L*P/(K-1)return Color.HSVToRGB(0.0,0.0,m)end end,GetSubItemTransform=function(T)local
+      U=T.GetPosition()local V=T.GetRotation()local W=T.GetLocalScale()return{positionX=U.x,positionY=U.y,positionZ=U.z,rotationX=V.x,rotationY=V.y,rotationZ=V.z,rotationW=V.w,scaleX=W.x,scaleY=W.y,scaleZ=W.z}end,TableToSerialiable=function(X)if
+      type(X)~='table'then return X end;local Y={}for w,m in pairs(X)do if type(m)=='number'and
+      m<0 then Y[w..f]=tostring(m)else Y[w]=cytanb.TableToSerialiable(m)end end;return
+      Y end,TableFromSerialiable=function(Y)if type(Y)~='table'then return Y end;local
+      X={}for w,m in pairs(Y)do if type(m)=='string'and string.endsWith(w,f)then X[string.sub(w,1,#w-#f)]=tonumber(m)else
+      X[w]=cytanb.TableFromSerialiable(m)end end;return X end,INSTANCE_ID_PARAMETER_NAME='__CYTANB_INSTANCE_ID',EmitMessage=function(Z,_)local
+      table=_ and cytanb.TableToSerialiable(_)or{}table[cytanb.INSTANCE_ID_PARAMETER_NAME]=cytanb.InstanceId()vci.message.Emit(Z,json.serialize(table))end,OnMessage=function(Z,a0)local
+      a1=function(a2,a3,a4)local _;if a4==''then _={}else local a5,Y=pcall(json.parse,a4)if
+      not a5 or type(Y)~='table'then cytanb.TraceLog('Invalid message format: ',a4)return
+      end;_=cytanb.TableFromSerialiable(Y)end;a0(a2,a3,_)end;vci.message.On(Z,a1)return{Off=function()if
+      a1 then a1=nil end end}end}if vci.assets.IsMine then h=cytanb.UUIDString(cytanb.RandomUUID())vci.state.Set(a,h)else
+      h=''end;return cytanb end)()\r\n\r\ncytanb.SetLogLevel(cytanb.LOG_LEVEL_DEBUG)\r\n\r\n---
+      \u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u306E\u5171\u6709\u5909\u6570\u306E\u540D\u524D\u7A7A\u9593\u3002\r\nlocal
+      COLOR_PALETTE_SHARED_NS = 'com.github.oocytanb.cytanb-tso-collab.color-palette'\r\n\r\n---
       \u30D1\u30EC\u30C3\u30C8\u3067\u9078\u629E\u3057\u305F\u8272\u3092\u683C\u7D0D\u3059\u308B\u5171\u6709\u5909\u6570\u540D\u3002\u5225\u306E
       VCI \u304B\u3089\u8272\u3092\u53D6\u5F97\u53EF\u80FD\u3002ARGB 32 bit \u5024\u3002\r\nlocal
-      SHARED_NAME_ARGB32 = COLOR_PALETTE_PACKAGE_NAME .. '.argb32'\r\n\r\n--- \u30E1\u30C3\u30BB\u30FC\u30B8\u30D5\u30A9\u30FC\u30DE\u30C3\u30C8\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u3002\r\nlocal
+      SHARED_NAME_ARGB32 = COLOR_PALETTE_SHARED_NS .. '.argb32'\r\n\r\n--- \u30D1\u30EC\u30C3\u30C8\u3067\u9078\u629E\u3057\u305F\u8272\u306E\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u5024\u3092\u683C\u7D0D\u3059\u308B\u5171\u6709\u5909\u6570\u540D\u3002\r\nlocal
+      SHARED_NAME_COLOR_INDEX = COLOR_PALETTE_SHARED_NS .. '.color-index'\r\n\r\n---
+      \u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u306E\u30E1\u30C3\u30BB\u30FC\u30B8\u306E\u540D\u524D\u7A7A\u9593\u3002\r\nlocal
+      COLOR_PALETTE_MESSAGE_NS = 'cytanb.color-palette'\r\n\r\n--- \u30E1\u30C3\u30BB\u30FC\u30B8\u30D5\u30A9\u30FC\u30DE\u30C3\u30C8\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u3002\r\nlocal
       MESSAGE_VERSION = 0x10000\r\n\r\n--- \u30E1\u30C3\u30BB\u30FC\u30B8\u30D5\u30A9\u30FC\u30DE\u30C3\u30C8\u306E\u6700\u5C0F\u30D0\u30FC\u30B8\u30E7\u30F3\u3002\r\nlocal
       MESSAGE_MIN_VERSION = 0x10000\r\n\r\n--- \u30A2\u30A4\u30C6\u30E0\u306E\u30B9\u30C6\u30FC\u30BF\u30B9\u3092\u554F\u3044\u5408\u308F\u305B\u308B\u30E1\u30C3\u30BB\u30FC\u30B8\u540D\u3002\r\nlocal
-      MESSAGE_NAME_QUERY_STATUS = COLOR_PALETTE_PACKAGE_NAME .. '.query-status'\r\n\r\n---
+      MESSAGE_NAME_QUERY_STATUS = COLOR_PALETTE_MESSAGE_NS .. '.query-status'\r\n\r\n---
       \u30A2\u30A4\u30C6\u30E0\u306E\u30B9\u30C6\u30FC\u30BF\u30B9\u3092\u901A\u77E5\u3059\u308B\u30E1\u30C3\u30BB\u30FC\u30B8\u540D\u3002\r\nlocal
-      MESSAGE_NAME_ITEM_STATUS = COLOR_PALETTE_PACKAGE_NAME .. '.item-status'\r\n\r\n---
+      MESSAGE_NAME_ITEM_STATUS = COLOR_PALETTE_MESSAGE_NS .. '.item-status'\r\n\r\n---
       \u30AB\u30E9\u30FC\u30D4\u30C3\u30AB\u30FC\u306E\u30BF\u30B0\u3002\r\nlocal
       COLOR_PICKER_TAG = '#cytanb-color-picker'\r\n\r\nlocal PANEL_TAG = '#panel'\r\n\r\nlocal
       COLOR_STATUS_PREFIX = 'color.'\r\n\r\nlocal AUTO_CHANGE_UNIMSG_RECEIVER_STATE_NAME
@@ -459,53 +439,53 @@ MonoBehaviour:
       = {}\r\n\t\tlocal allMaterialTable = {}\r\n\t\tlocal itemColorMap = {}\r\n\r\n\t\tlocal
       chalkMaterialTable = {}\r\n\t\tfor i, v in ipairs(chalkList) do\r\n\t\t\tlocal
       name = v .. COLOR_PICKER_TAG\r\n\t\t\tchalkMaterialTable[name] = v .. '-mat'\r\n\t\t\tallMaterialTable[name]
-      = chalkMaterialTable[name]\r\n\t\t\titemColorMap[name] = cytanbColorFromARGB32(colorList[ci])\r\n\t\t\ttable.insert(itemNameList,
+      = chalkMaterialTable[name]\r\n\t\t\titemColorMap[name] = cytanb.ColorFromARGB32(colorList[ci])\r\n\t\t\ttable.insert(itemNameList,
       name)\r\n\t\t\tci = ci + 1\r\n\t\tend\r\n\r\n\t\tlocal panelMaterialTable =
       {}\r\n\t\tfor i, v in ipairs(panelList) do\r\n\t\t\tlocal name = v .. PANEL_TAG\r\n\t\t\tpanelMaterialTable[name]
       = v .. '-panel-mat'\r\n\t\t\tallMaterialTable[name] = panelMaterialTable[name]\r\n\t\t\titemColorMap[name]
-      = cytanbColorFromARGB32(colorList[ci])\r\n\t\t\ttable.insert(itemNameList, name)\r\n\t\t\tci
-      = ci + 1\r\n\t\tend\r\n\r\n\t\treturn itemNameList, allMaterialTable, chalkMaterialTable,
-      panelMaterialTable, itemColorMap\r\n\tend\r\n)(\r\n\t{'large-chalk', 'middle-chalk',
-      'small-chalk'},\r\n\t{'shared-variable', 'unimsg-receiver', 'anymsg-receiver'},\r\n\t{0xFFE6B422,
-      0xFF65318E, 0xFFE7E7E7, 0xFF006888, 0xFF00552E, 0xFFA22041}\r\n)\r\n\r\nlocal
-      UNIMSG_RECEIVER_NAME = ITEM_NAME_LIST[5]\r\nlocal ANYMSG_RECEIVER_NAME = ITEM_NAME_LIST[6]\r\n\r\nlocal
-      UPDATE_PERIOD = TimeSpan.FromMilliseconds(100)\r\nlocal QUERY_PERIOD = TimeSpan.FromSeconds(2)\r\n\r\nlocal
-      linkPaletteCw = nil\r\n\r\nlocal function getLinkedInstanceId()\r\n\treturn
-      vci.state.Get(LINKED_PALETTE_INSTANCE_ID_STATE_NAME) or ''\r\nend\r\n\r\n--
-      \u73FE\u5728\u306E\u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u3068\u306E\u30EA\u30F3\u30AF\u3092\u89E3\u9664\u3059\u308B\r\nlocal
+      = cytanb.ColorFromARGB32(colorList[ci])\r\n\t\t\ttable.insert(itemNameList,
+      name)\r\n\t\t\tci = ci + 1\r\n\t\tend\r\n\r\n\t\treturn itemNameList, allMaterialTable,
+      chalkMaterialTable, panelMaterialTable, itemColorMap\r\n\tend\r\n)(\r\n\t{'large-chalk',
+      'middle-chalk', 'small-chalk'},\r\n\t{'shared-variable', 'unimsg-receiver',
+      'anymsg-receiver'},\r\n\t{0xFFE6B422, 0xFF65318E, 0xFFE7E7E7, 0xFF006888, 0xFF00552E,
+      0xFFA22041}\r\n)\r\n\r\nlocal UNIMSG_RECEIVER_NAME = ITEM_NAME_LIST[5]\r\nlocal
+      ANYMSG_RECEIVER_NAME = ITEM_NAME_LIST[6]\r\n\r\nlocal UPDATE_PERIOD = TimeSpan.FromMilliseconds(100)\r\nlocal
+      QUERY_PERIOD = TimeSpan.FromSeconds(2)\r\n\r\nlocal linkPaletteCw = nil\r\n\r\nlocal
+      function getLinkedInstanceId()\r\n\treturn vci.state.Get(LINKED_PALETTE_INSTANCE_ID_STATE_NAME)
+      or ''\r\nend\r\n\r\n-- \u73FE\u5728\u306E\u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u3068\u306E\u30EA\u30F3\u30AF\u3092\u89E3\u9664\u3059\u308B\r\nlocal
       function unlinkPalette()\r\n\tvci.state.Set(LINKED_PALETTE_INSTANCE_ID_STATE_NAME,
       '')\r\nend\r\n\r\nlocal function isAutoChangeUnimsgReceiver()\r\n\tlocal b =
       vci.state.Get(AUTO_CHANGE_UNIMSG_RECEIVER_STATE_NAME)\r\n\tif b == nil then\r\n\t\treturn
       false\r\n\telse\r\n\t\treturn b\r\n\tend\r\nend\r\n\r\nlocal function isAutoChangeAnymsgReceiver()\r\n\tlocal
       b = vci.state.Get(AUTO_CHANGE_ANYMSG_RECEIVER_STATE_NAME)\r\n\tif b == nil then\r\n\t\treturn
       true\r\n\telse\r\n\t\treturn b\r\n\tend\r\nend\r\n\r\nlocal function getItemColor(itemName)\r\n\treturn
-      cytanbColorFromARGB32(vci.state.Get(COLOR_STATUS_PREFIX .. itemName))\r\nend\r\n\r\nlocal
+      cytanb.ColorFromARGB32(vci.state.Get(COLOR_STATUS_PREFIX .. itemName))\r\nend\r\n\r\nlocal
       function setItemColor(itemName, color)\r\n\tvci.state.Set(COLOR_STATUS_PREFIX
-      .. itemName, cytanbColorToARGB32(color))\r\nend\r\n\r\nlocal function linkPaletteProc()\r\n\tlocal
+      .. itemName, cytanb.ColorToARGB32(color))\r\nend\r\n\r\nlocal function linkPaletteProc()\r\n\tlocal
       itemPosition = vci.assets.GetSubItem(UNIMSG_RECEIVER_NAME).GetPosition()\r\n\tlocal
       candId = ''\r\n\tlocal candPosition = nil\r\n\tlocal candDistance = nil\r\n\tlocal
-      candARGB32 = nil\r\n\r\n\tunlinkPalette()\r\n\r\n\t-- \u65B0\u3057\u3044\u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u3068\u30EA\u30F3\u30AF\u3059\u308B\u305F\u3081\u306B\u3001\u554F\u3044\u5408\u308F\u305B\u308B\r\n\tcytanbDebugLog('emitMessage:
-      ', MESSAGE_NAME_QUERY_STATUS)\r\n\tcytanbEmitMessage(MESSAGE_NAME_QUERY_STATUS,
-      MESSAGE_VERSION)\r\n\r\n\tlocal queryExpires = vci.me.Time + QUERY_PERIOD\r\n\twhile
+      candARGB32 = nil\r\n\r\n\tunlinkPalette()\r\n\r\n\t-- \u65B0\u3057\u3044\u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u3068\u30EA\u30F3\u30AF\u3059\u308B\u305F\u3081\u306B\u3001\u554F\u3044\u5408\u308F\u305B\u308B\r\n\tcytanb.DebugLog('emitMessage:
+      ', MESSAGE_NAME_QUERY_STATUS)\r\n\tcytanb.EmitMessage(MESSAGE_NAME_QUERY_STATUS,
+      {version = MESSAGE_VERSION})\r\n\r\n\tlocal queryExpires = vci.me.Time + QUERY_PERIOD\r\n\twhile
       true do\r\n\t\tlocal cont, parameterMap = coroutine.yield(100)\r\n\t\tif not
-      cont then\r\n\t\t\t-- abort\r\n\t\t\tcytanbDebugLog('linkPaletteProc aborted.')\r\n\t\t\treturn
+      cont then\r\n\t\t\t-- abort\r\n\t\t\tcytanb.DebugLog('linkPaletteProc aborted.')\r\n\t\t\treturn
       -301\r\n\t\tend\r\n\r\n\t\tif parameterMap then\r\n\t\t\t-- \u30D1\u30EC\u30C3\u30C8\u3068\u306E\u8DDD\u96E2\u3092\u8ABF\u3079\u308B\r\n\t\t\tlocal
-      instanceId = parameterMap['instanceId']\r\n\t\t\tlocal x = parameterMap['positionX']\r\n\t\t\tlocal
-      y = parameterMap['positionY']\r\n\t\t\tlocal z = parameterMap['positionZ']\r\n\t\t\tif
-      instanceId and instanceId ~= '' and x and y and z then\r\n\t\t\t\tlocal position
-      = Vector3.__new(x, y, z)\r\n\t\t\t\tlocal distance = Vector3.Distance(position,
-      itemPosition)\r\n\t\t\t\tif not candPosition or  distance < candDistance then\r\n\t\t\t\t\t--
-      \u3088\u308A\u8FD1\u3044\u8DDD\u96E2\u306E\u30D1\u30EC\u30C3\u30C8\u3092\u5019\u88DC\u306B\u3059\u308B\r\n\t\t\t\t\tcandId
+      instanceId = parameterMap[cytanb.INSTANCE_ID_PARAMETER_NAME]\r\n\t\t\tlocal
+      x = parameterMap['positionX']\r\n\t\t\tlocal y = parameterMap['positionY']\r\n\t\t\tlocal
+      z = parameterMap['positionZ']\r\n\t\t\tif instanceId and instanceId ~= '' and
+      x and y and z then\r\n\t\t\t\tlocal position = Vector3.__new(x, y, z)\r\n\t\t\t\tlocal
+      distance = Vector3.Distance(position, itemPosition)\r\n\t\t\t\tif not candPosition
+      or  distance < candDistance then\r\n\t\t\t\t\t-- \u3088\u308A\u8FD1\u3044\u8DDD\u96E2\u306E\u30D1\u30EC\u30C3\u30C8\u3092\u5019\u88DC\u306B\u3059\u308B\r\n\t\t\t\t\tcandId
       = instanceId\r\n\t\t\t\t\tcandPosition = position\r\n\t\t\t\t\tcandDistance
       = distance\r\n\t\t\t\t\tcandARGB32 = parameterMap['argb32']\r\n\t\t\t\tend\r\n\t\t\tend\r\n\t\tend\r\n\r\n\t\tif
       queryExpires < vci.me.Time then\r\n\t\t\t-- \u30BF\u30A4\u30E0\u30A2\u30A6\u30C8\u3057\u305F\u306E\u3067\u51E6\u7406\u3092\u629C\u3051\u308B\r\n\t\t\tbreak\r\n\t\tend\r\n\tend\r\n\r\n\treturn
       0, candId, candARGB32\r\nend\r\n\r\nlocal function resumeLinkPalette(parameterMap)\r\n\tif
       not linkPaletteCw then return end\r\n\r\n\tlocal code, instanceId, argb32 =
-      linkPaletteCw(true, parameterMap)\r\n\tif code <= 0 then\r\n\t\t-- \u30B9\u30EC\u30C3\u30C9\u7D42\u4E86\r\n\t\tcytanbDebugLog('linkPaletteCw
+      linkPaletteCw(true, parameterMap)\r\n\tif code <= 0 then\r\n\t\t-- \u30B9\u30EC\u30C3\u30C9\u7D42\u4E86\r\n\t\tcytanb.DebugLog('linkPaletteCw
       stoped: ', code)\r\n\t\tlinkPaletteCw = nil\r\n\r\n\t\tif instanceId and instanceId
       ~= '' and instanceId ~= getLinkedInstanceId() then\r\n\t\t\t-- \u65B0\u3057\u3044\u30D1\u30EC\u30C3\u30C8\u306E\u30A4\u30F3\u30B9\u30BF\u30F3\u30B9\u306B\u30EA\u30F3\u30AF\u3059\u308B\r\n\t\t\tprint('linked
       to color-palette #', instanceId)\r\n\t\t\tvci.state.Set(LINKED_PALETTE_INSTANCE_ID_STATE_NAME,
-      instanceId)\r\n\t\t\tsetItemColor(UNIMSG_RECEIVER_NAME, cytanbColorFromARGB32(argb32))\r\n\t\tend\r\n\tend\r\nend\r\n\r\nlocal
+      instanceId)\r\n\t\t\tsetItemColor(UNIMSG_RECEIVER_NAME, cytanb.ColorFromARGB32(argb32))\r\n\t\tend\r\n\tend\r\nend\r\n\r\nlocal
       updateStateCw = coroutine.wrap(function ()\r\n\tlocal lastUpdateTime = vci.me.Time\r\n\tlocal
       lastItemColorMap = {}\r\n\tlocal lastAutoChangeUnimsg = isAutoChangeUnimsgReceiver()\r\n\r\n\twhile
       true do\r\n\t\tlocal time = vci.me.Time\r\n\t\tif time >= lastUpdateTime + UPDATE_PERIOD
@@ -524,7 +504,7 @@ MonoBehaviour:
       updateAll()\r\n\tupdateStateCw()\r\n\r\n\tif vci.assets.IsMine then\r\n\t\tresumeLinkPalette()\r\n\tend\r\nend\r\n\r\n--
       \u30B0\u30EA\u30C3\u30D7\u3057\u3066\u30A2\u30A4\u30C6\u30E0\u3092\u4F7F\u7528\u3059\u308B\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
       onUse(use)\r\n\t-- \u5171\u6709\u5909\u6570\u304B\u3089\u8272\u60C5\u5831\u3092\u53D6\u5F97\u3059\u308B\r\n\tlocal
-      color = cytanbColorFromARGB32(vci.studio.shared.Get(SHARED_NAME_ARGB32))\r\n\tcytanbDebugLog('onUse:
+      color = cytanb.ColorFromARGB32(vci.studio.shared.Get(SHARED_NAME_ARGB32))\r\n\tcytanb.DebugLog('onUse:
       ', use, ' ,  shared color = ', color)\r\n\r\n\tlocal chalkMaterial = CHALK_MATERIAL_TABLE[use]\r\n\tif
       chalkMaterial then\r\n\t\tsetItemColor(use, color)\r\n\tend\r\n\r\n\tlocal panelMaterial
       = PANEL_MATERIAL_TABLE[use]\r\n\tif panelMaterial then\r\n\t\tsetItemColor(use,
@@ -533,20 +513,21 @@ MonoBehaviour:
       then\r\n\t\t\t-- \u81EA\u52D5\u3067\u30D1\u30EC\u30C3\u30C8\u306E\u9078\u629E\u8272\u306B\u5909\u66F4\u3059\u308B\u304B\u3092\u5207\u308A\u66FF\u3048\u308B\r\n\t\t\tvci.state.Set(AUTO_CHANGE_ANYMSG_RECEIVER_STATE_NAME,
       not isAutoChangeAnymsgReceiver())\r\n\t\tend\r\n\tend\r\nend\r\n\r\n--- \u64CD\u4F5C\u6A29\u304C\u3042\u308B\u30E6\u30FC\u30B6\u30FC\u3067\u3001\u30A2\u30A4\u30C6\u30E0\u306B
       Collider (Is Trigger = OFF) \u304C\u885D\u7A81\u3057\u305F\u3068\u304D\u306B\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
-      onCollisionEnter(item, hit)\r\n\tcytanbDebugLog('on collision enter: item =
+      onCollisionEnter(item, hit)\r\n\tcytanb.DebugLog('on collision enter: item =
       ', item, ' , hit = ', hit)\r\n\r\n\tlocal chalkMaterial = CHALK_MATERIAL_TABLE[item]\r\n\tlocal
       panelMaterial = PANEL_MATERIAL_TABLE[hit]\r\n\tif chalkMaterial and panelMaterial
       then\r\n\t\t-- \u30C1\u30E7\u30FC\u30AF\u304C\u30D1\u30CD\u30EB\u306B\u30D2\u30C3\u30C8\u3057\u305F\u3068\u304D\u306F\u3001\u30C1\u30E7\u30FC\u30AF\u306E\u8272\u3092\u30D1\u30CD\u30EB\u306B\u8A2D\u5B9A\u3059\u308B\r\n\t\tlocal
       chalkColor = getItemColor(item)\r\n\r\n\t\t-- \u307E\u3063\u305F\u304F\u540C\u8272\u306B\u3059\u308B\u3068\u3001\u30C1\u30E7\u30FC\u30AF\u3068\u533A\u5225\u3067\u304D\u306A\u3044\u305F\u3081\u3001\u82E5\u5E72\u5024\u3092\u4E0B\u3052\u308B\u3002\r\n\t\tlocal
       d = 0.1\r\n\t\tlocal color = Color.__new(math.max(chalkColor.r - d, 0.0), math.max(chalkColor.g
-      - d, 0.0), math.max(chalkColor.b - d, 0.0), chalkColor.a)\r\n\t\tcytanbDebugLog('change
+      - d, 0.0), math.max(chalkColor.b - d, 0.0), chalkColor.a)\r\n\t\tcytanb.DebugLog('change
       panel[', hit, '] color to chalk[', item, ']: color = ', color)\r\n\t\tsetItemColor(hit,
-      color)\r\n\tend\r\nend\r\n\r\ncytanbBindMessage(MESSAGE_NAME_ITEM_STATUS, MESSAGE_MIN_VERSION,
-      function (sender, name, parameterMap)\r\n\tif not vci.assets.IsMine then return
-      end\r\n\r\n\t-- vci.message \u304B\u3089\u8272\u60C5\u5831\u3092\u53D6\u5F97\u3059\u308B\r\n\tlocal
-      color = cytanbColorFromARGB32(parameterMap['argb32'])\r\n\tcytanbDebugLog('on
+      color)\r\n\tend\r\nend\r\n\r\ncytanb.OnMessage(MESSAGE_NAME_ITEM_STATUS, function
+      (sender, name, parameterMap)\r\n\tif not vci.assets.IsMine then return end\r\n\r\n\tlocal
+      version = parameterMap['version']\r\n\tif not version or parameterMap['version']
+      < MESSAGE_MIN_VERSION then return end\r\n\r\n\t-- vci.message \u304B\u3089\u8272\u60C5\u5831\u3092\u53D6\u5F97\u3059\u308B\r\n\tlocal
+      color = cytanb.ColorFromARGB32(parameterMap['argb32'])\r\n\tcytanb.DebugLog('on
       item status: color = ', color)\r\n\r\n\tresumeLinkPalette(parameterMap)\r\n\r\n\tif
-      isAutoChangeUnimsgReceiver() then\r\n\t\tlocal instanceId = parameterMap['instanceId']\r\n\t\tlocal
+      isAutoChangeUnimsgReceiver() then\r\n\t\tlocal instanceId = parameterMap[cytanb.INSTANCE_ID_PARAMETER_NAME]\r\n\t\tlocal
       linkedInstanceId = getLinkedInstanceId()\r\n\r\n\t\tif linkedInstanceId ~= ''
       and linkedInstanceId == instanceId then\r\n\t\t\t-- \u30EA\u30F3\u30AF\u3055\u308C\u305F\u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u306E\u8272\u60C5\u5831\u306E\u5834\u5408\u306E\u307F\u3001\u30D1\u30CD\u30EB\u306E\u8272\u3092\u5909\u66F4\u3059\u308B\r\n\t\t\tprint('set
       unimsg receiver color')\r\n\t\t\tsetItemColor(UNIMSG_RECEIVER_NAME, color)\r\n\t\tend\r\n\tend\r\n\r\n\tif

@@ -721,7 +721,7 @@ MonoBehaviour:
     contactInformation: 
     reference: 
     thumbnail: {fileID: 2800000, guid: 1275a8fba2b4a1d4b9dbf9b45c57c433, type: 3}
-    version: 0.2.0
+    version: 0.3.0
     description: "\u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u306E\u30A2\u30A4\u30C6\u30E0\u3067\u3059\u3002\n\r\u5225\u306EVCI\u304B\u3089\u3001\u9078\u629E\u3057\u305F\u8272\u306E\u53D6\u5F97\u304C\u53EF\u80FD\u3067\u3059\u3002\r\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)\n"
     exporterVersion: 0.17
     specVersion: 
@@ -737,135 +737,62 @@ MonoBehaviour:
     mimeType: 0
     targetEngine: 0
     source: "----------------------------------------------------------------\r\n--
-      \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\n\r\nmath.randomseed(os.time())\r\n\r\n---
-      \u30ED\u30B0\u30EC\u30D9\u30EB\u3002\r\n__CYTANB_LOG_LEVEL = 400\r\n\r\n--[[--\r\n\t\u30ED\u30B0\u3092\u51FA\u529B\u3059\u308B\u3002\r\n\r\n\t@param
-      logLevel \u30ED\u30B0\u30EC\u30D9\u30EB\u3092\u6307\u5B9A\u3059\u308B\u3002`logLevel
-      <= __CYTANB_LOG_LEVEL` \u306E\u3068\u304D\u306B\u30ED\u30B0\u304C\u51FA\u529B\u3055\u308C\u308B\u3002\r\n\t@param
-      ... \u30ED\u30B0\u306B\u51FA\u529B\u3059\u308B\u4EFB\u610F\u306E\u6570\u306E\u5F15\u6570\u3092\u6307\u5B9A\u3059\u308B\u3002\r\n]]\r\nfunction
-      cytanbLog(logLevel, ...)\r\n\tif logLevel <= __CYTANB_LOG_LEVEL then\r\n\t\tlocal
-      args = table.pack(...)\r\n\t\tif args.n == 1 then\r\n\t\t\tprint(args[1] ~=
-      nil and tostring(args[1]) or '')\r\n\t\telse\r\n\t\t\tlocal str = ''\r\n\t\t\tfor
-      i = 1, args.n do\r\n\t\t\t\tif args[i] ~= nil then\r\n\t\t\t\t\tstr = str ..
-      tostring(args[i])\r\n\t\t\t\tend\r\n\t\t\tend\r\n\t\t\tprint(str)\r\n\t\tend\r\n\tend\r\nend\r\n\r\nfunction
-      cytanbFatalLog(...) cytanbLog(100, ...) end\r\nfunction cytanbErrorLog(...)
-      cytanbLog(200, ...) end\r\nfunction cytanbWarnLog(...) cytanbLog(300, ...) end\r\nfunction
-      cytanbInfoLog(...) cytanbLog(400, ...) end\r\nfunction cytanbDebugLog(...) cytanbLog(500,
-      ...) end\r\nfunction cytanbTraceLog(...) cytanbLog(600, ...) end\r\n\r\n---
-      \u6587\u5B57\u5217\u304C\u6307\u5B9A\u3057\u305F\u30D7\u30EC\u30D5\u30A3\u30C3\u30AF\u30B9\u3067\u59CB\u307E\u308B\u304B\u3092\u8ABF\u3079\u308B\u3002\r\nfunction
-      cytanbStringStartsWith(str, prefix)\r\n\tif not str or not prefix then\r\n\t\treturn
-      false\r\n\tend\r\n\r\n\tlocal prefixLen = string.len(prefix)\r\n\treturn string.len(str)
-      >= prefixLen and string.sub(str, 1, prefixLen) == prefix\r\nend\r\n\r\n--- \u6587\u5B57\u5217\u304C\u6307\u5B9A\u3057\u305F\u30B5\u30D5\u30A3\u30C3\u30AF\u30B9\u3067\u7D42\u308F\u308B\u304B\u3092\u8ABF\u3079\u308B\u3002\r\nfunction
-      cytanbStringEndsWith(str, suffix)\r\n\tif not str or not suffix then\r\n\t\treturn
-      false\r\n\tend\r\n\r\n\tlocal suffixLen = string.len(suffix)\r\n\tlocal strLen
-      = string.len(str)\r\n\treturn strLen >= suffixLen and string.sub(str, 1 + strLen
-      - suffixLen, strLen) == suffix\r\nend\r\n\r\n--[[--\r\n\t\u4E71\u6570\u306B\u57FA\u3065\u304F
-      UUID version 4 \u3092\u751F\u6210\u3059\u308B\u3002\r\n\r\n\t@return \u751F\u6210\u3057\u305F
-      UUID\u300232 bit \u306E\u6570\u5024\u30C7\u30FC\u30BF\u304C 4 \u3064\u9023\u7D9A\u3057\u3066\u683C\u7D0D\u3055\u308C\u305F\u914D\u5217\u3002\r\n]]\r\nfunction
-      cytanbRandomUUID()\r\n\treturn {\r\n\t\tmath.random(0, 0xFFFFFFFF),\r\n\t\tbit32.bor(0x4000,
-      bit32.band(math.random(0, 0xFFFFFFFF), 0xFFFF0FFF)),\r\n\t\tbit32.bor(0x80000000,
-      bit32.band(math.random(0, 0xFFFFFFFF), 0x3FFFFFFF)),\r\n\t\tmath.random(0, 0xFFFFFFFF)\r\n\t}\r\nend\r\n\r\n--[[--\r\n\tUUID
-      \u3092\u6587\u5B57\u5217\u3078\u5909\u63DB\u3059\u308B\u3002\r\n\r\n\t@param
-      uuid cytanbRandomUUID \u95A2\u6570\u3067\u751F\u6210\u3057\u305F UUID \u3092\u6307\u5B9A\u3059\u308B\u3002\r\n\r\n\t@return
-      \"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX\" \u5F62\u5F0F\u306E\u6587\u5B57\u5217\u3002\r\n]]\r\nfunction
-      cytanbUUIDString(uuid)\r\n\tlocal second = uuid[2] or 0\r\n\tlocal third = uuid[3]
-      or 0\r\n\treturn string.format(\r\n\t\t'%08x-%04x-%04x-%04x-%04x%08x',\r\n\t\tbit32.band(uuid[1]
-      or 0, 0xFFFFFFFF),\r\n\t\tbit32.band(bit32.rshift(second, 16), 0xFFFF),\r\n\t\tbit32.band(second,
-      0xFFFF),\r\n\t\tbit32.band(bit32.rshift(third, 16), 0xFFFF),\r\n\t\tbit32.band(third,
-      0xFFFF),\r\n\t\tbit32.band(uuid[4] or 0, 0xFFFFFFFF)\r\n\t)\r\nend\r\n\r\n--[[--\r\n\t\u30EA\u30B9\u30C8\u3092\u8F9E\u66F8\u5F62\u5F0F\u306E\u30C6\u30FC\u30D6\u30EB\u306B\u5909\u63DB\u3059\u308B\u3002\r\n\r\n\t@param
-      list \u30EA\u30B9\u30C8\u3092\u6307\u5B9A\u3059\u308B\u3002\u8981\u7D20\u306E\u5024\u304C\u30AD\u30FC\u5024\u3068\u306A\u308B\u3002\r\n\t@param
-      itemValue \u8981\u7D20\u306E\u5024\u3092\u6307\u5B9A\u3059\u308B\u3002nil \u3092\u6307\u5B9A\u3059\u308B\u304B\u7701\u7565\u3057\u305F\u5834\u5408\u306F\u3001\u30EA\u30B9\u30C8\u306E\u8981\u7D20\u306E\u5024\u304C\u4F7F\u308F\u308C\u308B\u3002\r\n\r\n\t@param
-      \u5909\u63DB\u7D50\u679C\u306E\u30C6\u30FC\u30D6\u30EB\u3002\r\n]]\r\nfunction
-      cytanbListToDictionary(list, itemValue)\r\n\tlocal table = {}\r\n\tlocal valueIsNil
-      = itemValue == nil\r\n\tfor k, v in pairs(list) do\r\n\t\ttable[v] = valueIsNil
-      and v or itemValue\r\n\tend\r\n\treturn table\r\nend\r\n\r\n--- ARGB 32 bit
-      \u5024\u304B\u3089\u3001Color \u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3078\u5909\u63DB\u3059\u308B\u3002\r\nfunction
-      cytanbColorFromARGB32(argb32)\r\n\tlocal n = (type(argb32) == 'number') and
-      argb32 or 0xFF000000\r\n\treturn Color.__new(\r\n\t\tbit32.band(bit32.rshift(n,
-      16), 0xFF) / 0xFF,\r\n\t\tbit32.band(bit32.rshift(n, 8), 0xFF) / 0xFF,\r\n\t\tbit32.band(n,
-      0xFF) / 0xFF,\r\n\t\tbit32.band(bit32.rshift(n, 24), 0xFF) / 0xFF\r\n\t)\r\nend\r\n\r\n---
-      Color \u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u304B\u3089 ARGB 32 bit \u5024\u3078\u5909\u63DB\u3059\u308B\u3002\r\nfunction
-      cytanbColorToARGB32(color)\r\n\treturn bit32.bor(\r\n\t\tbit32.lshift(math.floor(255
-      * color.a + 0.5), 24),\r\n\t\tbit32.lshift(math.floor(255 * color.r + 0.5),
-      16),\r\n\t\tbit32.lshift(math.floor(255 * color.g + 0.5), 8),\r\n\t\tmath.floor(255
-      * color.b + 0.5)\r\n\t)\r\nend\r\n\r\n--- \u30C7\u30D5\u30A9\u30EB\u30C8\u306E\u8272\u76F8\u306E\u30B5\u30F3\u30D7\u30EB\u6570\u3002\r\n__CYTANB_COLOR_DEFAULT_HUE_SAMPLES
-      = 10\r\n\r\n--- \u30C7\u30D5\u30A9\u30EB\u30C8\u306E\u5F69\u5EA6\u306E\u30B5\u30F3\u30D7\u30EB\u6570\u3002\r\n__CYTANB_COLOR_DEFAULT_SATURATION_SAMPLES
-      = 4\r\n\r\n--- \u30C7\u30D5\u30A9\u30EB\u30C8\u306E\u660E\u5EA6\u306E\u30B5\u30F3\u30D7\u30EB\u6570\u3002\r\n__CYTANB_COLOR_DEFAULT_BRIGHTNESS_SAMPLES
-      = 4\r\n\r\n--- \u30AB\u30E9\u30FC\u30DE\u30C3\u30D7\u306E\u30B5\u30A4\u30BA\u3002\r\n__CYTANB_COLOR_MAP_SIZE
-      = __CYTANB_COLOR_DEFAULT_HUE_SAMPLES * __CYTANB_COLOR_DEFAULT_SATURATION_SAMPLES
-      * __CYTANB_COLOR_DEFAULT_BRIGHTNESS_SAMPLES\r\n\r\n--[[--\r\n\t\u30AB\u30E9\u30FC\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u304B\u3089\u5BFE\u5FDC\u3059\u308B
-      Color \u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3078\u5909\u63DB\u3059\u308B\u3002\r\n\r\n\t@param
-      colorIndex \u30AB\u30E9\u30FC\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u3092\u6307\u5B9A\u3059\u308B\u3002\r\n\t@param
-      hueSamples \u8272\u76F8\u306E\u30B5\u30F3\u30D7\u30EB\u6570\u3092\u6307\u5B9A\u3059\u308B\u3002\r\n\t@param
-      saturationSamples \u5F69\u5EA6\u306E\u30B5\u30F3\u30D7\u30EB\u6570\u3092\u6307\u5B9A\u3059\u308B\u3002\r\n\t@param
-      omitScale \u30B0\u30EC\u30A4\u30B9\u30B1\u30FC\u30EB\u3092\u7701\u7565\u3059\u308B\u304B\u3092
-      true \u304B false \u3067\u6307\u5B9A\u3059\u308B\u3002\r\n\r\n\t@param \u5909\u63DB\u7D50\u679C\u306E
-      Color \u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3002\r\n]]\r\nfunction cytanbColorFromIndex(colorIndex,
-      hueSamples, saturationSamples, omitScale)\r\n\tlocal index = math.max(math.min(math.floor(colorIndex
-      or 0), __CYTANB_COLOR_MAP_SIZE - 1), 0)\r\n\tlocal hueN = math.max(math.floor(hueSamples
-      or __CYTANB_COLOR_DEFAULT_HUE_SAMPLES), 1)\r\n\tlocal toneN = omitScale and
-      hueN or (hueN - 1)\r\n\tlocal saturationN = math.max(math.floor(saturationSamples
-      or __CYTANB_COLOR_DEFAULT_SATURATION_SAMPLES), 1)\r\n\tlocal valueN = math.floor(math.floor((__CYTANB_COLOR_MAP_SIZE
-      + hueN - 1) / hueN + saturationN - 1) / saturationN)\r\n\r\n\tlocal x = index
-      % hueN\r\n\tlocal y = math.floor(index / hueN)\r\n\tlocal si = y % saturationN\r\n\tlocal
-      vi = math.floor(y / saturationN)\r\n\r\n\tif omitScale or x ~= toneN then\r\n\t\tlocal
-      h = x / toneN\r\n\t\tlocal s = (saturationN - si) / saturationN\r\n\t\tlocal
-      v = (valueN - vi) / valueN\r\n\t\treturn Color.HSVToRGB(h, s, v)\r\n\telse\r\n\t\tlocal
-      v = (valueN - vi) / valueN * si / (saturationN - 1)\r\n\t\treturn Color.HSVToRGB(0.0,
-      0.0, v)\r\n\tend\r\nend\r\n\r\n--[[--\r\n\tSubItem \u306E Transform \u3092\u53D6\u5F97\u3059\u308B\u3002\r\n\r\n\t@return
-      Transform \u306E\u60C5\u5831\u3092\u683C\u7D0D\u3057\u305F\u30C6\u30FC\u30D6\u30EB\u3002\r\n]]\r\nfunction
-      cytanbGetSubItemTransform(subItem)\r\n\tlocal position = subItem.GetPosition()\r\n\tlocal
-      rotation = subItem.GetRotation()\r\n\tlocal scale = subItem.GetLocalScale()\r\n\treturn
-      {\r\n\t\tpositionX = position.x,\r\n\t\tpositionY = position.y,\r\n\t\tpositionZ
-      = position.z,\r\n\t\trotationX = rotation.x,\r\n\t\trotationY = rotation.y,\r\n\t\trotationZ
-      = rotation.z,\r\n\t\trotationW = rotation.w,\r\n\t\tscaleX = scale.x,\r\n\t\tscaleY
-      = scale.y,\r\n\t\tscaleZ = scale.z\r\n\t}\r\nend\r\n\r\n__CYTANB_NEGATIVE_NUMBER_TAG
-      = '#__CYTANB_NEGATIVE_NUMBER'\r\n\r\n--[[--\r\n\t\u30D1\u30E9\u30E1\u30FC\u30BF\u30FC\u3092
-      JSON \u30A8\u30F3\u30B3\u30FC\u30C9\u3057\u3066 `vci.message.Emit` \u3059\u308B\u3002\r\n\r\n\t@param
-      name \u30E1\u30C3\u30BB\u30FC\u30B8\u540D\u3092\u6307\u5B9A\u3059\u308B\u3002\r\n\t@param
-      version \u30E1\u30C3\u30BB\u30FC\u30B8\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u6B63\u306E\u6574\u6570\u3067\u6307\u5B9A\u3059\u308B\u3002\r\n\t@param
-      instanceId VCI \u306E\u30A4\u30F3\u30B9\u30BF\u30F3\u30B9 ID \u306E\u6587\u5B57\u5217\u3092\u6307\u5B9A\u3059\u308B\u3002\u7701\u7565\u53EF\u80FD\u3002\r\n\t@param
-      parameterMap \u30D1\u30E9\u30E1\u30FC\u30BF\u30FC\u306E\u30C6\u30FC\u30D6\u30EB\u3092\u6307\u5B9A\u3059\u308B\u3002\u7701\u7565\u53EF\u80FD\u3002\r\n]]\r\nfunction
-      cytanbEmitMessage(name, version, instanceId, parameterMap)\r\n\tlocal table
-      = {\r\n\t\tversion = version,\r\n\t\tinstanceId = instanceId or ''\r\n\t}\r\n\r\n\tif
-      parameterMap then\r\n\t\tfor k, v in pairs(parameterMap) do\r\n\t\t\tif type(v)
-      == 'number' and v < 0 then\r\n\t\t\t\t-- json.parse \u304C\u8CA0\u306E\u6570\u5024\u3092\u6271\u3048\u306A\u3044\u554F\u984C\u306E\u30EF\u30FC\u30AF\u30A2\u30E9\u30A6\u30F3\u30C9\u3002\r\n\t\t\t\t--
-      https://github.com/xanathar/moonsharp/issues/163\r\n\t\t\t\ttable[k .. __CYTANB_NEGATIVE_NUMBER_TAG]
-      = tostring(v)\r\n\t\t\telse\r\n\t\t\t\ttable[k] = v\r\n\t\t\tend\r\n\t\tend\r\n\tend\r\n\r\n\tvci.message.Emit(name,
-      json.serialize(table))\r\nend\r\n\r\n--[[--\r\n\t\u30E1\u30C3\u30BB\u30FC\u30B8\u30CF\u30F3\u30C9\u30E9\u3092\u30D0\u30A4\u30F3\u30C9\u3059\u308B\u3002\r\n\r\n\t@param
-      name \u30E1\u30C3\u30BB\u30FC\u30B8\u540D\u3092\u6307\u5B9A\u3059\u308B\u3002\r\n\t@param
-      minVersion \u30E1\u30C3\u30BB\u30FC\u30B8\u306E\u6700\u5C0F\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u6307\u5B9A\u3059\u308B\u3002nil
-      \u3092\u6307\u5B9A\u3057\u305F\u5834\u5408\u306F\u3001\u30D0\u30FC\u30B8\u30E7\u30F3\u30C1\u30A7\u30C3\u30AF\u3092\u884C\u308F\u306A\u3044\u3002\r\n\t@param
-      callback Type: fun(sender, name, parameterMap) \u30B3\u30FC\u30EB\u30D0\u30C3\u30AF\u95A2\u6570\u3092\u6307\u5B9A\u3059\u308B\u3002\r\n]]\r\nfunction
-      cytanbBindMessage(name, minVersion, callback)\r\n\tlocal f = function (sender,
-      messageName, message)\r\n\t\tlocal pcallStatus, result = pcall(json.parse, message)\r\n\t\tif
-      not pcallStatus or type(result) ~= 'table' then\r\n\t\t\treturn\r\n\t\tend\r\n\r\n\t\tif
-      minVersion then\r\n\t\t\tlocal messageVersion = result['version']\r\n\t\t\tif
-      type(messageVersion) ~= 'number' or messageVersion < minVersion then\r\n\t\t\t\treturn\r\n\t\t\tend\r\n\t\tend\r\n\r\n\t\t--
-      json.parse \u304C\u8CA0\u306E\u6570\u5024\u3092\u6271\u3048\u306A\u3044\u554F\u984C\u306E\u30EF\u30FC\u30AF\u30A2\u30E9\u30A6\u30F3\u30C9\u3002\r\n\t\t--
-      https://github.com/xanathar/moonsharp/issues/163\r\n\t\tlocal parameterMap =
-      {}\r\n\t\tfor k, v in pairs(result) do\r\n\t\t\tif type(v) == 'string' and cytanbStringEndsWith(k,
-      __CYTANB_NEGATIVE_NUMBER_TAG) then\r\n\t\t\t\tparameterMap[string.sub(k, 1,
-      #k - #__CYTANB_NEGATIVE_NUMBER_TAG)] = tonumber(v)\r\n\t\t\telse\r\n\t\t\t\tparameterMap[k]
-      = v\r\n\t\t\tend\r\n\t\tend\r\n\r\n\t\tcallback(sender, messageName, parameterMap)\r\n\tend\r\n\r\n\tvci.message.On(name,
-      f)\r\n\t\r\n\treturn {\r\n\t\tUnbind = function()\r\n\t\t\tif f then\r\n\t\t\t\t--
-      Unbind \u304C\u5B9F\u88C5\u3055\u308C\u305F\u3089\u3001\u3053\u3053\u3067\u51E6\u7406\u3092\u3059\u308B\u3002\r\n\t\t\t\t--
-      vci.message.Unbind(name, f)\r\n\t\t\t\tf = nil\r\n\t\t\tend\r\n\t\tend\r\n\t}\r\nend\r\n\r\n---
-      \u30A2\u30A4\u30C6\u30E0\u306E\u30D1\u30C3\u30B1\u30FC\u30B8\u540D\u3002\r\nlocal
-      COLOR_PALETTE_PACKAGE_NAME = 'com.github.oocytanb.cytanb-tso-collab.color-palette'\r\n\r\n---
+      \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\ncytanb=(function()math.randomseed(os.time())local
+      a='__CYTANB_INSTANCE_ID'local b=10;local c=4;local d=4;local e=b*c*d;local f='#__CYTANB_NEGATIVE_NUMBER'local
+      g=400;local h;local cytanb={InstanceId=function()if h==''then h=vci.state.Get(a)or''end;return
+      h end,LOG_LEVEL_FATAL=100,LOG_LEVEL_ERROR=200,LOG_LEVEL_WARN=300,LOG_LEVEL_INFO=400,LOG_LEVEL_DEBUG=500,LOG_LEVEL_TRACE=600,GetLogLevel=function()return
+      g end,SetLogLevel=function(i)g=i end,Log=function(i,...)if i<=g then local j=table.pack(...)if
+      j.n==1 then print(j[1]~=nil and tostring(j[1])or'')else local k=''for l=1,j.n
+      do if j[l]~=nil then k=k..tostring(j[l])end end;print(k)end end end,FatalLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_FATAL,...)end,ErrorLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_ERROR,...)end,WarnLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_WARN,...)end,InfoLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_INFO,...)end,DebugLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_DEBUG,...)end,TraceLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_TRACE,...)end,Vars=function(m,n,o)if
+      n==nil then n=''end;if o==nil then o={}end;local p=type(m)if p=='table'then
+      o[m]=o[m]and o[m]+1 or 1;local k='('..tostring(m)..') {\\n'local q=n..'  'for
+      r,s in pairs(m)do if type(s)=='table'and o[s]and o[s]>0 then k=k..q..r..': ('..tostring(s)..')\\n'else
+      k=k..q..r..': '..cytanb.Vars(s,q,o)..'\\n'end end;k=k..n..'}'o[m]=o[m]-1;if
+      o[m]<=0 then o[m]=nil end;return k elseif p=='function'or p==\"thread\"or p==\"userdata\"then
+      return'('..p..')'elseif p=='string'then return'('..p..') '..string.format('%q',m)else
+      return'('..p..') '..tostring(m)end end,ListToDictionary=function(t,u)local table={}local
+      v=u==nil;for w,m in pairs(t)do table[m]=v and m or u end;return table end,RandomUUID=function()return{math.random(0,0xFFFFFFFF),bit32.bor(0x4000,bit32.band(math.random(0,0xFFFFFFFF),0xFFFF0FFF)),bit32.bor(0x80000000,bit32.band(math.random(0,0xFFFFFFFF),0x3FFFFFFF)),math.random(0,0xFFFFFFFF)}end,UUIDString=function(x)local
+      y=x[2]or 0;local z=x[3]or 0;return string.format('%08x-%04x-%04x-%04x-%04x%08x',bit32.band(x[1]or
+      0,0xFFFFFFFF),bit32.band(bit32.rshift(y,16),0xFFFF),bit32.band(y,0xFFFF),bit32.band(bit32.rshift(z,16),0xFFFF),bit32.band(z,0xFFFF),bit32.band(x[4]or
+      0,0xFFFFFFFF))end,ColorFromARGB32=function(A)local B=type(A)=='number'and A
+      or 0xFF000000;return Color.__new(bit32.band(bit32.rshift(B,16),0xFF)/0xFF,bit32.band(bit32.rshift(B,8),0xFF)/0xFF,bit32.band(B,0xFF)/0xFF,bit32.band(bit32.rshift(B,24),0xFF)/0xFF)end,ColorToARGB32=function(C)return
+      bit32.bor(bit32.lshift(math.floor(255*C.a+0.5),24),bit32.lshift(math.floor(255*C.r+0.5),16),bit32.lshift(math.floor(255*C.g+0.5),8),math.floor(255*C.b+0.5))end,GetDefaultHueSamples=function()return
+      b end,GetDefaultSaturationSamples=function()return c end,GetDefaultBrightnessSamples=function()return
+      d end,GetDefaultColorMapSize=function()return e end,ColorFromIndex=function(D,E,F,G,H)local
+      I=math.max(math.floor(E or b),1)local J=H and I or I-1;local K=math.max(math.floor(F
+      or c),1)local L=math.max(math.floor(G or d),1)local M=math.max(math.min(math.floor(D
+      or 0),I*K*L-1),0)local N=M%I;local O=math.floor(M/I)local P=O%K;local Q=math.floor(O/K)if
+      H or N~=J then local R=N/J;local S=(K-P)/K;local m=(L-Q)/L;return Color.HSVToRGB(R,S,m)else
+      local m=(L-Q)/L*P/(K-1)return Color.HSVToRGB(0.0,0.0,m)end end,GetSubItemTransform=function(T)local
+      U=T.GetPosition()local V=T.GetRotation()local W=T.GetLocalScale()return{positionX=U.x,positionY=U.y,positionZ=U.z,rotationX=V.x,rotationY=V.y,rotationZ=V.z,rotationW=V.w,scaleX=W.x,scaleY=W.y,scaleZ=W.z}end,TableToSerialiable=function(X)if
+      type(X)~='table'then return X end;local Y={}for w,m in pairs(X)do if type(m)=='number'and
+      m<0 then Y[w..f]=tostring(m)else Y[w]=cytanb.TableToSerialiable(m)end end;return
+      Y end,TableFromSerialiable=function(Y)if type(Y)~='table'then return Y end;local
+      X={}for w,m in pairs(Y)do if type(m)=='string'and string.endsWith(w,f)then X[string.sub(w,1,#w-#f)]=tonumber(m)else
+      X[w]=cytanb.TableFromSerialiable(m)end end;return X end,INSTANCE_ID_PARAMETER_NAME='__CYTANB_INSTANCE_ID',EmitMessage=function(Z,_)local
+      table=_ and cytanb.TableToSerialiable(_)or{}table[cytanb.INSTANCE_ID_PARAMETER_NAME]=cytanb.InstanceId()vci.message.Emit(Z,json.serialize(table))end,OnMessage=function(Z,a0)local
+      a1=function(a2,a3,a4)local _;if a4==''then _={}else local a5,Y=pcall(json.parse,a4)if
+      not a5 or type(Y)~='table'then cytanb.TraceLog('Invalid message format: ',a4)return
+      end;_=cytanb.TableFromSerialiable(Y)end;a0(a2,a3,_)end;vci.message.On(Z,a1)return{Off=function()if
+      a1 then a1=nil end end}end}if vci.assets.IsMine then h=cytanb.UUIDString(cytanb.RandomUUID())vci.state.Set(a,h)else
+      h=''end;return cytanb end)()\r\n\r\n--- \u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u306E\u5171\u6709\u5909\u6570\u306E\u540D\u524D\u7A7A\u9593\u3002\r\nlocal
+      COLOR_PALETTE_SHARED_NS = 'com.github.oocytanb.cytanb-tso-collab.color-palette'\r\n\r\n---
       \u30D1\u30EC\u30C3\u30C8\u3067\u9078\u629E\u3057\u305F\u8272\u3092\u683C\u7D0D\u3059\u308B\u5171\u6709\u5909\u6570\u540D\u3002\u5225\u306E
       VCI \u304B\u3089\u8272\u3092\u53D6\u5F97\u53EF\u80FD\u3002ARGB 32 bit \u5024\u3002\r\nlocal
-      SHARED_NAME_ARGB32 = COLOR_PALETTE_PACKAGE_NAME .. '.argb32'\r\n\r\n--- \u30D1\u30EC\u30C3\u30C8\u3067\u9078\u629E\u3057\u305F\u8272\u306E\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u5024\u3092\u683C\u7D0D\u3059\u308B\u5171\u6709\u5909\u6570\u540D\u3002\r\nlocal
-      SHARED_NAME_COLOR_INDEX = COLOR_PALETTE_PACKAGE_NAME .. '.color-index'\r\n\r\n---
-      \u30E1\u30C3\u30BB\u30FC\u30B8\u30D5\u30A9\u30FC\u30DE\u30C3\u30C8\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u3002\r\nlocal
+      SHARED_NAME_ARGB32 = COLOR_PALETTE_SHARED_NS .. '.argb32'\r\n\r\n--- \u30D1\u30EC\u30C3\u30C8\u3067\u9078\u629E\u3057\u305F\u8272\u306E\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u5024\u3092\u683C\u7D0D\u3059\u308B\u5171\u6709\u5909\u6570\u540D\u3002\r\nlocal
+      SHARED_NAME_COLOR_INDEX = COLOR_PALETTE_SHARED_NS .. '.color-index'\r\n\r\n---
+      \u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u306E\u30E1\u30C3\u30BB\u30FC\u30B8\u306E\u540D\u524D\u7A7A\u9593\u3002\r\nlocal
+      COLOR_PALETTE_MESSAGE_NS = 'cytanb.color-palette'\r\n\r\n--- \u30E1\u30C3\u30BB\u30FC\u30B8\u30D5\u30A9\u30FC\u30DE\u30C3\u30C8\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u3002\r\nlocal
       MESSAGE_VERSION = 0x10000\r\n\r\n--- \u30E1\u30C3\u30BB\u30FC\u30B8\u30D5\u30A9\u30FC\u30DE\u30C3\u30C8\u306E\u6700\u5C0F\u30D0\u30FC\u30B8\u30E7\u30F3\u3002\r\nlocal
       MESSAGE_MIN_VERSION = 0x10000\r\n\r\n--- \u30A2\u30A4\u30C6\u30E0\u306E\u30B9\u30C6\u30FC\u30BF\u30B9\u3092\u554F\u3044\u5408\u308F\u305B\u308B\u30E1\u30C3\u30BB\u30FC\u30B8\u540D\u3002\r\nlocal
-      MESSAGE_NAME_QUERY_STATUS = COLOR_PALETTE_PACKAGE_NAME .. '.query-status'\r\n\r\n---
+      MESSAGE_NAME_QUERY_STATUS = COLOR_PALETTE_MESSAGE_NS .. '.query-status'\r\n\r\n---
       \u30A2\u30A4\u30C6\u30E0\u306E\u30B9\u30C6\u30FC\u30BF\u30B9\u3092\u901A\u77E5\u3059\u308B\u30E1\u30C3\u30BB\u30FC\u30B8\u540D\u3002\r\nlocal
-      MESSAGE_NAME_ITEM_STATUS = COLOR_PALETTE_PACKAGE_NAME .. '.item-status'\r\n\r\nlocal
-      INSTANCE_ID_STATE_NAME = 'instance-id'\r\n\r\nlocal PICKER_TAG = '#cytanb-color-picker'\r\nlocal
-      ALLOWED_PICKER_LIST = {'HandPointMarker', 'RightArm', 'LeftArm', 'RightHand',
-      'LeftHand'}\r\nlocal ALLOWED_PICKER_TABLE = cytanbListToDictionary(ALLOWED_PICKER_LIST,
-      true)\r\nlocal PICKER_SWITCH_NAME = 'picker-switch'\r\nlocal ANY_PICKER_ALLOWED_STATE_NAME
+      MESSAGE_NAME_ITEM_STATUS = COLOR_PALETTE_MESSAGE_NS .. '.item-status'\r\n\r\n---
+      \u30AB\u30E9\u30FC\u30D4\u30C3\u30AB\u30FC\u306E\u30BF\u30B0\u3002\r\nlocal
+      COLOR_PICKER_TAG = '#cytanb-color-picker'\r\n\r\nlocal ALLOWED_PICKER_LIST =
+      {'HandPointMarker', 'RightArm', 'LeftArm', 'RightHand', 'LeftHand'}\r\nlocal
+      ALLOWED_PICKER_TABLE = cytanb.ListToDictionary(ALLOWED_PICKER_LIST, true)\r\nlocal
+      PICKER_SWITCH_NAME = 'picker-switch'\r\nlocal ANY_PICKER_ALLOWED_STATE_NAME
       = 'any-picker-allowed-state'\r\nlocal DEFAULT_ANY_PICKER_ALLOWED_STATE = false\r\n\r\nlocal
       PICKER_SWITCH_MATERIAL_NAME = 'picker-switch-mat'\r\nlocal PICKER_SWITCH_UV_HEIGHT
       = 50.0 / 1024.0\r\n\r\nlocal COLOR_INDEX_PREFIX = 'cytanb-color-index-'\r\nlocal
@@ -877,74 +804,70 @@ MonoBehaviour:
       BRIGHTNESS_SWITCH_MATERIAL_NAME = 'brightness-switch-mat'\r\nlocal BRIGHTNESS_SWITCH_UV_HEIGHT
       = 50.0 / 1024.0\r\n\r\nlocal DLAY_INIT_TIME = TimeSpan.FromSeconds(1)\r\nlocal
       UPDATE_PERIOD = TimeSpan.FromMilliseconds(100)\r\n\r\nlocal PALETTE_BASE = vci.assets.GetSubItem('palette-base')\r\n\r\nlocal
-      instanceId = vci.assets.IsMine and cytanbUUIDString(cytanbRandomUUID()) or ''\r\nlocal
       lastBrightnessChangeTime = TimeSpan.FromHours(-1)\r\nlocal pickerEntered = false\r\n\r\nlocal
       function calculateColorIndex(hitIndex, brightnessPage)\r\n\treturn hitIndex
-      + __CYTANB_COLOR_DEFAULT_HUE_SAMPLES * __CYTANB_COLOR_DEFAULT_SATURATION_SAMPLES
-      * brightnessPage\r\nend\r\n\r\nlocal function isAnyPickerAllowed()\r\n\tlocal
-      b = vci.state.Get(ANY_PICKER_ALLOWED_STATE_NAME)\r\n\tif b == nil then\r\n\t\treturn
-      DEFAULT_ANY_PICKER_ALLOWED_STATE\r\n\telse\r\n\t\treturn b\r\n\tend\r\nend\r\n\r\nlocal
-      function getHitIndex()\r\n\treturn vci.state.Get(HIT_INDEX_STATE_NAME) or DEFAULT_HIT_INDEX_STATE\r\nend\r\n\r\nlocal
-      function getBrightnessPage()\r\n\treturn vci.state.Get(BRIGHTNESS_SWITCH_STATE_NAME)
-      or DEFAULT_BRIGHTNESS_SWITCH_STATE\r\nend\r\n\r\nlocal function isPickerHit(hit)\r\n\treturn
-      hit and (isAnyPickerAllowed() or ALLOWED_PICKER_TABLE[hit] or string.find(hit,
-      PICKER_TAG, 1, true))\r\nend\r\n\r\nlocal function emitStatus(color, colorIndex)\r\n\tlocal
-      argb32 = cytanbColorToARGB32(color)\r\n\r\n\tcytanbDebugLog('emit status: colorIndex
-      = ', colorIndex, ', color = ', color)\r\n\r\n\tlocal params = cytanbGetSubItemTransform(PALETTE_BASE)\r\n\tparams['argb32']
-      = argb32\r\n\tparams['colorIndex'] = colorIndex\r\n\tcytanbEmitMessage(MESSAGE_NAME_ITEM_STATUS,
-      MESSAGE_VERSION, instanceId, params)\r\nend\r\n\r\nlocal function updateStatus(color,
-      colorIndex)\r\n\tif not vci.assets.IsMine then return end\r\n\r\n\tcytanbDebugLog('update
-      status: colorIndex = ', colorIndex, ' ,  color = ', color)\r\n\r\n\tlocal argb32
-      = cytanbColorToARGB32(color)\r\n\tvci.studio.shared.Set(SHARED_NAME_ARGB32,
+      + cytanb.GetDefaultHueSamples() * cytanb.GetDefaultSaturationSamples() * brightnessPage\r\nend\r\n\r\nlocal
+      function isAnyPickerAllowed()\r\n\tlocal b = vci.state.Get(ANY_PICKER_ALLOWED_STATE_NAME)\r\n\tif
+      b == nil then\r\n\t\treturn DEFAULT_ANY_PICKER_ALLOWED_STATE\r\n\telse\r\n\t\treturn
+      b\r\n\tend\r\nend\r\n\r\nlocal function getHitIndex()\r\n\treturn vci.state.Get(HIT_INDEX_STATE_NAME)
+      or DEFAULT_HIT_INDEX_STATE\r\nend\r\n\r\nlocal function getBrightnessPage()\r\n\treturn
+      vci.state.Get(BRIGHTNESS_SWITCH_STATE_NAME) or DEFAULT_BRIGHTNESS_SWITCH_STATE\r\nend\r\n\r\nlocal
+      function isPickerHit(hit)\r\n\treturn hit and (isAnyPickerAllowed() or ALLOWED_PICKER_TABLE[hit]
+      or string.contains(hit, COLOR_PICKER_TAG))\r\nend\r\n\r\nlocal function emitStatus(color,
+      colorIndex)\r\n\tlocal argb32 = cytanb.ColorToARGB32(color)\r\n\r\n\tcytanb.DebugLog('emit
+      status: colorIndex = ', colorIndex, ', color = ', color)\r\n\r\n\tlocal params
+      = cytanb.GetSubItemTransform(PALETTE_BASE)\r\n\tparams['version'] = MESSAGE_VERSION\r\n\tparams['argb32']
+      = argb32\r\n\tparams['colorIndex'] = colorIndex\r\n\tcytanb.EmitMessage(MESSAGE_NAME_ITEM_STATUS,
+      params)\r\nend\r\n\r\nlocal function updateStatus(color, colorIndex)\r\n\tif
+      not vci.assets.IsMine then return end\r\n\r\n\tcytanb.DebugLog('update status:
+      colorIndex = ', colorIndex, ' ,  color = ', color)\r\n\r\n\tlocal argb32 = cytanb.ColorToARGB32(color)\r\n\tvci.studio.shared.Set(SHARED_NAME_ARGB32,
       argb32)\r\n\tvci.studio.shared.Set(SHARED_NAME_COLOR_INDEX, colorIndex)\r\n\r\n\temitStatus(color,
       colorIndex)\r\nend\r\n\r\nlocal updateStateCw = coroutine.wrap(function ()\r\n\tlocal
-      takeInstanceId = true\r\n\tlocal firstUpdate = true\r\n\r\n\tlocal lastUpdateTime
-      = vci.me.Time\r\n\tlocal lastAnyPickerAllowed = false\r\n\tlocal lastHitIndex
-      = -1\r\n\tlocal lastBrightnessPage = -1\r\n\r\n\twhile true do\r\n\t\tif takeInstanceId
-      then\r\n\t\t\tif instanceId == '' then\r\n\t\t\t\tinstanceId = vci.state.Get(INSTANCE_ID_STATE_NAME)
-      or ''\r\n\t\t\tend\r\n\t\t\ttakeInstanceId = instanceId == ''\r\n\t\tend\r\n\r\n\t\tlocal
-      time = vci.me.Time\r\n\t\tif time >= lastUpdateTime + UPDATE_PERIOD then\r\n\t\t\tlastUpdateTime
-      = time\r\n\r\n\t\t\t--\r\n\t\t\tlocal anyPickerAllowed = isAnyPickerAllowed()\r\n\t\t\tif
-      firstUpdate or anyPickerAllowed ~= lastAnyPickerAllowed then\r\n\t\t\t\tcytanbDebugLog('update
-      anyPickerAllowed: ', anyPickerAllowed)\r\n\t\t\t\tlastAnyPickerAllowed = anyPickerAllowed\r\n\t\t\t\tlocal
-      pickerPage = anyPickerAllowed and 1 or 0\r\n\t\t\t\tvci.assets.SetMaterialTextureOffsetFromName(PICKER_SWITCH_MATERIAL_NAME,
+      firstUpdate = true\r\n\r\n\tlocal lastUpdateTime = vci.me.Time\r\n\tlocal lastAnyPickerAllowed
+      = false\r\n\tlocal lastHitIndex = -1\r\n\tlocal lastBrightnessPage = -1\r\n\r\n\twhile
+      true do\r\n\t\tlocal time = vci.me.Time\r\n\t\tif time >= lastUpdateTime + UPDATE_PERIOD
+      then\r\n\t\t\tlastUpdateTime = time\r\n\r\n\t\t\t--\r\n\t\t\tlocal anyPickerAllowed
+      = isAnyPickerAllowed()\r\n\t\t\tif firstUpdate or anyPickerAllowed ~= lastAnyPickerAllowed
+      then\r\n\t\t\t\tcytanb.DebugLog('update anyPickerAllowed: ', anyPickerAllowed)\r\n\t\t\t\tlastAnyPickerAllowed
+      = anyPickerAllowed\r\n\t\t\t\tlocal pickerPage = anyPickerAllowed and 1 or 0\r\n\t\t\t\tvci.assets.SetMaterialTextureOffsetFromName(PICKER_SWITCH_MATERIAL_NAME,
       Vector2.__new(0.0, 1.0 - PICKER_SWITCH_UV_HEIGHT * pickerPage))\r\n\t\t\tend\r\n\r\n\t\t\t--\r\n\t\t\tlocal
       hitIndex = getHitIndex()\r\n\t\t\tlocal brightnessPage = getBrightnessPage()\r\n\t\t\tif
       firstUpdate or lastHitIndex ~= hitIndex or lastBrightnessPage ~= brightnessPage
       then\r\n\t\t\t\tlocal colorIndex = calculateColorIndex(hitIndex, brightnessPage)\r\n\t\t\t\tlocal
-      color = cytanbColorFromIndex(colorIndex)\r\n\r\n\t\t\t\tcytanbDebugLog('update
+      color = cytanb.ColorFromIndex(colorIndex)\r\n\r\n\t\t\t\tcytanb.DebugLog('update
       currentColor: colorIndex = ', colorIndex, ' ,  color = ', color)\r\n\t\t\t\tlastHitIndex
       = hitIndex\r\n\t\t\t\tlastBrightnessPage = brightnessPage\r\n\r\n\t\t\t\tvci.assets.SetMaterialColorFromName(CURRENT_COLOR_MATERIAL_NAME,
       color)\r\n\t\t\t\tvci.assets.SetMaterialTextureOffsetFromName(PALETTE_MATERIAL_NAME,
       Vector2.__new(0.0, 1.0 - PALETTE_PAGE_UV_HEIGHT * brightnessPage))\r\n\t\t\t\tvci.assets.SetMaterialTextureOffsetFromName(BRIGHTNESS_SWITCH_MATERIAL_NAME,
       Vector2.__new(0.0, 1.0 - BRIGHTNESS_SWITCH_UV_HEIGHT * brightnessPage))\r\n\r\n\t\t\t\tupdateStatus(color,
       colorIndex)\r\n\t\t\tend\r\n\r\n\t\t\t--\r\n\t\t\tfirstUpdate = false\r\n\t\tend\r\n\r\n\t\tcoroutine.yield(100)\r\n\tend\r\n\treturn
-      0\r\nend)\r\n\r\n-- \u30A2\u30A4\u30C6\u30E0\u3092\u8A2D\u7F6E\u3057\u305F\u3068\u304D\u306E\u521D\u671F\u5316\u51E6\u7406\r\nif
-      vci.assets.IsMine then\r\n\tvci.state.Set(INSTANCE_ID_STATE_NAME, instanceId)\r\n\tvci.state.Set(ANY_PICKER_ALLOWED_STATE_NAME,
-      DEFAULT_ANY_PICKER_ALLOWED_STATE)\r\n\tvci.state.Set(HIT_INDEX_STATE_NAME, DEFAULT_HIT_INDEX_STATE)\r\n\tvci.state.Set(BRIGHTNESS_SWITCH_STATE_NAME,
-      DEFAULT_BRIGHTNESS_SWITCH_STATE)\r\n\r\n\tlocal colorIndex = calculateColorIndex(DEFAULT_HIT_INDEX_STATE,
-      DEFAULT_BRIGHTNESS_SWITCH_STATE)\r\n\tlocal color = cytanbColorFromIndex(colorIndex)\r\n\tupdateStatus(color,
-      colorIndex)\r\nend\r\n\r\n-- \u5168\u30E6\u30FC\u30B6\u30FC\u3067\u3001\u6BCE\u30D5\u30EC\u30FC\u30E0\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
+      0\r\nend)\r\n\r\ncytanb.OnMessage(MESSAGE_NAME_QUERY_STATUS, function (sender,
+      name, parameterMap)\r\n\tif not vci.assets.IsMine then return end\r\n\r\n\tlocal
+      colorIndex = calculateColorIndex(getHitIndex(), getBrightnessPage())\r\n\tlocal
+      color = cytanb.ColorFromIndex(colorIndex)\r\n\temitStatus(color, colorIndex)\r\nend)\r\n\r\n--
+      \u30A2\u30A4\u30C6\u30E0\u3092\u8A2D\u7F6E\u3057\u305F\u3068\u304D\u306E\u521D\u671F\u5316\u51E6\u7406\r\nif
+      vci.assets.IsMine then\r\n\tvci.state.Set(ANY_PICKER_ALLOWED_STATE_NAME, DEFAULT_ANY_PICKER_ALLOWED_STATE)\r\n\tvci.state.Set(HIT_INDEX_STATE_NAME,
+      DEFAULT_HIT_INDEX_STATE)\r\n\tvci.state.Set(BRIGHTNESS_SWITCH_STATE_NAME, DEFAULT_BRIGHTNESS_SWITCH_STATE)\r\n\r\n\tlocal
+      colorIndex = calculateColorIndex(DEFAULT_HIT_INDEX_STATE, DEFAULT_BRIGHTNESS_SWITCH_STATE)\r\n\tlocal
+      color = cytanb.ColorFromIndex(colorIndex)\r\n\tupdateStatus(color, colorIndex)\r\nend\r\n\r\n--
+      \u5168\u30E6\u30FC\u30B6\u30FC\u3067\u3001\u6BCE\u30D5\u30EC\u30FC\u30E0\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
       updateAll()\r\n\tupdateStateCw()\r\nend\r\n\r\n--- SubItem \u3092\u30C8\u30EA\u30AC\u30FC\u3067\u3064\u304B\u3080\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
-      onGrab(target)\r\n\tcytanbDebugLog('onGrab: ', target)\r\nend\r\n\r\n--- \u30B0\u30EA\u30C3\u30D7\u3057\u3066\u30A2\u30A4\u30C6\u30E0\u3092\u4F7F\u7528\u3059\u308B\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
-      onUse(use)\r\n\tcytanbDebugLog('onUse: ', use)\r\n\tif pickerEntered then\r\n\t\tvci.state.Set(ANY_PICKER_ALLOWED_STATE_NAME,
+      onGrab(target)\r\n\tcytanb.DebugLog('onGrab: ', target)\r\nend\r\n\r\n--- \u30B0\u30EA\u30C3\u30D7\u3057\u3066\u30A2\u30A4\u30C6\u30E0\u3092\u4F7F\u7528\u3059\u308B\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
+      onUse(use)\r\n\tcytanb.DebugLog('onUse: ', use)\r\n\tif pickerEntered then\r\n\t\tvci.state.Set(ANY_PICKER_ALLOWED_STATE_NAME,
       not isAnyPickerAllowed())\r\n\tend\r\nend\r\n\r\n--- \u64CD\u4F5C\u6A29\u304C\u3042\u308B\u30E6\u30FC\u30B6\u30FC\u3067\u3001\u30A2\u30A4\u30C6\u30E0\u306B
       Collider (Is Trigger = ON) \u304C\u885D\u7A81\u3057\u305F\u3068\u304D\u306B\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
       onTriggerEnter(item, hit)\r\n\tif isPickerHit(hit) then\r\n\t\tif item == BRIGHTNESS_SWITCH_NAME
       then\r\n\t\t\tlocal time = vci.me.Time\r\n\t\t\tif time >= lastBrightnessChangeTime
       + UPDATE_PERIOD then\r\n\t\t\t\tlastBrightnessChangeTime = time\r\n\t\t\t\tlocal
-      brightnessPage = (getBrightnessPage() + 1) % __CYTANB_COLOR_DEFAULT_BRIGHTNESS_SAMPLES\r\n\t\t\t\tcytanbDebugLog('on
+      brightnessPage = (getBrightnessPage() + 1) % cytanb.GetDefaultBrightnessSamples()\r\n\t\t\t\tcytanb.DebugLog('on
       trigger: brightness_switch ,  page = ', brightnessPage)\r\n\t\t\t\tvci.state.Set(BRIGHTNESS_SWITCH_STATE_NAME,
       brightnessPage)\r\n\t\t\tend\r\n\t\telseif item == PICKER_SWITCH_NAME and PALETTE_BASE.IsMine
-      then\r\n\t\t\tcytanbDebugLog('on trigger: picker_switch')\r\n\t\t\tpickerEntered
-      = true\r\n\t\telseif cytanbStringStartsWith(item, COLOR_INDEX_PREFIX) then\r\n\t\t\tlocal
-      hitIndex = tonumber(string.sub(item, 1 + string.len(COLOR_INDEX_PREFIX)), 10)\r\n\t\t\tcytanbDebugLog('on
+      then\r\n\t\t\tcytanb.DebugLog('on trigger: picker_switch')\r\n\t\t\tpickerEntered
+      = true\r\n\t\telseif string.startsWith(item, COLOR_INDEX_PREFIX) then\r\n\t\t\tlocal
+      hitIndex = tonumber(string.sub(item, 1 + string.len(COLOR_INDEX_PREFIX)), 10)\r\n\t\t\tcytanb.DebugLog('on
       trigger: hitIndex = ', hitIndex, ' hit = ', hit)\r\n\t\t\tif (hitIndex) then\r\n\t\t\t\tvci.state.Set(HIT_INDEX_STATE_NAME,
       hitIndex)\r\n\t\t\tend\r\n\t\tend\r\n\tend\r\nend\r\n\r\nfunction onTriggerExit(item,
-      hit)\r\n\tif item == PICKER_SWITCH_NAME then\r\n\t\tpickerEntered = false\r\n\tend\r\nend\r\n\r\nvci.message.On(MESSAGE_NAME_QUERY_STATUS,
-      function (sender, name, message)\r\n\tif not vci.assets.IsMine then return end\r\n\r\n\tlocal
-      colorIndex = calculateColorIndex(getHitIndex(), getBrightnessPage())\r\n\tlocal
-      color = cytanbColorFromIndex(colorIndex)\r\n\temitStatus(color, colorIndex)\r\nend)\r\n"
+      hit)\r\n\tif item == PICKER_SWITCH_NAME then\r\n\t\tpickerEntered = false\r\n\tend\r\nend\r\n"
 --- !u!1 &181717179 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100014, guid: 694804a3122b6284a85f465aaa249304,

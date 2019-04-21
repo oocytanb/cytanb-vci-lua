@@ -2,291 +2,19 @@
 --  Copyright (c) 2019 oO (https://github.com/oocytanb)
 --  MIT Licensed
 ----------------------------------------------------------------
+cytanb=(function()math.randomseed(os.time())local a='__CYTANB_INSTANCE_ID'local b=10;local c=4;local d=4;local e=b*c*d;local f='#__CYTANB_NEGATIVE_NUMBER'local g=400;local h;local cytanb={InstanceId=function()if h==''then h=vci.state.Get(a)or''end;return h end,LOG_LEVEL_FATAL=100,LOG_LEVEL_ERROR=200,LOG_LEVEL_WARN=300,LOG_LEVEL_INFO=400,LOG_LEVEL_DEBUG=500,LOG_LEVEL_TRACE=600,GetLogLevel=function()return g end,SetLogLevel=function(i)g=i end,Log=function(i,...)if i<=g then local j=table.pack(...)if j.n==1 then print(j[1]~=nil and tostring(j[1])or'')else local k=''for l=1,j.n do if j[l]~=nil then k=k..tostring(j[l])end end;print(k)end end end,FatalLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_FATAL,...)end,ErrorLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_ERROR,...)end,WarnLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_WARN,...)end,InfoLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_INFO,...)end,DebugLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_DEBUG,...)end,TraceLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_TRACE,...)end,Vars=function(m,n,o)if n==nil then n=''end;if o==nil then o={}end;local p=type(m)if p=='table'then o[m]=o[m]and o[m]+1 or 1;local k='('..tostring(m)..') {\n'local q=n..'  'for r,s in pairs(m)do if type(s)=='table'and o[s]and o[s]>0 then k=k..q..r..': ('..tostring(s)..')\n'else k=k..q..r..': '..cytanb.Vars(s,q,o)..'\n'end end;k=k..n..'}'o[m]=o[m]-1;if o[m]<=0 then o[m]=nil end;return k elseif p=='function'or p=="thread"or p=="userdata"then return'('..p..')'elseif p=='string'then return'('..p..') '..string.format('%q',m)else return'('..p..') '..tostring(m)end end,ListToDictionary=function(t,u)local table={}local v=u==nil;for w,m in pairs(t)do table[m]=v and m or u end;return table end,RandomUUID=function()return{math.random(0,0xFFFFFFFF),bit32.bor(0x4000,bit32.band(math.random(0,0xFFFFFFFF),0xFFFF0FFF)),bit32.bor(0x80000000,bit32.band(math.random(0,0xFFFFFFFF),0x3FFFFFFF)),math.random(0,0xFFFFFFFF)}end,UUIDString=function(x)local y=x[2]or 0;local z=x[3]or 0;return string.format('%08x-%04x-%04x-%04x-%04x%08x',bit32.band(x[1]or 0,0xFFFFFFFF),bit32.band(bit32.rshift(y,16),0xFFFF),bit32.band(y,0xFFFF),bit32.band(bit32.rshift(z,16),0xFFFF),bit32.band(z,0xFFFF),bit32.band(x[4]or 0,0xFFFFFFFF))end,ColorFromARGB32=function(A)local B=type(A)=='number'and A or 0xFF000000;return Color.__new(bit32.band(bit32.rshift(B,16),0xFF)/0xFF,bit32.band(bit32.rshift(B,8),0xFF)/0xFF,bit32.band(B,0xFF)/0xFF,bit32.band(bit32.rshift(B,24),0xFF)/0xFF)end,ColorToARGB32=function(C)return bit32.bor(bit32.lshift(math.floor(255*C.a+0.5),24),bit32.lshift(math.floor(255*C.r+0.5),16),bit32.lshift(math.floor(255*C.g+0.5),8),math.floor(255*C.b+0.5))end,GetDefaultHueSamples=function()return b end,GetDefaultSaturationSamples=function()return c end,GetDefaultBrightnessSamples=function()return d end,GetDefaultColorMapSize=function()return e end,ColorFromIndex=function(D,E,F,G,H)local I=math.max(math.floor(E or b),1)local J=H and I or I-1;local K=math.max(math.floor(F or c),1)local L=math.max(math.floor(G or d),1)local M=math.max(math.min(math.floor(D or 0),I*K*L-1),0)local N=M%I;local O=math.floor(M/I)local P=O%K;local Q=math.floor(O/K)if H or N~=J then local R=N/J;local S=(K-P)/K;local m=(L-Q)/L;return Color.HSVToRGB(R,S,m)else local m=(L-Q)/L*P/(K-1)return Color.HSVToRGB(0.0,0.0,m)end end,GetSubItemTransform=function(T)local U=T.GetPosition()local V=T.GetRotation()local W=T.GetLocalScale()return{positionX=U.x,positionY=U.y,positionZ=U.z,rotationX=V.x,rotationY=V.y,rotationZ=V.z,rotationW=V.w,scaleX=W.x,scaleY=W.y,scaleZ=W.z}end,TableToSerialiable=function(X)if type(X)~='table'then return X end;local Y={}for w,m in pairs(X)do if type(m)=='number'and m<0 then Y[w..f]=tostring(m)else Y[w]=cytanb.TableToSerialiable(m)end end;return Y end,TableFromSerialiable=function(Y)if type(Y)~='table'then return Y end;local X={}for w,m in pairs(Y)do if type(m)=='string'and string.endsWith(w,f)then X[string.sub(w,1,#w-#f)]=tonumber(m)else X[w]=cytanb.TableFromSerialiable(m)end end;return X end,INSTANCE_ID_PARAMETER_NAME='__CYTANB_INSTANCE_ID',EmitMessage=function(Z,_)local table=_ and cytanb.TableToSerialiable(_)or{}table[cytanb.INSTANCE_ID_PARAMETER_NAME]=cytanb.InstanceId()vci.message.Emit(Z,json.serialize(table))end,OnMessage=function(Z,a0)local a1=function(a2,a3,a4)local _;if a4==''then _={}else local a5,Y=pcall(json.parse,a4)if not a5 or type(Y)~='table'then cytanb.TraceLog('Invalid message format: ',a4)return end;_=cytanb.TableFromSerialiable(Y)end;a0(a2,a3,_)end;vci.message.On(Z,a1)return{Off=function()if a1 then a1=nil end end}end}if vci.assets.IsMine then h=cytanb.UUIDString(cytanb.RandomUUID())vci.state.Set(a,h)else h=''end;return cytanb end)()
 
-math.randomseed(os.time())
-
---- ログレベル。
-__CYTANB_LOG_LEVEL = 400
-
---[[--
-	ログを出力する。
-
-	@param logLevel ログレベルを指定する。`logLevel <= __CYTANB_LOG_LEVEL` のときにログが出力される。
-	@param ... ログに出力する任意の数の引数を指定する。
-]]
-function cytanbLog(logLevel, ...)
-	if logLevel <= __CYTANB_LOG_LEVEL then
-		local args = table.pack(...)
-		if args.n == 1 then
-			print(args[1] ~= nil and tostring(args[1]) or '')
-		else
-			local str = ''
-			for i = 1, args.n do
-				if args[i] ~= nil then
-					str = str .. tostring(args[i])
-				end
-			end
-			print(str)
-		end
-	end
-end
-
-function cytanbFatalLog(...) cytanbLog(100, ...) end
-function cytanbErrorLog(...) cytanbLog(200, ...) end
-function cytanbWarnLog(...) cytanbLog(300, ...) end
-function cytanbInfoLog(...) cytanbLog(400, ...) end
-function cytanbDebugLog(...) cytanbLog(500, ...) end
-function cytanbTraceLog(...) cytanbLog(600, ...) end
-
---- 文字列が指定したプレフィックスで始まるかを調べる。
-function cytanbStringStartsWith(str, prefix)
-	if not str or not prefix then
-		return false
-	end
-
-	local prefixLen = string.len(prefix)
-	return string.len(str) >= prefixLen and string.sub(str, 1, prefixLen) == prefix
-end
-
---- 文字列が指定したサフィックスで終わるかを調べる。
-function cytanbStringEndsWith(str, suffix)
-	if not str or not suffix then
-		return false
-	end
-
-	local suffixLen = string.len(suffix)
-	local strLen = string.len(str)
-	return strLen >= suffixLen and string.sub(str, 1 + strLen - suffixLen, strLen) == suffix
-end
-
---[[--
-	乱数に基づく UUID version 4 を生成する。
-
-	@return 生成した UUID。32 bit の数値データが 4 つ連続して格納された配列。
-]]
-function cytanbRandomUUID()
-	return {
-		math.random(0, 0xFFFFFFFF),
-		bit32.bor(0x4000, bit32.band(math.random(0, 0xFFFFFFFF), 0xFFFF0FFF)),
-		bit32.bor(0x80000000, bit32.band(math.random(0, 0xFFFFFFFF), 0x3FFFFFFF)),
-		math.random(0, 0xFFFFFFFF)
-	}
-end
-
---[[--
-	UUID を文字列へ変換する。
-
-	@param uuid cytanbRandomUUID 関数で生成した UUID を指定する。
-
-	@return "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" 形式の文字列。
-]]
-function cytanbUUIDString(uuid)
-	local second = uuid[2] or 0
-	local third = uuid[3] or 0
-	return string.format(
-		'%08x-%04x-%04x-%04x-%04x%08x',
-		bit32.band(uuid[1] or 0, 0xFFFFFFFF),
-		bit32.band(bit32.rshift(second, 16), 0xFFFF),
-		bit32.band(second, 0xFFFF),
-		bit32.band(bit32.rshift(third, 16), 0xFFFF),
-		bit32.band(third, 0xFFFF),
-		bit32.band(uuid[4] or 0, 0xFFFFFFFF)
-	)
-end
-
---[[--
-	リストを辞書形式のテーブルに変換する。
-
-	@param list リストを指定する。要素の値がキー値となる。
-	@param itemValue 要素の値を指定する。nil を指定するか省略した場合は、リストの要素の値が使われる。
-
-	@param 変換結果のテーブル。
-]]
-function cytanbListToDictionary(list, itemValue)
-	local table = {}
-	local valueIsNil = itemValue == nil
-	for k, v in pairs(list) do
-		table[v] = valueIsNil and v or itemValue
-	end
-	return table
-end
-
---- ARGB 32 bit 値から、Color オブジェクトへ変換する。
-function cytanbColorFromARGB32(argb32)
-	local n = (type(argb32) == 'number') and argb32 or 0xFF000000
-	return Color.__new(
-		bit32.band(bit32.rshift(n, 16), 0xFF) / 0xFF,
-		bit32.band(bit32.rshift(n, 8), 0xFF) / 0xFF,
-		bit32.band(n, 0xFF) / 0xFF,
-		bit32.band(bit32.rshift(n, 24), 0xFF) / 0xFF
-	)
-end
-
---- Color オブジェクトから ARGB 32 bit 値へ変換する。
-function cytanbColorToARGB32(color)
-	return bit32.bor(
-		bit32.lshift(math.floor(255 * color.a + 0.5), 24),
-		bit32.lshift(math.floor(255 * color.r + 0.5), 16),
-		bit32.lshift(math.floor(255 * color.g + 0.5), 8),
-		math.floor(255 * color.b + 0.5)
-	)
-end
-
---- デフォルトの色相のサンプル数。
-__CYTANB_COLOR_DEFAULT_HUE_SAMPLES = 10
-
---- デフォルトの彩度のサンプル数。
-__CYTANB_COLOR_DEFAULT_SATURATION_SAMPLES = 4
-
---- デフォルトの明度のサンプル数。
-__CYTANB_COLOR_DEFAULT_BRIGHTNESS_SAMPLES = 4
-
---- カラーマップのサイズ。
-__CYTANB_COLOR_MAP_SIZE = __CYTANB_COLOR_DEFAULT_HUE_SAMPLES * __CYTANB_COLOR_DEFAULT_SATURATION_SAMPLES * __CYTANB_COLOR_DEFAULT_BRIGHTNESS_SAMPLES
-
---[[--
-	カラーインデックスから対応する Color オブジェクトへ変換する。
-
-	@param colorIndex カラーインデックスを指定する。
-	@param hueSamples 色相のサンプル数を指定する。
-	@param saturationSamples 彩度のサンプル数を指定する。
-	@param omitScale グレイスケールを省略するかを true か false で指定する。
-
-	@param 変換結果の Color オブジェクト。
-]]
-function cytanbColorFromIndex(colorIndex, hueSamples, saturationSamples, omitScale)
-	local index = math.max(math.min(math.floor(colorIndex or 0), __CYTANB_COLOR_MAP_SIZE - 1), 0)
-	local hueN = math.max(math.floor(hueSamples or __CYTANB_COLOR_DEFAULT_HUE_SAMPLES), 1)
-	local toneN = omitScale and hueN or (hueN - 1)
-	local saturationN = math.max(math.floor(saturationSamples or __CYTANB_COLOR_DEFAULT_SATURATION_SAMPLES), 1)
-	local valueN = math.floor(math.floor((__CYTANB_COLOR_MAP_SIZE + hueN - 1) / hueN + saturationN - 1) / saturationN)
-
-	local x = index % hueN
-	local y = math.floor(index / hueN)
-	local si = y % saturationN
-	local vi = math.floor(y / saturationN)
-
-	if omitScale or x ~= toneN then
-		local h = x / toneN
-		local s = (saturationN - si) / saturationN
-		local v = (valueN - vi) / valueN
-		return Color.HSVToRGB(h, s, v)
-	else
-		local v = (valueN - vi) / valueN * si / (saturationN - 1)
-		return Color.HSVToRGB(0.0, 0.0, v)
-	end
-end
-
---[[--
-	SubItem の Transform を取得する。
-
-	@return Transform の情報を格納したテーブル。
-]]
-function cytanbGetSubItemTransform(subItem)
-	local position = subItem.GetPosition()
-	local rotation = subItem.GetRotation()
-	local scale = subItem.GetLocalScale()
-	return {
-		positionX = position.x,
-		positionY = position.y,
-		positionZ = position.z,
-		rotationX = rotation.x,
-		rotationY = rotation.y,
-		rotationZ = rotation.z,
-		rotationW = rotation.w,
-		scaleX = scale.x,
-		scaleY = scale.y,
-		scaleZ = scale.z
-	}
-end
-
-__CYTANB_NEGATIVE_NUMBER_TAG = '#__CYTANB_NEGATIVE_NUMBER'
-
---[[--
-	パラメーターを JSON エンコードして `vci.message.Emit` する。
-
-	@param name メッセージ名を指定する。
-	@param version メッセージのバージョンを正の整数で指定する。
-	@param instanceId VCI のインスタンス ID の文字列を指定する。省略可能。
-	@param parameterMap パラメーターのテーブルを指定する。省略可能。
-]]
-function cytanbEmitMessage(name, version, instanceId, parameterMap)
-	local table = {
-		version = version,
-		instanceId = instanceId or ''
-	}
-
-	if parameterMap then
-		for k, v in pairs(parameterMap) do
-			if type(v) == 'number' and v < 0 then
-				-- json.parse が負の数値を扱えない問題のワークアラウンド。
-				-- https://github.com/xanathar/moonsharp/issues/163
-				table[k .. __CYTANB_NEGATIVE_NUMBER_TAG] = tostring(v)
-			else
-				table[k] = v
-			end
-		end
-	end
-
-	vci.message.Emit(name, json.serialize(table))
-end
-
---[[--
-	メッセージハンドラをバインドする。
-
-	@param name メッセージ名を指定する。
-	@param minVersion メッセージの最小バージョンを指定する。nil を指定した場合は、バージョンチェックを行わない。
-	@param callback Type: fun(sender, name, parameterMap) コールバック関数を指定する。
-]]
-function cytanbBindMessage(name, minVersion, callback)
-	local f = function (sender, messageName, message)
-		local pcallStatus, result = pcall(json.parse, message)
-		if not pcallStatus or type(result) ~= 'table' then
-			return
-		end
-
-		if minVersion then
-			local messageVersion = result['version']
-			if type(messageVersion) ~= 'number' or messageVersion < minVersion then
-				return
-			end
-		end
-
-		-- json.parse が負の数値を扱えない問題のワークアラウンド。
-		-- https://github.com/xanathar/moonsharp/issues/163
-		local parameterMap = {}
-		for k, v in pairs(result) do
-			if type(v) == 'string' and cytanbStringEndsWith(k, __CYTANB_NEGATIVE_NUMBER_TAG) then
-				parameterMap[string.sub(k, 1, #k - #__CYTANB_NEGATIVE_NUMBER_TAG)] = tonumber(v)
-			else
-				parameterMap[k] = v
-			end
-		end
-
-		callback(sender, messageName, parameterMap)
-	end
-
-	vci.message.On(name, f)
-	
-	return {
-		Unbind = function()
-			if f then
-				-- Unbind が実装されたら、ここで処理をする。
-				-- vci.message.Unbind(name, f)
-				f = nil
-			end
-		end
-	}
-end
-
---- アイテムのパッケージ名。
-local COLOR_PALETTE_PACKAGE_NAME = 'com.github.oocytanb.cytanb-tso-collab.color-palette'
+--- カラーパレットの共有変数の名前空間。
+local COLOR_PALETTE_SHARED_NS = 'com.github.oocytanb.cytanb-tso-collab.color-palette'
 
 --- パレットで選択した色を格納する共有変数名。別の VCI から色を取得可能。ARGB 32 bit 値。
-local SHARED_NAME_ARGB32 = COLOR_PALETTE_PACKAGE_NAME .. '.argb32'
+local SHARED_NAME_ARGB32 = COLOR_PALETTE_SHARED_NS .. '.argb32'
 
 --- パレットで選択した色のインデックス値を格納する共有変数名。
-local SHARED_NAME_COLOR_INDEX = COLOR_PALETTE_PACKAGE_NAME .. '.color-index'
+local SHARED_NAME_COLOR_INDEX = COLOR_PALETTE_SHARED_NS .. '.color-index'
+
+--- カラーパレットのメッセージの名前空間。
+local COLOR_PALETTE_MESSAGE_NS = 'cytanb.color-palette'
 
 --- メッセージフォーマットのバージョン。
 local MESSAGE_VERSION = 0x10000
@@ -295,16 +23,16 @@ local MESSAGE_VERSION = 0x10000
 local MESSAGE_MIN_VERSION = 0x10000
 
 --- アイテムのステータスを問い合わせるメッセージ名。
-local MESSAGE_NAME_QUERY_STATUS = COLOR_PALETTE_PACKAGE_NAME .. '.query-status'
+local MESSAGE_NAME_QUERY_STATUS = COLOR_PALETTE_MESSAGE_NS .. '.query-status'
 
 --- アイテムのステータスを通知するメッセージ名。
-local MESSAGE_NAME_ITEM_STATUS = COLOR_PALETTE_PACKAGE_NAME .. '.item-status'
+local MESSAGE_NAME_ITEM_STATUS = COLOR_PALETTE_MESSAGE_NS .. '.item-status'
 
-local INSTANCE_ID_STATE_NAME = 'instance-id'
+--- カラーピッカーのタグ。
+local COLOR_PICKER_TAG = '#cytanb-color-picker'
 
-local PICKER_TAG = '#cytanb-color-picker'
 local ALLOWED_PICKER_LIST = {'HandPointMarker', 'RightArm', 'LeftArm', 'RightHand', 'LeftHand'}
-local ALLOWED_PICKER_TABLE = cytanbListToDictionary(ALLOWED_PICKER_LIST, true)
+local ALLOWED_PICKER_TABLE = cytanb.ListToDictionary(ALLOWED_PICKER_LIST, true)
 local PICKER_SWITCH_NAME = 'picker-switch'
 local ANY_PICKER_ALLOWED_STATE_NAME = 'any-picker-allowed-state'
 local DEFAULT_ANY_PICKER_ALLOWED_STATE = false
@@ -332,12 +60,11 @@ local UPDATE_PERIOD = TimeSpan.FromMilliseconds(100)
 
 local PALETTE_BASE = vci.assets.GetSubItem('palette-base')
 
-local instanceId = vci.assets.IsMine and cytanbUUIDString(cytanbRandomUUID()) or ''
 local lastBrightnessChangeTime = TimeSpan.FromHours(-1)
 local pickerEntered = false
 
 local function calculateColorIndex(hitIndex, brightnessPage)
-	return hitIndex + __CYTANB_COLOR_DEFAULT_HUE_SAMPLES * __CYTANB_COLOR_DEFAULT_SATURATION_SAMPLES * brightnessPage
+	return hitIndex + cytanb.GetDefaultHueSamples() * cytanb.GetDefaultSaturationSamples() * brightnessPage
 end
 
 local function isAnyPickerAllowed()
@@ -358,26 +85,27 @@ local function getBrightnessPage()
 end
 
 local function isPickerHit(hit)
-	return hit and (isAnyPickerAllowed() or ALLOWED_PICKER_TABLE[hit] or string.find(hit, PICKER_TAG, 1, true))
+	return hit and (isAnyPickerAllowed() or ALLOWED_PICKER_TABLE[hit] or string.contains(hit, COLOR_PICKER_TAG))
 end
 
 local function emitStatus(color, colorIndex)
-	local argb32 = cytanbColorToARGB32(color)
+	local argb32 = cytanb.ColorToARGB32(color)
 
-	cytanbDebugLog('emit status: colorIndex = ', colorIndex, ', color = ', color)
+	cytanb.DebugLog('emit status: colorIndex = ', colorIndex, ', color = ', color)
 
-	local params = cytanbGetSubItemTransform(PALETTE_BASE)
+	local params = cytanb.GetSubItemTransform(PALETTE_BASE)
+	params['version'] = MESSAGE_VERSION
 	params['argb32'] = argb32
 	params['colorIndex'] = colorIndex
-	cytanbEmitMessage(MESSAGE_NAME_ITEM_STATUS, MESSAGE_VERSION, instanceId, params)
+	cytanb.EmitMessage(MESSAGE_NAME_ITEM_STATUS, params)
 end
 
 local function updateStatus(color, colorIndex)
 	if not vci.assets.IsMine then return end
 
-	cytanbDebugLog('update status: colorIndex = ', colorIndex, ' ,  color = ', color)
+	cytanb.DebugLog('update status: colorIndex = ', colorIndex, ' ,  color = ', color)
 
-	local argb32 = cytanbColorToARGB32(color)
+	local argb32 = cytanb.ColorToARGB32(color)
 	vci.studio.shared.Set(SHARED_NAME_ARGB32, argb32)
 	vci.studio.shared.Set(SHARED_NAME_COLOR_INDEX, colorIndex)
 
@@ -385,7 +113,6 @@ local function updateStatus(color, colorIndex)
 end
 
 local updateStateCw = coroutine.wrap(function ()
-	local takeInstanceId = true
 	local firstUpdate = true
 
 	local lastUpdateTime = vci.me.Time
@@ -394,13 +121,6 @@ local updateStateCw = coroutine.wrap(function ()
 	local lastBrightnessPage = -1
 
 	while true do
-		if takeInstanceId then
-			if instanceId == '' then
-				instanceId = vci.state.Get(INSTANCE_ID_STATE_NAME) or ''
-			end
-			takeInstanceId = instanceId == ''
-		end
-
 		local time = vci.me.Time
 		if time >= lastUpdateTime + UPDATE_PERIOD then
 			lastUpdateTime = time
@@ -408,7 +128,7 @@ local updateStateCw = coroutine.wrap(function ()
 			--
 			local anyPickerAllowed = isAnyPickerAllowed()
 			if firstUpdate or anyPickerAllowed ~= lastAnyPickerAllowed then
-				cytanbDebugLog('update anyPickerAllowed: ', anyPickerAllowed)
+				cytanb.DebugLog('update anyPickerAllowed: ', anyPickerAllowed)
 				lastAnyPickerAllowed = anyPickerAllowed
 				local pickerPage = anyPickerAllowed and 1 or 0
 				vci.assets.SetMaterialTextureOffsetFromName(PICKER_SWITCH_MATERIAL_NAME, Vector2.__new(0.0, 1.0 - PICKER_SWITCH_UV_HEIGHT * pickerPage))
@@ -419,9 +139,9 @@ local updateStateCw = coroutine.wrap(function ()
 			local brightnessPage = getBrightnessPage()
 			if firstUpdate or lastHitIndex ~= hitIndex or lastBrightnessPage ~= brightnessPage then
 				local colorIndex = calculateColorIndex(hitIndex, brightnessPage)
-				local color = cytanbColorFromIndex(colorIndex)
+				local color = cytanb.ColorFromIndex(colorIndex)
 
-				cytanbDebugLog('update currentColor: colorIndex = ', colorIndex, ' ,  color = ', color)
+				cytanb.DebugLog('update currentColor: colorIndex = ', colorIndex, ' ,  color = ', color)
 				lastHitIndex = hitIndex
 				lastBrightnessPage = brightnessPage
 
@@ -441,15 +161,22 @@ local updateStateCw = coroutine.wrap(function ()
 	return 0
 end)
 
+cytanb.OnMessage(MESSAGE_NAME_QUERY_STATUS, function (sender, name, parameterMap)
+	if not vci.assets.IsMine then return end
+
+	local colorIndex = calculateColorIndex(getHitIndex(), getBrightnessPage())
+	local color = cytanb.ColorFromIndex(colorIndex)
+	emitStatus(color, colorIndex)
+end)
+
 -- アイテムを設置したときの初期化処理
 if vci.assets.IsMine then
-	vci.state.Set(INSTANCE_ID_STATE_NAME, instanceId)
 	vci.state.Set(ANY_PICKER_ALLOWED_STATE_NAME, DEFAULT_ANY_PICKER_ALLOWED_STATE)
 	vci.state.Set(HIT_INDEX_STATE_NAME, DEFAULT_HIT_INDEX_STATE)
 	vci.state.Set(BRIGHTNESS_SWITCH_STATE_NAME, DEFAULT_BRIGHTNESS_SWITCH_STATE)
 
 	local colorIndex = calculateColorIndex(DEFAULT_HIT_INDEX_STATE, DEFAULT_BRIGHTNESS_SWITCH_STATE)
-	local color = cytanbColorFromIndex(colorIndex)
+	local color = cytanb.ColorFromIndex(colorIndex)
 	updateStatus(color, colorIndex)
 end
 
@@ -460,12 +187,12 @@ end
 
 --- SubItem をトリガーでつかむと呼び出される。
 function onGrab(target)
-	cytanbDebugLog('onGrab: ', target)
+	cytanb.DebugLog('onGrab: ', target)
 end
 
 --- グリップしてアイテムを使用すると呼び出される。
 function onUse(use)
-	cytanbDebugLog('onUse: ', use)
+	cytanb.DebugLog('onUse: ', use)
 	if pickerEntered then
 		vci.state.Set(ANY_PICKER_ALLOWED_STATE_NAME, not isAnyPickerAllowed())
 	end
@@ -478,16 +205,16 @@ function onTriggerEnter(item, hit)
 			local time = vci.me.Time
 			if time >= lastBrightnessChangeTime + UPDATE_PERIOD then
 				lastBrightnessChangeTime = time
-				local brightnessPage = (getBrightnessPage() + 1) % __CYTANB_COLOR_DEFAULT_BRIGHTNESS_SAMPLES
-				cytanbDebugLog('on trigger: brightness_switch ,  page = ', brightnessPage)
+				local brightnessPage = (getBrightnessPage() + 1) % cytanb.GetDefaultBrightnessSamples()
+				cytanb.DebugLog('on trigger: brightness_switch ,  page = ', brightnessPage)
 				vci.state.Set(BRIGHTNESS_SWITCH_STATE_NAME, brightnessPage)
 			end
 		elseif item == PICKER_SWITCH_NAME and PALETTE_BASE.IsMine then
-			cytanbDebugLog('on trigger: picker_switch')
+			cytanb.DebugLog('on trigger: picker_switch')
 			pickerEntered = true
-		elseif cytanbStringStartsWith(item, COLOR_INDEX_PREFIX) then
+		elseif string.startsWith(item, COLOR_INDEX_PREFIX) then
 			local hitIndex = tonumber(string.sub(item, 1 + string.len(COLOR_INDEX_PREFIX)), 10)
-			cytanbDebugLog('on trigger: hitIndex = ', hitIndex, ' hit = ', hit)
+			cytanb.DebugLog('on trigger: hitIndex = ', hitIndex, ' hit = ', hit)
 			if (hitIndex) then
 				vci.state.Set(HIT_INDEX_STATE_NAME, hitIndex)
 			end
@@ -500,11 +227,3 @@ function onTriggerExit(item, hit)
 		pickerEntered = false
 	end
 end
-
-vci.message.On(MESSAGE_NAME_QUERY_STATUS, function (sender, name, message)
-	if not vci.assets.IsMine then return end
-
-	local colorIndex = calculateColorIndex(getHitIndex(), getBrightnessPage())
-	local color = cytanbColorFromIndex(colorIndex)
-	emitStatus(color, colorIndex)
-end)
