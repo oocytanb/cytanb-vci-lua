@@ -39,22 +39,59 @@ Unity のプロジェクトファイルをオープンソースで公開して�
 
 1. フォークしたリポジトリをローカルへ `clone` します。
 
-1. 機能開発用のブランチを作成します。(例: `git checkout -b feature/sample`)
+1. 機能開発用のブランチを作成します。
+
+    `feature/sample` ブランチとして作成する例
+    ```
+    git checkout -b feature/sample
+    ```
 
 1. ローカルで変更を行い `commit` します。
 
-1. 変更したブランチを `push` します。(例: `git push origin feature/sample`)
+1. 変更したブランチを `push` します。
+    ```
+    git push origin feature/sample
+    ```
 
 1. GitHub のサイト上でフォークしたリポジトリから `Pull request` を作成します。
 
 
 ## フォーク元のリポジトリに追従する手順
 
-1. リモートリポジトリを追加します。(`upstream` として参照する例: `git remote add upstream https://github.com/oocytanb/cytanb-tso-collab.git`)
+1. リモートリポジトリを追加します。
 
-1. フェッチします。`git fetch upstream`
+    `upstream` として参照する例
+    ```
+    git remote add upstream https://github.com/oocytanb/cytanb-tso-collab.git
+    ```
 
-1. リモートの `develop` ブランチを、ローカルにマージします。 `git merge upstream/develop`
+1. リモートの `develop` ブランチを `merge` し、フォーク先のリポジトリに `push` します。
+    ```
+    git checkout develop
+    git fetch upstream
+    git merge upstream/develop
+    git push origin develop
+    ```
+
+1. 作業ブランチをチェックアウトし、`merge` あるいは `rebase` して、`develop` ブランチの変更を取り込みます。
+    ```
+    git checkout feature/sample
+    ```
+
+    - `merge` して変更を取り込む場合
+        ```
+        git merge develop
+        ```
+
+    - `rebase` して変更を取り込む場合
+        ```
+        git rebase develop
+        ```
+
+1. 変更したブランチを `push` します。
+    ```
+    git push origin feature/sample
+    ```
 
 # License
 - Assets 以下に、適切な制作単位でサブディレクトリを作成し、制作単位ごとに LICENSE ファイルを用意します。
