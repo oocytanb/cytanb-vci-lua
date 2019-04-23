@@ -32,7 +32,29 @@ Unity のプロジェクトファイルをオープンソースで公開して�
 
 - [Smart Merge (UnityYAMLMerge)](https://docs.unity3d.com/ja/2018.2/Manual/SmartMerge.html)
 
-- そのほかの Git に関する詳しい情報は、Web で検索してください。
+- Git に関する詳しい情報は、Web で調べてください。
+
+## Pull request の作成手順
+1. GitHub の [cytanb-tso-collab](https://github.com/oocytanb/cytanb-tso-collab.git) リポジトリを `Fork` します。(プロジェクトサイト右上 `Fork` ボタン)
+
+1. フォークしたリポジトリをローカルへ `clone` します。
+
+1. 機能開発用のブランチを作成します。(例: `git checkout -b feature/sample`)
+
+1. ローカルで変更を行い `commit` します。
+
+1. 変更したブランチを `push` します。(例: `git push origin feature/sample`)
+
+1. GitHub のサイト上でフォークしたリポジトリから `Pull request` を作成します。
+
+
+## フォーク元のリポジトリに追従する手順
+
+1. リモートリポジトリを追加します。(`upstream` として参照する例: `git remote add upstream https://github.com/oocytanb/cytanb-tso-collab.git`)
+
+1. フェッチします。`git fetch upstream`
+
+1. リモートの `develop` ブランチを、ローカルにマージします。 `git merge upstream/develop`
 
 # License
 - Assets 以下に、適切な制作単位でサブディレクトリを作成し、制作単位ごとに LICENSE ファイルを用意します。
