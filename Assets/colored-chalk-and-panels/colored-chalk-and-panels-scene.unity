@@ -359,7 +359,7 @@ MonoBehaviour:
     contactInformation: 
     reference: 
     thumbnail: {fileID: 2800000, guid: 419c26b2665bf5344a45e42e99786e83, type: 3}
-    version: 0.3.0
+    version: 0.3.1
     description: "\u8272\u3092\u5909\u66F4\u3067\u304D\u308B\u30C1\u30E7\u30FC\u30AF\u3068\u30D1\u30CD\u30EB\u3067\u3059\u3002\n\u5225\u30A2\u30A4\u30C6\u30E0\u306E
       cytanb-color-palette \u3068\u9023\u52D5\u3055\u305B\u308B VCI \u306E\u30B5\u30F3\u30D7\u30EB\u3067\u3059\u3002\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)"
     exporterVersion: 0.17
@@ -376,46 +376,50 @@ MonoBehaviour:
     mimeType: 0
     targetEngine: 0
     source: "----------------------------------------------------------------\r\n--
-      \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\ncytanb=(function()math.randomseed(os.time())local
-      a='__CYTANB_INSTANCE_ID'local b=10;local c=4;local d=4;local e=b*c*d;local f='#__CYTANB_NEGATIVE_NUMBER'local
-      g=400;local h;local cytanb={InstanceId=function()if h==''then h=vci.state.Get(a)or''end;return
-      h end,LOG_LEVEL_FATAL=100,LOG_LEVEL_ERROR=200,LOG_LEVEL_WARN=300,LOG_LEVEL_INFO=400,LOG_LEVEL_DEBUG=500,LOG_LEVEL_TRACE=600,GetLogLevel=function()return
-      g end,SetLogLevel=function(i)g=i end,Log=function(i,...)if i<=g then local j=table.pack(...)if
-      j.n==1 then print(j[1]~=nil and tostring(j[1])or'')else local k=''for l=1,j.n
-      do if j[l]~=nil then k=k..tostring(j[l])end end;print(k)end end end,FatalLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_FATAL,...)end,ErrorLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_ERROR,...)end,WarnLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_WARN,...)end,InfoLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_INFO,...)end,DebugLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_DEBUG,...)end,TraceLog=function(...)cytanb.Log(cytanb.LOG_LEVEL_TRACE,...)end,Vars=function(m,n,o)if
-      n==nil then n=''end;if o==nil then o={}end;local p=type(m)if p=='table'then
-      o[m]=o[m]and o[m]+1 or 1;local k='('..tostring(m)..') {\\n'local q=n..'  'for
-      r,s in pairs(m)do if type(s)=='table'and o[s]and o[s]>0 then k=k..q..r..': ('..tostring(s)..')\\n'else
-      k=k..q..r..': '..cytanb.Vars(s,q,o)..'\\n'end end;k=k..n..'}'o[m]=o[m]-1;if
-      o[m]<=0 then o[m]=nil end;return k elseif p=='function'or p==\"thread\"or p==\"userdata\"then
-      return'('..p..')'elseif p=='string'then return'('..p..') '..string.format('%q',m)else
-      return'('..p..') '..tostring(m)end end,ListToDictionary=function(t,u)local table={}local
-      v=u==nil;for w,m in pairs(t)do table[m]=v and m or u end;return table end,RandomUUID=function()return{math.random(0,0xFFFFFFFF),bit32.bor(0x4000,bit32.band(math.random(0,0xFFFFFFFF),0xFFFF0FFF)),bit32.bor(0x80000000,bit32.band(math.random(0,0xFFFFFFFF),0x3FFFFFFF)),math.random(0,0xFFFFFFFF)}end,UUIDString=function(x)local
-      y=x[2]or 0;local z=x[3]or 0;return string.format('%08x-%04x-%04x-%04x-%04x%08x',bit32.band(x[1]or
-      0,0xFFFFFFFF),bit32.band(bit32.rshift(y,16),0xFFFF),bit32.band(y,0xFFFF),bit32.band(bit32.rshift(z,16),0xFFFF),bit32.band(z,0xFFFF),bit32.band(x[4]or
-      0,0xFFFFFFFF))end,ColorFromARGB32=function(A)local B=type(A)=='number'and A
-      or 0xFF000000;return Color.__new(bit32.band(bit32.rshift(B,16),0xFF)/0xFF,bit32.band(bit32.rshift(B,8),0xFF)/0xFF,bit32.band(B,0xFF)/0xFF,bit32.band(bit32.rshift(B,24),0xFF)/0xFF)end,ColorToARGB32=function(C)return
-      bit32.bor(bit32.lshift(math.floor(255*C.a+0.5),24),bit32.lshift(math.floor(255*C.r+0.5),16),bit32.lshift(math.floor(255*C.g+0.5),8),math.floor(255*C.b+0.5))end,GetDefaultHueSamples=function()return
-      b end,GetDefaultSaturationSamples=function()return c end,GetDefaultBrightnessSamples=function()return
-      d end,GetDefaultColorMapSize=function()return e end,ColorFromIndex=function(D,E,F,G,H)local
-      I=math.max(math.floor(E or b),1)local J=H and I or I-1;local K=math.max(math.floor(F
-      or c),1)local L=math.max(math.floor(G or d),1)local M=math.max(math.min(math.floor(D
-      or 0),I*K*L-1),0)local N=M%I;local O=math.floor(M/I)local P=O%K;local Q=math.floor(O/K)if
-      H or N~=J then local R=N/J;local S=(K-P)/K;local m=(L-Q)/L;return Color.HSVToRGB(R,S,m)else
-      local m=(L-Q)/L*P/(K-1)return Color.HSVToRGB(0.0,0.0,m)end end,GetSubItemTransform=function(T)local
-      U=T.GetPosition()local V=T.GetRotation()local W=T.GetLocalScale()return{positionX=U.x,positionY=U.y,positionZ=U.z,rotationX=V.x,rotationY=V.y,rotationZ=V.z,rotationW=V.w,scaleX=W.x,scaleY=W.y,scaleZ=W.z}end,TableToSerialiable=function(X)if
-      type(X)~='table'then return X end;local Y={}for w,m in pairs(X)do if type(m)=='number'and
-      m<0 then Y[w..f]=tostring(m)else Y[w]=cytanb.TableToSerialiable(m)end end;return
-      Y end,TableFromSerialiable=function(Y)if type(Y)~='table'then return Y end;local
-      X={}for w,m in pairs(Y)do if type(m)=='string'and string.endsWith(w,f)then X[string.sub(w,1,#w-#f)]=tonumber(m)else
-      X[w]=cytanb.TableFromSerialiable(m)end end;return X end,INSTANCE_ID_PARAMETER_NAME='__CYTANB_INSTANCE_ID',EmitMessage=function(Z,_)local
-      table=_ and cytanb.TableToSerialiable(_)or{}table[cytanb.INSTANCE_ID_PARAMETER_NAME]=cytanb.InstanceId()vci.message.Emit(Z,json.serialize(table))end,OnMessage=function(Z,a0)local
-      a1=function(a2,a3,a4)local _;if a4==''then _={}else local a5,Y=pcall(json.parse,a4)if
-      not a5 or type(Y)~='table'then cytanb.TraceLog('Invalid message format: ',a4)return
-      end;_=cytanb.TableFromSerialiable(Y)end;a0(a2,a3,_)end;vci.message.On(Z,a1)return{Off=function()if
-      a1 then a1=nil end end}end}if vci.assets.IsMine then h=cytanb.UUIDString(cytanb.RandomUUID())vci.state.Set(a,h)else
-      h=''end;return cytanb end)()\r\n\r\ncytanb.SetLogLevel(cytanb.LOG_LEVEL_DEBUG)\r\n\r\n---
-      \u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u306E\u5171\u6709\u5909\u6570\u306E\u540D\u524D\u7A7A\u9593\u3002\r\nlocal
+      \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\n\r\ncytanb=(function()math.randomseed(os.time())local
+      a={LOG_LEVEL_FATAL=100,LOG_LEVEL_ERROR=200,LOG_LEVEL_WARN=300,LOG_LEVEL_INFO=400,LOG_LEVEL_DEBUG=500,LOG_LEVEL_TRACE=600,COLOR_HUE_SAMPLES=10,COLOR_SATURATION_SAMPLES=4,COLOR_BRIGHTNESS_SAMPLES=4,COLOR_MAP_SIZE=10*4*4,NEGATIVE_NUMBER_TAG='#__CYTANB_NEGATIVE_NUMBER',INSTANCE_ID_PARAMETER_NAME='__CYTANB_INSTANCE_ID'}local
+      b='__CYTANB_INSTANCE_ID'local c=400;local d;local cytanb={InstanceId=function()if
+      d==''then d=vci.state.Get(b)or''end;return d end,Vars=function(e,f,g,h)local
+      i;if f then i=f~='__NOLF'else f='  'i=true end;if not g then g=''end;if not
+      h then h={}end;local j=type(e)if j=='table'then h[e]=h[e]and h[e]+1 or 1;local
+      k=i and g..f or''local l='('..tostring(e)..') {'local m=true;for n,o in pairs(e)do
+      if m then m=false else l=l..(i and','or', ')end;if i then l=l..'\\n'..k end;if
+      type(o)=='table'and h[o]and h[o]>0 then l=l..n..' = ('..tostring(o)..')'else
+      l=l..n..' = '..cytanb.Vars(o,f,k,h)end end;if not m and i then l=l..'\\n'..g
+      end;l=l..'}'h[e]=h[e]-1;if h[e]<=0 then h[e]=nil end;return l elseif j=='function'or
+      j==\"thread\"or j==\"userdata\"then return'('..j..')'elseif j=='string'then
+      return'('..j..') '..string.format('%q',e)else return'('..j..') '..tostring(e)end
+      end,GetLogLevel=function()return c end,SetLogLevel=function(p)c=p end,Log=function(p,...)if
+      p<=c then local q=table.pack(...)if q.n==1 then local e=q[1]if e~=nil then print(type(e)=='table'and
+      cytanb.Vars(e)or tostring(e))else print('')end else local l=''for r=1,q.n do
+      local e=q[r]if e~=nil then l=l..(type(e)=='table'and cytanb.Vars(e)or tostring(e))end
+      end;print(l)end end end,FatalLog=function(...)cytanb.Log(a.LOG_LEVEL_FATAL,...)end,ErrorLog=function(...)cytanb.Log(a.LOG_LEVEL_ERROR,...)end,WarnLog=function(...)cytanb.Log(a.LOG_LEVEL_WARN,...)end,InfoLog=function(...)cytanb.Log(a.LOG_LEVEL_INFO,...)end,DebugLog=function(...)cytanb.Log(a.LOG_LEVEL_DEBUG,...)end,TraceLog=function(...)cytanb.Log(a.LOG_LEVEL_TRACE,...)end,ListToDictionary=function(s,t)local
+      table={}local u=t==nil;for v,e in pairs(s)do table[e]=u and e or t end;return
+      table end,RandomUUID=function()return{math.random(0,0xFFFFFFFF),bit32.bor(0x4000,bit32.band(math.random(0,0xFFFFFFFF),0xFFFF0FFF)),bit32.bor(0x80000000,bit32.band(math.random(0,0xFFFFFFFF),0x3FFFFFFF)),math.random(0,0xFFFFFFFF)}end,UUIDString=function(w)local
+      x=w[2]or 0;local y=w[3]or 0;return string.format('%08x-%04x-%04x-%04x-%04x%08x',bit32.band(w[1]or
+      0,0xFFFFFFFF),bit32.band(bit32.rshift(x,16),0xFFFF),bit32.band(x,0xFFFF),bit32.band(bit32.rshift(y,16),0xFFFF),bit32.band(y,0xFFFF),bit32.band(w[4]or
+      0,0xFFFFFFFF))end,ColorFromARGB32=function(z)local A=type(z)=='number'and z
+      or 0xFF000000;return Color.__new(bit32.band(bit32.rshift(A,16),0xFF)/0xFF,bit32.band(bit32.rshift(A,8),0xFF)/0xFF,bit32.band(A,0xFF)/0xFF,bit32.band(bit32.rshift(A,24),0xFF)/0xFF)end,ColorToARGB32=function(B)return
+      bit32.bor(bit32.lshift(math.floor(255*B.a+0.5),24),bit32.lshift(math.floor(255*B.r+0.5),16),bit32.lshift(math.floor(255*B.g+0.5),8),math.floor(255*B.b+0.5))end,ColorFromIndex=function(C,D,E,F,G)local
+      H=math.max(math.floor(D or a.COLOR_HUE_SAMPLES),1)local I=G and H or H-1;local
+      J=math.max(math.floor(E or a.COLOR_SATURATION_SAMPLES),1)local K=math.max(math.floor(F
+      or a.COLOR_BRIGHTNESS_SAMPLES),1)local L=math.max(math.min(math.floor(C or 0),H*J*K-1),0)local
+      M=L%H;local N=math.floor(L/H)local O=N%J;local P=math.floor(N/J)if G or M~=I
+      then local Q=M/I;local R=(J-O)/J;local e=(K-P)/K;return Color.HSVToRGB(Q,R,e)else
+      local e=(K-P)/K*O/(J-1)return Color.HSVToRGB(0.0,0.0,e)end end,GetSubItemTransform=function(S)local
+      T=S.GetPosition()local U=S.GetRotation()local V=S.GetLocalScale()return{positionX=T.x,positionY=T.y,positionZ=T.z,rotationX=U.x,rotationY=U.y,rotationZ=U.z,rotationW=U.w,scaleX=V.x,scaleY=V.y,scaleZ=V.z}end,TableToSerialiable=function(W)if
+      type(W)~='table'then return W end;local X={}for v,e in pairs(W)do if type(e)=='number'and
+      e<0 then X[v..a.NEGATIVE_NUMBER_TAG]=tostring(e)else X[v]=cytanb.TableToSerialiable(e)end
+      end;return X end,TableFromSerialiable=function(X)if type(X)~='table'then return
+      X end;local W={}for v,e in pairs(X)do if type(e)=='string'and string.endsWith(v,a.NEGATIVE_NUMBER_TAG)then
+      W[string.sub(v,1,#v-#a.NEGATIVE_NUMBER_TAG)]=tonumber(e)else W[v]=cytanb.TableFromSerialiable(e)end
+      end;return W end,EmitMessage=function(Y,Z)local table=Z and cytanb.TableToSerialiable(Z)or{}table[a.INSTANCE_ID_PARAMETER_NAME]=cytanb.InstanceId()vci.message.Emit(Y,json.serialize(table))end,OnMessage=function(Y,_)local
+      a0=function(a1,a2,a3)local Z;if a3==''then Z={}else local a4,X=pcall(json.parse,a3)if
+      not a4 or type(X)~='table'then cytanb.TraceLog('Invalid message format: ',a3)return
+      end;Z=cytanb.TableFromSerialiable(X)end;_(a1,a2,Z)end;vci.message.On(Y,a0)return{Off=function()if
+      a0 then a0=nil end end}end}setmetatable(cytanb,{__index=a})if vci.assets.IsMine
+      then d=cytanb.UUIDString(cytanb.RandomUUID())vci.state.Set(b,d)else d=''end;return
+      cytanb end)()\r\n\r\ncytanb.SetLogLevel(cytanb.LOG_LEVEL_DEBUG)\r\n\r\n--- \u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u306E\u5171\u6709\u5909\u6570\u306E\u540D\u524D\u7A7A\u9593\u3002\r\nlocal
       COLOR_PALETTE_SHARED_NS = 'com.github.oocytanb.cytanb-tso-collab.color-palette'\r\n\r\n---
       \u30D1\u30EC\u30C3\u30C8\u3067\u9078\u629E\u3057\u305F\u8272\u3092\u683C\u7D0D\u3059\u308B\u5171\u6709\u5909\u6570\u540D\u3002\u5225\u306E
       VCI \u304B\u3089\u8272\u3092\u53D6\u5F97\u53EF\u80FD\u3002ARGB 32 bit \u5024\u3002\r\nlocal
@@ -625,8 +629,8 @@ Rigidbody:
   m_GameObject: {fileID: 1753784227}
   serializedVersion: 2
   m_Mass: 0.1
-  m_Drag: 3
-  m_AngularDrag: 2
+  m_Drag: 5
+  m_AngularDrag: 3
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0

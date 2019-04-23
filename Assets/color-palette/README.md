@@ -16,23 +16,24 @@
 サンプルコード
 
 ```
-cytanb = {
-    --- ARGB 32 bit 値から、Color オブジェクトへ変換する。
-    --- @param argb32 number
-    --- @return Color
-    ColorFromARGB32 = function (argb32)
-        local n = (type(argb32) == 'number') and argb32 or 0xFF000000
-        return Color.__new(
-            bit32.band(bit32.rshift(n, 16), 0xFF) / 0xFF,
-            bit32.band(bit32.rshift(n, 8), 0xFF) / 0xFF,
-            bit32.band(n, 0xFF) / 0xFF,
-            bit32.band(bit32.rshift(n, 24), 0xFF) / 0xFF
-        )
-    end
-}
+--- ARGB 32 bit 値から、Color オブジェクトへ変換する。
+--- @param argb32 number
+--- @return Color
+local ColorFromARGB32 = function (argb32)
+    local n = (type(argb32) == 'number') and argb32 or 0xFF000000
+    return Color.__new(
+        bit32.band(bit32.rshift(n, 16), 0xFF) / 0xFF,
+        bit32.band(bit32.rshift(n, 8), 0xFF) / 0xFF,
+        bit32.band(n, 0xFF) / 0xFF,
+        bit32.band(bit32.rshift(n, 24), 0xFF) / 0xFF
+    )
+end
+
+-- カラーパレットが存在しない場合のデフォルト色 (ここでは緑色)。
+local defaultARGB32 = 0xFF00A95F
 
 -- カラーパレットの共有変数から値を取得する。
-local color = cytanb.ColorFromARGB32(vci.studio.shared.Get('com.github.oocytanb.cytanb-tso-collab.color-palette.argb32'))
+local color = ColorFromARGB32(vci.studio.shared.Get('com.github.oocytanb.cytanb-tso-collab.color-palette.argb32') or defaultARGB32)
 ```
 
 [共有変数に関する情報](https://gist.github.com/oocytanb/e35ab915f0ef9cf4f5948707f52da7af)

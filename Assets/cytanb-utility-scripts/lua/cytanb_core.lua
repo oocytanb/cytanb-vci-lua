@@ -6,22 +6,47 @@
 cytanb = (function ()
 	math.randomseed(os.time())
 
+	-- 定数定義。
+	local constants = {
+		--- 致命的なレベルのログを表す定数値。
+		LOG_LEVEL_FATAL = 100,
+
+		--- エラーレベルのログを表す定数値。
+		LOG_LEVEL_ERROR = 200,
+
+		--- 警告レベルのログを表す定数値。
+		LOG_LEVEL_WARN = 300,
+
+		--- 情報レベルのログを表す定数値。
+		LOG_LEVEL_INFO = 400,
+
+		--- デバッグレベルのログを表す定数値。
+		LOG_LEVEL_DEBUG = 500,
+
+		--- トレースレベルのログを表す定数値。
+		LOG_LEVEL_TRACE = 600,
+
+		--- デフォルトの色相のサンプル数。
+		COLOR_HUE_SAMPLES = 10,
+	
+		--- デフォルトの彩度のサンプル数。
+		COLOR_SATURATION_SAMPLES = 4,
+	
+		--- デフォルトの明度のサンプル数。
+		COLOR_BRIGHTNESS_SAMPLES = 4,
+	
+		--- デフォルトのカラーマップのサイズ。
+		COLOR_MAP_SIZE = 10 * 4 * 4,        -- COLOR_HUE_SAMPLES * COLOR_SATURATION_SAMPLES * COLOR_BRIGHTNESS_SAMPLES
+	
+		--- 負の数値を示すタグ。
+		NEGATIVE_NUMBER_TAG = '#__CYTANB_NEGATIVE_NUMBER',
+
+		--- インスタンス ID のパラーメーター名。
+		INSTANCE_ID_PARAMETER_NAME = '__CYTANB_INSTANCE_ID'
+	}
+
+	--- インスタンス ID の状態変数名。
 	local INSTANCE_ID_STATE_NAME = '__CYTANB_INSTANCE_ID'
-
-	--- デフォルトの色相のサンプル数。
-	local DEFAULT_HUE_SAMPLES = 10
-
-	--- デフォルトの彩度のサンプル数。
-	local DEFAULT_SATURATION_SAMPLES = 4
-
-	--- デフォルトの明度のサンプル数。
-	local DEFAULT_BRIGHTNESS_SAMPLES = 4
-
-	--- デフォルトのカラーマップのサイズ。
-	local DEFAULT_COLOR_MAP_SIZE = DEFAULT_HUE_SAMPLES * DEFAULT_SATURATION_SAMPLES * DEFAULT_BRIGHTNESS_SAMPLES
-
-	--- 負の数値を示すタグ。
-	local NEGATIVE_NUMBER_TAG = '#__CYTANB_NEGATIVE_NUMBER'
 
 	--- 出力するログレベル。
 	local logLevel = 400
@@ -31,7 +56,7 @@ cytanb = (function ()
 
 	local cytanb = {
 		--- インスタンス ID を取得する。
-		--- @return string @インスタンス ID の文字列。VCI を設置したユーザー以外のクライアントにおいて、同期完了前は空文字列を返す。
+		--- @return string @インスタンス ID の文字列。VCI を設置したユーザー以外では、同期完了前は空文字列を返す。
 		InstanceId = function()
 			if instanceId == '' then
 				instanceId = vci.state.Get(INSTANCE_ID_STATE_NAME) or ''
@@ -39,12 +64,73 @@ cytanb = (function ()
 			return instanceId
 		end,
 
-		LOG_LEVEL_FATAL = 100,
-		LOG_LEVEL_ERROR = 200,
-		LOG_LEVEL_WARN = 300,
-		LOG_LEVEL_INFO = 400,
-		LOG_LEVEL_DEBUG = 500,
-		LOG_LEVEL_TRACE = 600,
+		--- 変数の情報を文字列で返す。
+		--- @param v any @調べたい変数を指定する。
+		--- @param padding string @パディング文字列を指定する。省略可能。'__NOLF' を指定した場合は、インデントおよび改行を行わない。
+		--- @param indent string @省略。
+		--- @param refTable table @省略。
+		--- @return string 文字列化した変数の情報。
+		Vars = function (v, padding, indent, refTable)
+			local feed
+			if padding then
+			feed = padding ~= '__NOLF'
+			else
+				padding = '  '
+				feed = true
+			end
+
+			if not indent then
+				indent = ''
+			end
+		
+			if not refTable then
+				refTable = {}
+			end
+		
+			local t = type(v)
+			if t == 'table' then
+				refTable[v] = refTable[v] and refTable[v] + 1 or 1
+		
+				local childIndent = feed and (indent .. padding) or ''
+				local str = '(' .. tostring(v) .. ') {'
+
+				local firstEntry = true
+				for key, val in pairs(v) do
+					if firstEntry then
+						firstEntry = false
+					else
+						str = str .. (feed and ',' or ', ')
+					end
+
+					if feed then
+						str = str .. '\n' .. childIndent
+					end
+
+					if type(val) == 'table' and refTable[val] and refTable[val] > 0 then
+						str = str .. key .. ' = (' .. tostring(val) .. ')'
+					else
+						str = str .. key .. ' = ' .. cytanb.Vars(val, padding, childIndent, refTable)
+					end
+				end
+
+				if not firstEntry and feed then
+					str = str .. '\n' .. indent
+				end
+				str = str .. '}'
+
+				refTable[v] = refTable[v] - 1
+				if (refTable[v] <= 0) then
+					refTable[v] = nil
+				end
+				return str
+			elseif t == 'function' or t == "thread" or t == "userdata" then
+				return '(' .. t .. ')'
+			elseif t == 'string' then
+				return '(' .. t .. ') ' .. string.format('%q', v)
+			else
+				return '(' .. t .. ') ' .. tostring(v)
+			end
+		end,
 
 		--- 現在のログレベルを取得する。
 		--- @return number
@@ -65,12 +151,18 @@ cytanb = (function ()
 			if level <= logLevel then
 				local args = table.pack(...)
 				if args.n == 1 then
-					print(args[1] ~= nil and tostring(args[1]) or '')
+					local v = args[1]
+					if v ~= nil then
+						print(type(v) == 'table' and cytanb.Vars(v) or tostring(v))
+					else
+						print('')
+					end
 				else
 					local str = ''
 					for i = 1, args.n do
-						if args[i] ~= nil then
-							str = str .. tostring(args[i])
+						local v = args[i]
+						if v ~= nil then
+							str = str .. (type(v) == 'table' and cytanb.Vars(v) or tostring(v))
 						end
 					end
 					print(str)
@@ -78,54 +170,23 @@ cytanb = (function ()
 			end
 		end,
 
-		FatalLog = function (...) cytanb.Log(cytanb.LOG_LEVEL_FATAL, ...) end,
-		ErrorLog = function (...) cytanb.Log(cytanb.LOG_LEVEL_ERROR, ...) end,
-		WarnLog = function (...) cytanb.Log(cytanb.LOG_LEVEL_WARN, ...) end,
-		InfoLog = function (...) cytanb.Log(cytanb.LOG_LEVEL_INFO, ...) end,
-		DebugLog = function (...) cytanb.Log(cytanb.LOG_LEVEL_DEBUG, ...) end,
-		TraceLog = function (...) cytanb.Log(cytanb.LOG_LEVEL_TRACE, ...) end,
+		-- 致命的なレベルのログを出力する。
+		FatalLog = function (...) cytanb.Log(constants.LOG_LEVEL_FATAL, ...) end,
 
-		--- 変数の情報を文字列で返す。
-		--- @param v any @調べたい変数を指定する。
-		--- @param indent string @省略可能。
-		--- @param refTable table @省略可能。
-		--- @return string 文字列化した変数の情報。
-		Vars = function (v, indent, refTable)
-			if indent == nil then
-				indent = ''
-			end
-		
-			if refTable == nil then
-				refTable = {}
-			end
-		
-			local t = type(v)
-			if t == 'table' then
-				refTable[v] = refTable[v] and refTable[v] + 1 or 1
-		
-				local str = '(' .. tostring(v) .. ') {\n'
-				local childIndent = indent .. '  '
-				for key, val in pairs(v) do
-					if type(val) == 'table' and refTable[val] and refTable[val] > 0 then
-						str = str .. childIndent .. key .. ': (' .. tostring(val) .. ')\n'
-					else
-						str = str .. childIndent .. key .. ': ' .. cytanb.Vars(val, childIndent, refTable) .. '\n'
-					end
-				end
-				str = str .. indent .. '}'
-				refTable[v] = refTable[v] - 1
-				if (refTable[v] <= 0) then
-					refTable[v] = nil
-				end
-				return str
-			elseif t == 'function' or t == "thread" or t == "userdata" then
-				return '(' .. t .. ')'
-			elseif t == 'string' then
-				return '(' .. t .. ') ' .. string.format('%q', v)
-			else
-				return '(' .. t .. ') ' .. tostring(v)
-			end
-		end,
+		-- エラーレベルのログを出力する。
+		ErrorLog = function (...) cytanb.Log(constants.LOG_LEVEL_ERROR, ...) end,
+
+		-- 警告レベルのログを出力する。
+		WarnLog = function (...) cytanb.Log(constants.LOG_LEVEL_WARN, ...) end,
+
+		-- 情報レベルのログを出力する。
+		InfoLog = function (...) cytanb.Log(constants.LOG_LEVEL_INFO, ...) end,
+
+		-- デバッグレベルのログを出力する。
+		DebugLog = function (...) cytanb.Log(constants.LOG_LEVEL_DEBUG, ...) end,
+
+		-- トレースレベルのログを出力する。
+		TraceLog = function (...) cytanb.Log(constants.LOG_LEVEL_TRACE, ...) end,
 
 		--- リストを辞書形式のテーブルに変換する。
 		--- @param list table @リストを指定する。要素の値がキー値となる。
@@ -193,42 +254,18 @@ cytanb = (function ()
 			)
 		end,
 
-		--- デフォルトの色相のサンプル数を取得する。
-		--- @return number
-		GetDefaultHueSamples = function ()
-			return DEFAULT_HUE_SAMPLES
-		end,
-
-		--- デフォルトの彩度のサンプル数を取得する。
-		--- @return number
-		GetDefaultSaturationSamples = function ()
-			return DEFAULT_SATURATION_SAMPLES
-		end,
-
-		--- デフォルトの明度のサンプル数を取得する。
-		--- @return number
-		GetDefaultBrightnessSamples = function ()
-			return DEFAULT_BRIGHTNESS_SAMPLES
-		end,
-
-		--- デフォルトのカラーマップのサイズを取得する。
-		--- @return number
-		GetDefaultColorMapSize = function ()
-			return DEFAULT_COLOR_MAP_SIZE
-		end,
-
 		--- カラーインデックスから対応する Color オブジェクトへ変換する。
 		--- @param colorIndex number @カラーインデックスを指定する。
-		--- @param hueSamples number @色相のサンプル数を指定する。省略した場合は、DEFAULT_HUE_SAMPLES。
-		--- @param saturationSamples number @彩度のサンプル数を指定する。省略した場合は、DEFAULT_SATURATION_SAMPLES。
-		--- @param brightnessSamples number @明度のサンプル数を指定する。省略した場合は、DEFAULT_BRIGHTNESS_SAMPLES。
+		--- @param hueSamples number @色相のサンプル数を指定する。省略した場合は、COLOR_HUE_SAMPLES。
+		--- @param saturationSamples number @彩度のサンプル数を指定する。省略した場合は、COLOR_SATURATION_SAMPLES。
+		--- @param brightnessSamples number @明度のサンプル数を指定する。省略した場合は、COLOR_BRIGHTNESS_SAMPLES。
 		--- @param omitScale boolean @グレイスケールを省略するかを指定する。省略した場合は、false。
 		--- @return Color @変換結果の Color オブジェクト。
 		ColorFromIndex = function (colorIndex, hueSamples, saturationSamples, brightnessSamples, omitScale)
-			local hueN = math.max(math.floor(hueSamples or DEFAULT_HUE_SAMPLES), 1)
+			local hueN = math.max(math.floor(hueSamples or constants.COLOR_HUE_SAMPLES), 1)
 			local toneN = omitScale and hueN or (hueN - 1)
-			local saturationN = math.max(math.floor(saturationSamples or DEFAULT_SATURATION_SAMPLES), 1)
-			local valueN = math.max(math.floor(brightnessSamples or DEFAULT_BRIGHTNESS_SAMPLES), 1)
+			local saturationN = math.max(math.floor(saturationSamples or constants.COLOR_SATURATION_SAMPLES), 1)
+			local valueN = math.max(math.floor(brightnessSamples or constants.COLOR_BRIGHTNESS_SAMPLES), 1)
 			local index = math.max(math.min(math.floor(colorIndex or 0), hueN * saturationN * valueN - 1), 0)
 
 			local x = index % hueN
@@ -279,7 +316,7 @@ cytanb = (function ()
 			local serData = {}
 			for k, v in pairs(data) do
 				if type(v) == 'number' and v < 0 then
-					serData[k .. NEGATIVE_NUMBER_TAG] = tostring(v)
+					serData[k .. constants.NEGATIVE_NUMBER_TAG] = tostring(v)
 				else
 					serData[k] = cytanb.TableToSerialiable(v)
 				end
@@ -297,8 +334,8 @@ cytanb = (function ()
 
 			local data = {}
 			for k, v in pairs(serData) do
-				if type(v) == 'string' and string.endsWith(k, NEGATIVE_NUMBER_TAG) then
-					data[string.sub(k, 1, #k - #NEGATIVE_NUMBER_TAG)] = tonumber(v)
+				if type(v) == 'string' and string.endsWith(k, constants.NEGATIVE_NUMBER_TAG) then
+					data[string.sub(k, 1, #k - #constants.NEGATIVE_NUMBER_TAG)] = tonumber(v)
 				else
 					data[k] = cytanb.TableFromSerialiable(v)
 				end
@@ -306,15 +343,12 @@ cytanb = (function ()
 			return data
 		end,
 
-		--- インスタンス ID のパラーメーター名。
-		INSTANCE_ID_PARAMETER_NAME = '__CYTANB_INSTANCE_ID',
-
 		--- パラメーターを JSON シリアライズして `vci.message.Emit` する。
 		--- @param name string @メッセージ名を指定する。
 		--- @param parameterMap table @パラメーターのテーブルを指定する。省略可能。
 		EmitMessage = function (name, parameterMap)
 			local table = parameterMap and cytanb.TableToSerialiable(parameterMap) or {}
-			table[cytanb.INSTANCE_ID_PARAMETER_NAME] = cytanb.InstanceId()
+			table[constants.INSTANCE_ID_PARAMETER_NAME] = cytanb.InstanceId()
 			vci.message.Emit(name, json.serialize(table))
 		end,
 
@@ -350,6 +384,8 @@ cytanb = (function ()
 			}
 		end
 	}
+
+	setmetatable(cytanb, {__index = constants})
 
 	if vci.assets.IsMine then
 		instanceId = cytanb.UUIDString(cytanb.RandomUUID())
