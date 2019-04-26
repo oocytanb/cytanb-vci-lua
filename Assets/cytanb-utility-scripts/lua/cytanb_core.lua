@@ -9,59 +9,59 @@ cytanb = (function ()
 	-- 定数定義。
 	local constants = {
 		--- 致命的なレベルのログを表す定数値。
-		LOG_LEVEL_FATAL = 100,
+		FatalLogLevel = 100,
 
 		--- エラーレベルのログを表す定数値。
-		LOG_LEVEL_ERROR = 200,
+		ErrorLogLevel = 200,
 
 		--- 警告レベルのログを表す定数値。
-		LOG_LEVEL_WARN = 300,
+		WarnLogLevel = 300,
 
 		--- 情報レベルのログを表す定数値。
-		LOG_LEVEL_INFO = 400,
+		InfoLogLevel = 400,
 
 		--- デバッグレベルのログを表す定数値。
-		LOG_LEVEL_DEBUG = 500,
+		DebugLogLevel = 500,
 
 		--- トレースレベルのログを表す定数値。
-		LOG_LEVEL_TRACE = 600,
+		TraceLogLevel = 600,
 
 		--- デフォルトの色相のサンプル数。
-		COLOR_HUE_SAMPLES = 10,
+		ColorHueSamples = 10,
 	
 		--- デフォルトの彩度のサンプル数。
-		COLOR_SATURATION_SAMPLES = 4,
+		ColorSaturationSamples = 4,
 	
 		--- デフォルトの明度のサンプル数。
-		COLOR_BRIGHTNESS_SAMPLES = 4,
+		ColorBrightnessSamples = 4,
 	
 		--- デフォルトのカラーマップのサイズ。
-		COLOR_MAP_SIZE = 10 * 4 * 4,        -- COLOR_HUE_SAMPLES * COLOR_SATURATION_SAMPLES * COLOR_BRIGHTNESS_SAMPLES
+		ColorMapSize = 10 * 4 * 4,        -- ColorHueSamples * ColorSaturationSamples * ColorBrightnessSamples
 	
 		--- 負の数値を示すタグ。
-		NEGATIVE_NUMBER_TAG = '#__CYTANB_NEGATIVE_NUMBER',
+		NegativeNumberTag = '#__CYTANB_NEGATIVE_NUMBER',
 
 		--- インスタンス ID のパラーメーター名。
-		INSTANCE_ID_PARAMETER_NAME = '__CYTANB_INSTANCE_ID'
+		InstanceIDParameterName = '__CYTANB_INSTANCE_ID'
 	}
 
 	--- インスタンス ID の状態変数名。
-	local INSTANCE_ID_STATE_NAME = '__CYTANB_INSTANCE_ID'
+	local InstanceIDStateName = '__CYTANB_INSTANCE_ID'
 
 	--- 出力するログレベル。
 	local logLevel = 400
 
 	--- インスタンス ID の文字列。
-	local instanceId
+	local instanceID
 
 	local cytanb = {
 		--- インスタンス ID を取得する。
 		--- @return string @インスタンス ID の文字列。VCI を設置したユーザー以外では、同期完了前は空文字列を返す。
-		InstanceId = function()
-			if instanceId == '' then
-				instanceId = vci.state.Get(INSTANCE_ID_STATE_NAME) or ''
+		InstanceID = function()
+			if instanceID == '' then
+				instanceID = vci.state.Get(InstanceIDStateName) or ''
 			end
-			return instanceId
+			return instanceID
 		end,
 
 		--- 変数の情報を文字列で返す。
@@ -171,28 +171,28 @@ cytanb = (function ()
 		end,
 
 		-- 致命的なレベルのログを出力する。
-		FatalLog = function (...) cytanb.Log(constants.LOG_LEVEL_FATAL, ...) end,
+		FatalLog = function (...) cytanb.Log(constants.FatalLogLevel, ...) end,
 
 		-- エラーレベルのログを出力する。
-		ErrorLog = function (...) cytanb.Log(constants.LOG_LEVEL_ERROR, ...) end,
+		ErrorLog = function (...) cytanb.Log(constants.ErrorLogLevel, ...) end,
 
 		-- 警告レベルのログを出力する。
-		WarnLog = function (...) cytanb.Log(constants.LOG_LEVEL_WARN, ...) end,
+		WarnLog = function (...) cytanb.Log(constants.WarnLogLevel, ...) end,
 
 		-- 情報レベルのログを出力する。
-		InfoLog = function (...) cytanb.Log(constants.LOG_LEVEL_INFO, ...) end,
+		InfoLog = function (...) cytanb.Log(constants.InfoLogLevel, ...) end,
 
 		-- デバッグレベルのログを出力する。
-		DebugLog = function (...) cytanb.Log(constants.LOG_LEVEL_DEBUG, ...) end,
+		DebugLog = function (...) cytanb.Log(constants.DebugLogLevel, ...) end,
 
 		-- トレースレベルのログを出力する。
-		TraceLog = function (...) cytanb.Log(constants.LOG_LEVEL_TRACE, ...) end,
+		TraceLog = function (...) cytanb.Log(constants.TraceLogLevel, ...) end,
 
-		--- リストを辞書形式のテーブルに変換する。
+		--- リストをテーブルに変換する。
 		--- @param list table @リストを指定する。要素の値がキー値となる。
 		--- @param itemValue any @要素の値を指定する。nil を指定するか省略した場合は、リストの要素の値が使われる。
 		--- @return table @変換結果のテーブル。
-		ListToDictionary = function (list, itemValue)
+		ListToMap = function (list, itemValue)
 			local table = {}
 			local valueIsNil = itemValue == nil
 			for k, v in pairs(list) do
@@ -256,16 +256,16 @@ cytanb = (function ()
 
 		--- カラーインデックスから対応する Color オブジェクトへ変換する。
 		--- @param colorIndex number @カラーインデックスを指定する。
-		--- @param hueSamples number @色相のサンプル数を指定する。省略した場合は、COLOR_HUE_SAMPLES。
-		--- @param saturationSamples number @彩度のサンプル数を指定する。省略した場合は、COLOR_SATURATION_SAMPLES。
-		--- @param brightnessSamples number @明度のサンプル数を指定する。省略した場合は、COLOR_BRIGHTNESS_SAMPLES。
+		--- @param hueSamples number @色相のサンプル数を指定する。省略した場合は、ColorHueSamples。
+		--- @param saturationSamples number @彩度のサンプル数を指定する。省略した場合は、ColorSaturationSamples。
+		--- @param brightnessSamples number @明度のサンプル数を指定する。省略した場合は、ColorBrightnessSamples。
 		--- @param omitScale boolean @グレイスケールを省略するかを指定する。省略した場合は、false。
 		--- @return Color @変換結果の Color オブジェクト。
 		ColorFromIndex = function (colorIndex, hueSamples, saturationSamples, brightnessSamples, omitScale)
-			local hueN = math.max(math.floor(hueSamples or constants.COLOR_HUE_SAMPLES), 1)
+			local hueN = math.max(math.floor(hueSamples or constants.ColorHueSamples), 1)
 			local toneN = omitScale and hueN or (hueN - 1)
-			local saturationN = math.max(math.floor(saturationSamples or constants.COLOR_SATURATION_SAMPLES), 1)
-			local valueN = math.max(math.floor(brightnessSamples or constants.COLOR_BRIGHTNESS_SAMPLES), 1)
+			local saturationN = math.max(math.floor(saturationSamples or constants.ColorSaturationSamples), 1)
+			local valueN = math.max(math.floor(brightnessSamples or constants.ColorBrightnessSamples), 1)
 			local index = math.max(math.min(math.floor(colorIndex or 0), hueN * saturationN * valueN - 1), 0)
 
 			local x = index % hueN
@@ -316,7 +316,7 @@ cytanb = (function ()
 			local serData = {}
 			for k, v in pairs(data) do
 				if type(v) == 'number' and v < 0 then
-					serData[k .. constants.NEGATIVE_NUMBER_TAG] = tostring(v)
+					serData[k .. constants.NegativeNumberTag] = tostring(v)
 				else
 					serData[k] = cytanb.TableToSerialiable(v)
 				end
@@ -334,8 +334,8 @@ cytanb = (function ()
 
 			local data = {}
 			for k, v in pairs(serData) do
-				if type(v) == 'string' and string.endsWith(k, constants.NEGATIVE_NUMBER_TAG) then
-					data[string.sub(k, 1, #k - #constants.NEGATIVE_NUMBER_TAG)] = tonumber(v)
+				if type(v) == 'string' and string.endsWith(k, constants.NegativeNumberTag) then
+					data[string.sub(k, 1, #k - #constants.NegativeNumberTag)] = tonumber(v)
 				else
 					data[k] = cytanb.TableFromSerialiable(v)
 				end
@@ -348,7 +348,7 @@ cytanb = (function ()
 		--- @param parameterMap table @パラメーターのテーブルを指定する。省略可能。
 		EmitMessage = function (name, parameterMap)
 			local table = parameterMap and cytanb.TableToSerialiable(parameterMap) or {}
-			table[constants.INSTANCE_ID_PARAMETER_NAME] = cytanb.InstanceId()
+			table[constants.InstanceIDParameterName] = cytanb.InstanceID()
 			vci.message.Emit(name, json.serialize(table))
 		end,
 
@@ -388,10 +388,10 @@ cytanb = (function ()
 	setmetatable(cytanb, {__index = constants})
 
 	if vci.assets.IsMine then
-		instanceId = cytanb.UUIDString(cytanb.RandomUUID())
-		vci.state.Set(INSTANCE_ID_STATE_NAME, instanceId)
+		instanceID = cytanb.UUIDString(cytanb.RandomUUID())
+		vci.state.Set(InstanceIDStateName, instanceID)
 	else
-		instanceId = ''
+		instanceID = ''
 	end
 
 	return cytanb

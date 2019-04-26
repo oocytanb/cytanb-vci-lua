@@ -7,9 +7,13 @@
 
 - アバターの手、または名前にハッシュタグ `#cytanb-color-picker` が含まれるアイテムが、パレットに当たると、その場所の色が設定されます。
 
-- パレットの左側にある `Picker` スイッチをつかんでグリップ(使用)すると、上記のコライダーに `制限する[LIMIT]/しない[ANY]` を切り換えます。
+- パレットの左側にある `Advanced` スイッチをつかんでグリップ(使用)すると、`Brightness`, `Opacity`, `Picker` スイッチの有効/無効を切り換えます。
 
-- パレットの右側にある `Brightness` スイッチに触れると、パレットの明度を切り替えます。
+- `Brightness` スイッチに触れると、パレットの明度を切り替えます。
+
+- `Opacity` スイッチに触れると、パレットの不透明度を切り替えます。
+
+- `Picker` スイッチをつかんでグリップ(使用)すると、当たり判定をするコライダーを `制限する[LIMIT]/しない[ANY]` を切り換えます。
 
 ## 共有変数 `vci.studio.shared` から色情報を取得する方法
 
@@ -69,7 +73,7 @@ local color = ColorFromARGB32(vci.studio.shared.Get('com.github.oocytanb.cytanb-
         local color = cytanb.ColorFromARGB32(parameterMap['argb32'])
 
         -- カラーパレットのインスタンス ID や、位置によって、複数のパレットを区別する事も出来る。
-        local instanceId = parameterMap['__CYTANB_INSTANCE_ID']
+        local instanceID = parameterMap['__CYTANB_INSTANCE_ID']
         local position = Vector3.__new(parameterMap['positionX'], parameterMap['positionY'], parameterMap['positionZ'])
     end)
     ```

@@ -22,6 +22,10 @@ ModelImporter:
     100032: collision-switch-panel
     100034: picker-switch
     100036: picker-switch-panel
+    100038: opacity-switch
+    100040: advanced-switch-panel
+    100042: opacity-switch-panel
+    100044: advanced-switch
     400000: color-index-0
     400002: color-index-1
     400004: //RootNode
@@ -41,18 +45,19 @@ ModelImporter:
     400032: collision-switch-panel
     400034: picker-switch
     400036: picker-switch-panel
+    400038: opacity-switch
+    400040: advanced-switch-panel
+    400042: opacity-switch-panel
+    400044: advanced-switch
     2100000: color-index-mat
     2100002: color-palette-mat__color-palette-tex_png
     2100004: color-palette-mat
     2100006: current-color-mat
     2100008: current-color-mat__color-palette-tex_png
-    2100010: collision-switch-mat__color-palette-tex_png
+    2100010: opacity-switch-mat__color-palette-tex_png
     2100012: brightness-switch-mat__color-palette-tex_png
     2100014: picker-switch-mat__color-palette-tex_png
-    2100016: color-palette-matT__color-palette-tex_png
-    2100018: current-color-matT
-    2100020: color-index-matT
-    2100022: brightness-switch-matT__color-palette-tex_png
+    2100016: advanced-switch-mat__color-palette-tex_png
     2100024: palette-base__color-palette-tex_png
     2300000: color-index-0
     2300002: color-index-1
@@ -72,6 +77,10 @@ ModelImporter:
     2300030: collision-switch-panel
     2300032: picker-switch
     2300034: picker-switch-panel
+    2300036: opacity-switch
+    2300038: advanced-switch-panel
+    2300040: opacity-switch-panel
+    2300042: advanced-switch
     3300000: color-index-0
     3300002: color-index-1
     3300004: palette-body
@@ -90,6 +99,10 @@ ModelImporter:
     3300030: collision-switch-panel
     3300032: picker-switch
     3300034: picker-switch-panel
+    3300036: opacity-switch
+    3300038: advanced-switch-panel
+    3300040: opacity-switch-panel
+    3300042: advanced-switch
     4300000: color-index-1
     4300002: color-index-0
     4300004: palette-body
@@ -108,14 +121,18 @@ ModelImporter:
     4300030: collision-switch-panel
     4300032: picker-switch
     4300034: picker-switch-panel
+    4300036: opacity-switch
+    4300038: advanced-switch-panel
+    4300040: opacity-switch-panel
+    4300042: advanced-switch
     7400000: Default Take
     9500000: //RootNode
   externalObjects:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: brightness-switch-matT__color-palette-tex_png
-    second: {fileID: 2100000, guid: 18aff4083889b1846994ebb2bcb2bdc3, type: 2}
+      name: advanced-switch-mat__color-palette-tex_png
+    second: {fileID: 2100000, guid: 2c94980e52271f24da6e78bbb7d5caea, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -124,18 +141,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: collision-switch-mat__color-palette-tex_png
-    second: {fileID: 2100000, guid: e6165ad02ee0c944795f507e60f79877, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
       name: color-index-mat
     second: {fileID: 2100000, guid: 5284c21d42f34434c815f17dd41eaeb4, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: color-palette-matT__color-palette-tex_png
-    second: {fileID: 2100000, guid: 0008257edf95e784084d546ec3253b97, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -146,6 +153,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: current-color-mat
     second: {fileID: 2100000, guid: 66746d91456ee41409f945f10d7c03d3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: opacity-switch-mat__color-palette-tex_png
+    second: {fileID: 2100000, guid: bfced6411a3b6d841ad9bc5ee0609913, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
