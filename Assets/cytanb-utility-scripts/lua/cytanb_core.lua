@@ -33,10 +33,10 @@ cytanb = (function ()
 		ColorSaturationSamples = 4,
 	
 		--- デフォルトの明度のサンプル数。
-		ColorBrightnessSamples = 4,
+		ColorBrightnessSamples = 5,
 	
 		--- デフォルトのカラーマップのサイズ。
-		ColorMapSize = 10 * 4 * 4,        -- ColorHueSamples * ColorSaturationSamples * ColorBrightnessSamples
+		ColorMapSize = 10 * 4 * 5,        -- ColorHueSamples * ColorSaturationSamples * ColorBrightnessSamples
 	
 		--- 負の数値を示すタグ。
 		NegativeNumberTag = '#__CYTANB_NEGATIVE_NUMBER',

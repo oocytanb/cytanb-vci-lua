@@ -377,7 +377,7 @@ MonoBehaviour:
     targetEngine: 0
     source: "----------------------------------------------------------------\r\n--
       \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\n\r\ncytanb=(function()math.randomseed(os.time())local
-      a={FatalLogLevel=100,ErrorLogLevel=200,WarnLogLevel=300,InfoLogLevel=400,DebugLogLevel=500,TraceLogLevel=600,ColorHueSamples=10,ColorSaturationSamples=4,ColorBrightnessSamples=4,ColorMapSize=10*4*4,NegativeNumberTag='#__CYTANB_NEGATIVE_NUMBER',InstanceIDParameterName='__CYTANB_INSTANCE_ID'}local
+      a={FatalLogLevel=100,ErrorLogLevel=200,WarnLogLevel=300,InfoLogLevel=400,DebugLogLevel=500,TraceLogLevel=600,ColorHueSamples=10,ColorSaturationSamples=4,ColorBrightnessSamples=5,ColorMapSize=10*4*5,NegativeNumberTag='#__CYTANB_NEGATIVE_NUMBER',InstanceIDParameterName='__CYTANB_INSTANCE_ID'}local
       b='__CYTANB_INSTANCE_ID'local c=400;local d;local cytanb={InstanceID=function()if
       d==''then d=vci.state.Get(b)or''end;return d end,Vars=function(e,f,g,h)local
       i;if f then i=f~='__NOLF'else f='  'i=true end;if not g then g=''end;if not

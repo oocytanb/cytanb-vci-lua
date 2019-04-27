@@ -615,7 +615,7 @@ MonoBehaviour:
     targetEngine: 0
     source: "----------------------------------------------------------------\r\n--
       \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\n\r\ncytanb=(function()math.randomseed(os.time())local
-      a={FatalLogLevel=100,ErrorLogLevel=200,WarnLogLevel=300,InfoLogLevel=400,DebugLogLevel=500,TraceLogLevel=600,ColorHueSamples=10,ColorSaturationSamples=4,ColorBrightnessSamples=4,ColorMapSize=10*4*4,NegativeNumberTag='#__CYTANB_NEGATIVE_NUMBER',InstanceIDParameterName='__CYTANB_INSTANCE_ID'}local
+      a={FatalLogLevel=100,ErrorLogLevel=200,WarnLogLevel=300,InfoLogLevel=400,DebugLogLevel=500,TraceLogLevel=600,ColorHueSamples=10,ColorSaturationSamples=4,ColorBrightnessSamples=5,ColorMapSize=10*4*5,NegativeNumberTag='#__CYTANB_NEGATIVE_NUMBER',InstanceIDParameterName='__CYTANB_INSTANCE_ID'}local
       b='__CYTANB_INSTANCE_ID'local c=400;local d;local cytanb={InstanceID=function()if
       d==''then d=vci.state.Get(b)or''end;return d end,Vars=function(e,f,g,h)local
       i;if f then i=f~='__NOLF'else f='  'i=true end;if not g then g=''end;if not
@@ -706,7 +706,7 @@ MonoBehaviour:
       Vector2.__new(0.0, 1.0 - height * state))\r\n\t\t\t\treturn true\r\n\t\t\telse\r\n\t\t\t\treturn
       false\r\n\t\t\tend\r\n\t\tend\r\n\t}\r\n\treturn self\r\nend\r\n\r\nadvancedSwitch
       = CreateSwitch('advanced-switch', 1, 0, false)\r\npickerSwitch = CreateSwitch('picker-switch',
-      1, 0, true)\r\nopacitySwitch = CreateSwitch('opacity-switch', 3, 0, true)\r\nbrightnessSwitch
+      1, 0, true)\r\nopacitySwitch = CreateSwitch('opacity-switch', 4, 0, true)\r\nbrightnessSwitch
       = CreateSwitch('brightness-switch', cytanb.ColorBrightnessSamples - 1, 0, true)\r\n\r\nlocal
       switchMap = {\r\n\t[advancedSwitch.name] = advancedSwitch,\r\n\t[pickerSwitch.name]
       = pickerSwitch,\r\n\t[opacitySwitch.name] = opacitySwitch,\r\n\t[brightnessSwitch.name]
@@ -745,7 +745,7 @@ MonoBehaviour:
       color, colorIndex = CalculateColor(GetHitIndex(), brightnessSwitch.GetState(),
       opacitySwitch.GetState())\r\n\tEmitStatus(color, colorIndex)\r\nend)\r\n\r\n--
       \u30A2\u30A4\u30C6\u30E0\u3092\u8A2D\u7F6E\u3057\u305F\u3068\u304D\u306E\u521D\u671F\u5316\u51E6\u7406\r\nif
-      vci.assets.IsMine then\r\nlocal color, colorIndex = CalculateColor(GetHitIndex(),
+      vci.assets.IsMine then\r\n\tlocal color, colorIndex = CalculateColor(GetHitIndex(),
       brightnessSwitch.GetState(), opacitySwitch.GetState())\r\n\tUpdateStatus(color,
       colorIndex)\r\nend\r\n\r\n-- \u5168\u30E6\u30FC\u30B6\u30FC\u3067\u3001\u6BCE\u30D5\u30EC\u30FC\u30E0\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
       updateAll()\r\n\tupdateStateCw()\r\nend\r\n\r\n--- SubItem \u3092\u30C8\u30EA\u30AC\u30FC\u3067\u3064\u304B\u3080\u3068\u547C\u3073\u51FA\u3055\u308C\u308B\u3002\r\nfunction
@@ -845,8 +845,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.12, y: 0.06, z: 0.05}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 0.12, y: 0.06, z: 0.070001}
+  m_Center: {x: 0, y: 0, z: -0.0100005}
 --- !u!138 &181717187
 FixedJoint:
   m_ObjectHideFlags: 0
@@ -978,8 +978,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.12, y: 0.06, z: 0.05}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 0.12, y: 0.06, z: 0.070001}
+  m_Center: {x: 0, y: 0, z: -0.0100005}
 --- !u!54 &181717198
 Rigidbody:
   m_ObjectHideFlags: 0
