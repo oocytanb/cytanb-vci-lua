@@ -52,6 +52,7 @@ _makeClassStatic(TutorialClass) -- _makeClassStatic() でクラス作成終了
     --- _weak
     --- _tableCopy
     --- _addmetatable
+    --- _getMemberTable
     --- DEBUG
 --- クラス内
     --- _rawnew
@@ -61,6 +62,7 @@ _makeClassStatic(TutorialClass) -- _makeClassStatic() でクラス作成終了
     --- _super
     --- _mutableList
     --- _readableList
+    --- _memberTable
 
 TutorialsugoiProtocol = _defineClass() -- _defineClass() でクラス作成開始
 function TutorialsugoiProtocol:sugoiInterface(text)
@@ -76,6 +78,7 @@ _makeClassStatic(TutorialfutuuProtocol) -- _makeClassStatic() でクラス作成
 
 --- ### 継承、多重継承 ###
 MultipleInheritance = _defineClass(TutorialsugoiProtocol, TutorialfutuuProtocol) -- _makeClassStatic() の引数に継承するクラスを並べると継承する
+MultipleInheritance.value = 5
 _makeClassStatic(MultipleInheritance)
 
 MyClass = _defineClass()
@@ -95,13 +98,19 @@ local instanceMyclass = MyClass:new() -- new で生成する
 assert(instanceMyclass.interface.xxx == 1) -- 未定義のインスタンスメンバはクラスのメンバ変数の定義が参照される
 
 instanceMyclass.interface = {xxx = 2}
-instanceMyclass.interface = {yyy = 2} -- これはインターフェイスに互換性がないのでエラーになる。 xxxが必要
+-- instanceMyclass.interface = {yyy = 2} -- これはインターフェイスに互換性がないのでエラーになる。 xxxが必要
 instanceMyclass.interface = {yyy = 2, xxx = 3} -- これはインターフェイスが互換性があるのでOK!
+
+assert(instanceMyclass.interface.xxx == 3)
+
 
 
 local testInterface = MultipleInheritance:new()
 instanceMyclass.interfacesugoi = testInterface -- これはインターフェイスが互換性があるのでOK!
 instanceMyclass.interfacefutuu = testInterface -- これはインターフェイスが互換性があるのでOK!
+assert(instanceMyclass.interfacefutuu.value == 5)
+-- instanceMyclass.interfacefutuu = nil -- これはインターフェイスが互換性がないのでだめ!
+
 
 --- ！メンバ関数定義と呼び出しには必ず :(セミコロン)を使うこと！エラーが発生します！
 -- instanceMyclass.new() -- これはエラーになる
