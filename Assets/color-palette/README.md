@@ -34,10 +34,10 @@ local ColorFromARGB32 = function (argb32)
 end
 
 -- カラーパレットが存在しない場合のデフォルト色 (ここでは緑色)。
-local defaultARGB32 = 0xFF00A95F
+local DefaultARGB32 = 0xFF00A95F
 
 -- カラーパレットの共有変数から値を取得する。
-local color = ColorFromARGB32(vci.studio.shared.Get('com.github.oocytanb.cytanb-tso-collab.color-palette.argb32') or defaultARGB32)
+local color = ColorFromARGB32(vci.studio.shared.Get('com.github.oocytanb.cytanb-tso-collab.color-palette.argb32') or DefaultARGB32)
 ```
 
 [共有変数に関する情報](https://gist.github.com/oocytanb/e35ab915f0ef9cf4f5948707f52da7af)
@@ -93,4 +93,7 @@ local color = ColorFromARGB32(vci.studio.shared.Get('com.github.oocytanb.cytanb-
     ```
 
 ## カラーパレットを使用する VCI のサンプル
-[colored-chalk-and-panels](../colored-chalk-and-panels/README.md)
+
+- [colored-chalk-and-panels](../colored-chalk-and-panels/README.md)
+
+- [oO-bariumkuchen](../oO-bariumkuchen/README.md)

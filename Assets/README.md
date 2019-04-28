@@ -10,7 +10,7 @@ Unity のプロジェクトファイルをオープンソースで公開して�
 
 - [Unity](https://unity3d.com/) 2018.2
 
-- [UniVRM](https://github.com/dwango/UniVRM)
+- [UniVRM](https://github.com/vrm-c/UniVRM)
 
 - [UniVCI](https://github.com/virtual-cast/VCI)
 
@@ -59,14 +59,15 @@ Unity のプロジェクトファイルをオープンソースで公開して�
 ## フォーク元のリポジトリに追従する手順
 
 1. リモートリポジトリを追加します。
+
     現在の状態を確認します。
-    既に `upstream` としてフォーク元のリポジトリが追加されている場合は、この手順をスキップします。
-    (GitHub Desktop を使って、フォークしたリポジトリをクローンすると、自動的に設定されるようです。)
     ```
     git remote -v
     ```
 
-    `upstream` として追加
+    既に `upstream` としてフォーク元のリポジトリが追加されている場合は、この手順をスキップして次へ進みます。
+
+    `upstream` としてリモートジポジトリを追加します。
     ```
     git remote add upstream https://github.com/oocytanb/cytanb-tso-collab.git
     ```
@@ -114,6 +115,10 @@ Unity のプロジェクトファイルをオープンソースで公開して�
 - その他のライセンスを適用する必要がある場合には、選択肢の追加を検討します。
 
 - 外部のアセットを使用する場合は、ライセンスが適合するかをよく確認する必要があります。
+
+# Utility scripts
+See [cytanb-utility-scripts](cytanb-utility-scripts/README.md) directory.
+
 
 # Community channel
 [Discord](https://discord.gg/FwFjw5n)
