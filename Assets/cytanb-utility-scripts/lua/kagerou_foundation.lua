@@ -25,6 +25,7 @@ function _defineClass(...) -- @param protocol
                 wins().delete(self)
             end
             meta._super = cls
+            if DEBUG then meta.__newindex = DEBUG.checkSubstitutionFunc() end
             setmetatable(ins, meta)
             setmetatable(ins._, {__index = function(table,key) return rawget(wins(),key) end,
                 __newindex=function(table,key,value) rawset(wins(),key,value) end})
@@ -88,12 +89,18 @@ function DEBUG.isReadable(ins, key)
 end
 function DEBUG.makeClassStatic(cls)
     local meta = getmetatable(cls) or {}
-    meta.__newindex = function(table,key,value)
-        local unpack = DEBUG.mutableUnpack(value)
-        if unpack then
-            value = unpack
+    meta.__newindex = DEBUG.checkSubstitutionFunc()
+    meta.__index = function(table,key)
+        local value = rawget(table,key)
+        if not DEBUG.isReadable(table,key) and value == nil then
+            error("class member: '" .. key .. "' is not defined. in call of class member.")
         end
-        local meta = getmetatable(table) or {}
+        return value
+    end
+    setmetatable(cls, meta)
+end
+function DEBUG.checkSubstitutionFunc()
+    return function(table,key,value)
         if DEBUG.isReadable(table, key) then
             if DEBUG.isMutable(table, key) then
                 if DEBUG.isKindOf(table[key], value) then
@@ -108,14 +115,6 @@ function DEBUG.makeClassStatic(cls)
             error("class member: '" .. key .. "' is not defined. in substitution of class member.")
         end
     end
-    meta.__index = function(table,key)
-        local value = rawget(table,key)
-        if not DEBUG.isReadable(table,key) and value == nil then
-            error("class member: '" .. key .. "' is not defined. in call of class member.")
-        end
-        return value
-    end
-    setmetatable(cls, meta)
 end
 function DEBUG.isKindOf(base, value)
     local baseins, basemetains = DEBUG.interfaceMap(base)
