@@ -598,7 +598,7 @@ MonoBehaviour:
     contactInformation: 
     reference: 
     thumbnail: {fileID: 2800000, guid: 1275a8fba2b4a1d4b9dbf9b45c57c433, type: 3}
-    version: 0.4.0
+    version: 0.4.1
     description: "\u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u306E\u30A2\u30A4\u30C6\u30E0\u3067\u3059\u3002\n\r\u5225\u306EVCI\u304B\u3089\u3001\u9078\u629E\u3057\u305F\u8272\u306E\u53D6\u5F97\u304C\u53EF\u80FD\u3067\u3059\u3002\r\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)\n"
     exporterVersion: 0.17
     specVersion: 
@@ -645,11 +645,12 @@ MonoBehaviour:
       M=L%H;local N=math.floor(L/H)local O=N%J;local P=math.floor(N/J)if G or M~=I
       then local Q=M/I;local R=(J-O)/J;local e=(K-P)/K;return Color.HSVToRGB(Q,R,e)else
       local e=(K-P)/K*O/(J-1)return Color.HSVToRGB(0.0,0.0,e)end end,GetSubItemTransform=function(S)local
-      T=S.GetPosition()local U=S.GetRotation()local V=S.GetLocalScale()return{positionX=T.x,positionY=T.y,positionZ=T.z,rotationX=U.x,rotationY=U.y,rotationZ=U.z,rotationW=U.w,scaleX=V.x,scaleY=V.y,scaleZ=V.z}end,TableToSerialiable=function(W)if
-      type(W)~='table'then return W end;local X={}for v,e in pairs(W)do if type(e)=='number'and
-      e<0 then X[v..a.NegativeNumberTag]=tostring(e)else X[v]=cytanb.TableToSerialiable(e)end
-      end;return X end,TableFromSerialiable=function(X)if type(X)~='table'then return
-      X end;local W={}for v,e in pairs(X)do if type(e)=='string'and string.endsWith(v,a.NegativeNumberTag)then
+      T=S.GetPosition()local U=S.GetRotation()local V=S.GetLocalScale()return{positionX=T.x,positionY=T.y,positionZ=T.z,rotationX=U.x,rotationY=U.y,rotationZ=U.z,rotationW=U.w,scaleX=V.x,scaleY=V.y,scaleZ=V.z}end,TableToSerialiable=function(W,h)if
+      type(W)~='table'then return W end;if not h then h={}end;if h[W]then error('circular
+      reference')end;h[W]=true;local X={}for v,e in pairs(W)do if type(e)=='number'and
+      e<0 then X[v..a.NegativeNumberTag]=tostring(e)else X[v]=cytanb.TableToSerialiable(e,h)end
+      end;h[W]=nil;return X end,TableFromSerialiable=function(X)if type(X)~='table'then
+      return X end;local W={}for v,e in pairs(X)do if type(e)=='string'and string.endsWith(v,a.NegativeNumberTag)then
       W[string.sub(v,1,#v-#a.NegativeNumberTag)]=tonumber(e)else W[v]=cytanb.TableFromSerialiable(e)end
       end;return W end,EmitMessage=function(Y,Z)local table=Z and cytanb.TableToSerialiable(Z)or{}table[a.InstanceIDParameterName]=cytanb.InstanceID()vci.message.Emit(Y,json.serialize(table))end,OnMessage=function(Y,_)local
       a0=function(a1,a2,a3)local Z;if a3==''then Z={}else local a4,X=pcall(json.parse,a3)if
