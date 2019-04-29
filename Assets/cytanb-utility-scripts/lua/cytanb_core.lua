@@ -307,20 +307,32 @@ cytanb = (function ()
 		--- json.parse が負の数値を扱えない問題(https://github.com/xanathar/moonsharp/issues/163)のワークアラウンドを行う。
 		--- 負の数値は、キー名に '#__CYTANB_NEGATIVE_NUMBER' タグを付加し、負の数値を文字列に変換する。
 		--- @param data table @シリアライズするテーブルを指定する。
+		--- @param refTable table @省略。
 		--- @return table @修正後のテーブル。
-		TableToSerialiable = function (data)
+		TableToSerialiable = function (data, refTable)
 			if type(data) ~= 'table' then
 				return data
 			end
 
+			if not refTable then
+				refTable = {}
+			end
+
+			if refTable[data] then
+				error('circular reference')
+			end
+
+			refTable[data] = true
 			local serData = {}
 			for k, v in pairs(data) do
 				if type(v) == 'number' and v < 0 then
 					serData[k .. constants.NegativeNumberTag] = tostring(v)
 				else
-					serData[k] = cytanb.TableToSerialiable(v)
+					serData[k] = cytanb.TableToSerialiable(v, refTable)
 				end
 			end
+
+			refTable[data] = nil
 			return serData
 		end,
 
