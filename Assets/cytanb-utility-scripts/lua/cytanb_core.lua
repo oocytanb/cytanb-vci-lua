@@ -54,7 +54,9 @@ cytanb = (function ()
 	--- インスタンス ID の文字列。
 	local instanceID
 
-	local cytanb = {
+	local cytanb
+	
+	cytanb = {
 		--- インスタンス ID を取得する。
 		--- @return string @インスタンス ID の文字列。VCI を設置したユーザー以外では、同期完了前は空文字列を返す。
 		InstanceID = function()
