@@ -3,6 +3,8 @@
 カラーパレットのアイテムです。
 別の VCI から、パレットで選択した色情報を取得可能です。
 
+[![cytanb-color-palette 紹介動画](https://img.youtube.com/vi/e3qvpL7QpMM/0.jpg)](https://www.youtube.com/watch?v=e3qvpL7QpMM)
+
 ## パレットの色選択
 
 - アバターの手、または名前にハッシュタグ `#cytanb-color-picker` が含まれるアイテムが、パレットに当たると、その場所の色が設定されます。
