@@ -3,7 +3,7 @@
 --  MIT Licensed
 ----------------------------------------------------------------
 
-package.path=package.path..';./?.lua' 
+package.path=package.path..';./?.lua'
 require("kagerou_foundation")
 
 ---------------------------------------
@@ -29,21 +29,21 @@ function KFList:push_back(content)
 end
 function KFList:erase(KFList_n)
     if (self.first == KFList_n) then
-        self.first = KFList_n.next;
+        self._.first = KFList_n.next;
     else
-        KFList_n.prev().next = KFList_n.next
+        KFList_n.prev()._.next = KFList_n.next
     end
     if (self.last == KFList_n) then
         if KFList_n.prev then
-            self.last = KFList_n.prev()
+            self._.last = KFList_n.prev()
         else
-            self.last = nil
+            self._.last = nil
         end
     else
-        KFList_n.next.prev = KFList_n.prev
+        KFList_n.next._.prev = KFList_n.prev
     end
     KFList_n:delete()
-    self.size = self.size -1;
+    self._.size = self.size -1;
 end
 function KFList:delete()
     local KFList_n = self.first
