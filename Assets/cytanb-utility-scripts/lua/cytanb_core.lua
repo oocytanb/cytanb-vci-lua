@@ -4,8 +4,6 @@
 ----------------------------------------------------------------
 
 cytanb = (function ()
-	math.randomseed(os.time())
-
 	-- 定数定義。
 	local constants = {
 		--- 致命的なレベルのログを表す定数値。
@@ -207,10 +205,10 @@ cytanb = (function ()
 		--- @return table @生成した UUID。32 bit の数値データが 4 つ連続して格納された配列。
 		RandomUUID = function ()
 			return {
-				math.random(0, 0xFFFFFFFF),
-				bit32.bor(0x4000, bit32.band(math.random(0, 0xFFFFFFFF), 0xFFFF0FFF)),
-				bit32.bor(0x80000000, bit32.band(math.random(0, 0xFFFFFFFF), 0x3FFFFFFF)),
-				math.random(0, 0xFFFFFFFF)
+				math.random(0x80000000, 0x7FFFFFFE),
+				bit32.bor(0x4000, bit32.band(math.random(0x80000000, 0x7FFFFFFE), 0xFFFF0FFF)),
+				bit32.bor(0x80000000, bit32.band(math.random(0x80000000, 0x7FFFFFFE), 0x3FFFFFFF)),
+				math.random(0x80000000, 0x7FFFFFFE)
 			}
 		end,
 
