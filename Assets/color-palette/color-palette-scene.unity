@@ -598,7 +598,7 @@ MonoBehaviour:
     contactInformation: 
     reference: 
     thumbnail: {fileID: 2800000, guid: 1275a8fba2b4a1d4b9dbf9b45c57c433, type: 3}
-    version: 0.4.1
+    version: 0.4.2
     description: "\u30AB\u30E9\u30FC\u30D1\u30EC\u30C3\u30C8\u306E\u30A2\u30A4\u30C6\u30E0\u3067\u3059\u3002\n\r\u5225\u306EVCI\u304B\u3089\u3001\u9078\u629E\u3057\u305F\u8272\u306E\u53D6\u5F97\u304C\u53EF\u80FD\u3067\u3059\u3002\r\n[\u30BD\u30FC\u30B9\u30B3\u30FC\u30C9](https://github.com/oocytanb/cytanb-tso-collab)\n"
     exporterVersion: 0.17
     specVersion: 
@@ -614,9 +614,9 @@ MonoBehaviour:
     mimeType: 0
     targetEngine: 0
     source: "----------------------------------------------------------------\r\n--
-      \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\n\r\ncytanb=(function()math.randomseed(os.time())local
+      \ Copyright (c) 2019 oO (https://github.com/oocytanb)\r\n--  MIT Licensed\r\n----------------------------------------------------------------\r\n\r\ncytanb=(function()local
       a={FatalLogLevel=100,ErrorLogLevel=200,WarnLogLevel=300,InfoLogLevel=400,DebugLogLevel=500,TraceLogLevel=600,ColorHueSamples=10,ColorSaturationSamples=4,ColorBrightnessSamples=5,ColorMapSize=10*4*5,NegativeNumberTag='#__CYTANB_NEGATIVE_NUMBER',InstanceIDParameterName='__CYTANB_INSTANCE_ID'}local
-      b='__CYTANB_INSTANCE_ID'local c=400;local d;local cytanb={InstanceID=function()if
+      b='__CYTANB_INSTANCE_ID'local c=400;local d;local cytanb;cytanb={InstanceID=function()if
       d==''then d=vci.state.Get(b)or''end;return d end,Vars=function(e,f,g,h)local
       i;if f then i=f~='__NOLF'else f='  'i=true end;if not g then g=''end;if not
       h then h={}end;local j=type(e)if j=='table'then h[e]=h[e]and h[e]+1 or 1;local
@@ -633,7 +633,7 @@ MonoBehaviour:
       local e=q[r]if e~=nil then l=l..(type(e)=='table'and cytanb.Vars(e)or tostring(e))end
       end;print(l)end end end,FatalLog=function(...)cytanb.Log(a.FatalLogLevel,...)end,ErrorLog=function(...)cytanb.Log(a.ErrorLogLevel,...)end,WarnLog=function(...)cytanb.Log(a.WarnLogLevel,...)end,InfoLog=function(...)cytanb.Log(a.InfoLogLevel,...)end,DebugLog=function(...)cytanb.Log(a.DebugLogLevel,...)end,TraceLog=function(...)cytanb.Log(a.TraceLogLevel,...)end,ListToMap=function(s,t)local
       table={}local u=t==nil;for v,e in pairs(s)do table[e]=u and e or t end;return
-      table end,RandomUUID=function()return{math.random(0,0xFFFFFFFF),bit32.bor(0x4000,bit32.band(math.random(0,0xFFFFFFFF),0xFFFF0FFF)),bit32.bor(0x80000000,bit32.band(math.random(0,0xFFFFFFFF),0x3FFFFFFF)),math.random(0,0xFFFFFFFF)}end,UUIDString=function(w)local
+      table end,RandomUUID=function()return{math.random(0x80000000,0x7FFFFFFE),bit32.bor(0x4000,bit32.band(math.random(0x80000000,0x7FFFFFFE),0xFFFF0FFF)),bit32.bor(0x80000000,bit32.band(math.random(0x80000000,0x7FFFFFFE),0x3FFFFFFF)),math.random(0x80000000,0x7FFFFFFE)}end,UUIDString=function(w)local
       x=w[2]or 0;local y=w[3]or 0;return string.format('%08x-%04x-%04x-%04x-%04x%08x',bit32.band(w[1]or
       0,0xFFFFFFFF),bit32.band(bit32.rshift(x,16),0xFFFF),bit32.band(x,0xFFFF),bit32.band(bit32.rshift(y,16),0xFFFF),bit32.band(y,0xFFFF),bit32.band(w[4]or
       0,0xFFFFFFFF))end,ColorFromARGB32=function(z)local A=type(z)=='number'and z
