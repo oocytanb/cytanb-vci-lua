@@ -201,14 +201,21 @@ cytanb = (function ()
 			return table
 		end,
 
+		--- 32 bit 整数値の範囲の疑似乱数を生成する。
+		--- @return number @生成した疑似の整数値。
+		Random32 = function ()
+			-- MoonSharp の実装上、2147483646 が渡すことのできる最大値。
+			return math.random(-2147483648, 2147483646)
+		end,
+
 		--- 乱数に基づく UUID version 4 を生成する。
 		--- @return table @生成した UUID。32 bit の数値データが 4 つ連続して格納された配列。
 		RandomUUID = function ()
 			return {
-				math.random(0x80000000, 0x7FFFFFFE),
-				bit32.bor(0x4000, bit32.band(math.random(0x80000000, 0x7FFFFFFE), 0xFFFF0FFF)),
-				bit32.bor(0x80000000, bit32.band(math.random(0x80000000, 0x7FFFFFFE), 0x3FFFFFFF)),
-				math.random(0x80000000, 0x7FFFFFFE)
+				cytanb.Random32(),
+				bit32.bor(0x4000, bit32.band(cytanb.Random32(), 0xFFFF0FFF)),
+				bit32.bor(0x80000000, bit32.band(cytanb.Random32(), 0x3FFFFFFF)),
+				cytanb.Random32()
 			}
 		end,
 
