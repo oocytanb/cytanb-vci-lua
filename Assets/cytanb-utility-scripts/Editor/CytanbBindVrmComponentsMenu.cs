@@ -60,8 +60,6 @@ namespace cytanb
                 
                 Undo.RecordObject(root, ACTION_NAME);
 
-                var gltf = new glTF();
-
                 // Meta
                 SerializedObject serMeta = null;
 #if true
@@ -89,6 +87,7 @@ namespace cytanb
 #else
                 // generate MetaObject (deprecated)
                 {
+                    var gltf = new glTF();
                     var meta = ScriptableObject.CreateInstance<VRMMetaObject>();
                     meta.name = "Meta";
                     meta.ExporterVersion = gltf.extensions.VRM.exporterVersion;

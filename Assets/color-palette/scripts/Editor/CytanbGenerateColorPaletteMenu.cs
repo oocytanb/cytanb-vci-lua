@@ -1,6 +1,9 @@
 /*
  * Copyright (c) 2019 oO (https://github.com/oocytanb)
  * MIT Licensed
+ *
+ * cytanb-color-palette のオブジェクトを生成するスクリプトです。
+ * `UnityEditor Menu > Cytanb > Generate Color Palette` から実行します。
  */
 
 using UnityEditor;
