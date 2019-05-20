@@ -18,6 +18,8 @@ Unity のプロジェクトファイルをオープンソースで公開して�
 
 - [GIMP](https://www.gimp.org/) 2.10
 
+- [Krita](https://krita.org/)
+
 # Git
 
 - [Git 公式サイト](https://git-scm.com/)
