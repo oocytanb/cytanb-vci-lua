@@ -1,5 +1,11 @@
-# cytanb-tso-collab
+# cytanb-vci-lua
 
-このプロジェクトは、[THE SEED ONLINE](https://seed.online/) の 3D オブジェクトを、協同して制作するための試みです。
+VCI のスクリプトから利用できる Lua のモジュールです。
 
-[README 本文](./Assets/README.md) をご覧ください。
+## License
+
+ライセンスは、各スクリプト/ライブラリーについて、それぞれご確認ください。
+
+## cytanb.lua
+
+- UUID、ログ、色、メッセージなど、基礎的な機能を提供するモジュールです。
