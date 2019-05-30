@@ -3,7 +3,8 @@
 --  MIT Licensed
 ----------------------------------------------------------------
 
-cytanb = (function ()
+--- UUID、ログ、色、メッセージなど、基礎的な機能を提供するモジュールです。
+local cytanb = (function ()
 	-- 定数定義。
 	local constants = {
 		--- 致命的なレベルのログを表す定数値。
@@ -405,6 +406,7 @@ cytanb = (function ()
 	}
 
 	setmetatable(cytanb, {__index = constants})
+	package.loaded.cytanb = cytanb
 
 	if vci.assets.IsMine then
 		instanceID = cytanb.UUIDString(cytanb.RandomUUID())
