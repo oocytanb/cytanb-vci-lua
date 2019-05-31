@@ -2,7 +2,7 @@
 
 VCI のスクリプトから利用できる Lua のモジュールです。
 
-[cytanb-tso-collab](https://github.com/oocytanb/cytanb-tso-collab) に利用例があります。
+[cytanb-tso-collab](https://github.com/oocytanb/cytanb-tso-collab) は関連するプロジェクトです。
 
 ## Softwares / Libraries
 
@@ -10,13 +10,13 @@ VCI のスクリプトから利用できる Lua のモジュールです。
 - [Lua](https://www.lua.org/) 5.2
 - [MoonSharp](https://www.moonsharp.org/) 2.0.0.0
 
-# Git
+## Git
 
 - [Git 公式サイト](https://git-scm.com/)
 
 - Git に関する詳しい情報は、Web の資料に当たってください。
 
-## Pull request の作成手順
+### Pull request の作成手順
 1. GitHub の [cytanb-vci-lua](https://github.com/oocytanb/cytanb-vci-lua.git) リポジトリを `Fork` します。(プロジェクトサイト右上 `Fork` ボタン)
 
 1. フォークしたリポジトリをローカルへ `clone` します。
@@ -38,7 +38,7 @@ VCI のスクリプトから利用できる Lua のモジュールです。
 1. GitHub のサイト上でフォークしたリポジトリから `Pull request` を作成します。
 
 
-## フォーク元のリポジトリに追従する手順
+### フォーク元のリポジトリに追従する手順
 
 1. リモートリポジトリを追加します。
 
