@@ -84,7 +84,14 @@ VCI のスクリプトから利用できる Lua のモジュールです。
 
 ## License
 
-ライセンスは、各スクリプト/ライブラリーについて、それぞれご確認ください。
+- ライセンスは、各スクリプト/ライブラリーについて、それぞれご確認ください。
 
-## Community channel
+- アセット等に適用するライセンスは、制作者の著作権表示とその成果物をオープンで自由に利用できることを明示する目的で、主に以下のものから選択しています。
+    - [MIT License](https://opensource.org/licenses/MIT)
+    - [ISC License](https://opensource.org/licenses/ISC)
+    - [BSD 2-Clause License](https://opensource.org/licenses/BSD-2-Clause)
+    - [Apache License, Version 2.0](https://opensource.org/licenses/Apache-2.0)
+    - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
+## Community
 [Discord](https://discord.gg/FwFjw5n)
