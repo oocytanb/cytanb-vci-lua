@@ -18,8 +18,8 @@
 --- @field ColorSaturationSamples number @デフォルトの彩度のサンプル数。
 --- @field ColorBrightnessSamples number @デフォルトの明度のサンプル数。
 --- @field ColorMapSize number @デフォルトのカラーマップのサイズ。
---- @field NegativeNumberTag number @負の数値を示すタグ。
---- @field InstanceIDParameterName number @インスタンス ID のパラーメーター名。
+--- @field NegativeNumberTag string @負の数値を示すタグ。
+--- @field InstanceIDParameterName string @インスタンス ID のパラーメーター名。
 --- @field InstanceID fun (): string @インスタンス ID を取得する。VCI を設置したユーザー以外では、同期完了前は空文字列を返す。
 --- @field Vars fun (v: any, padding: string): string @変数の情報を文字列で返す。`padding` は省略可能。`padding` に '__NOLF' を指定した場合は、インデントおよび改行を行わない。
 --- @field GetLogLevel fun (): number @現在のログレベルを取得する。
@@ -36,7 +36,7 @@
 --- @field RandomUUID fun (): cytanb_uuid_t @乱数に基づく UUID version 4 を生成し、32 bit の数値データ4個分の配列を返す。
 --- @field UUIDString fun (uuid: cytanb_uuid_t): string @RandomUUID 関数で生成した UUID を文字列へ変換する。
 --- @field ColorFromARGB32 fun (argb32: number): Color @ARGB 32 bit 値から、Color オブジェクトへ変換する。
---- @field ColorToARGB32 fun (color: Color): Color オブジェクトから ARGB 32 bit 値へ変換する。
+--- @field ColorToARGB32 fun (color: Color): number オブジェクトから ARGB 32 bit 値へ変換する。
 --- @field ColorFromIndex fun (colorIndex: number, hueSamples: number, saturationSamples: number, brightnessSamples: number, omitScale: boolean): Color @カラーインデックスから対応する Color オブジェクトへ変換する。`omitScale` はグレースケールを省略するかを指定する。`hueSamples`, `saturationSamples`, `brightnessSamples`, `omitScale` は省略可能。
 --- @field GetSubItemTransform fun (subItem: ExportTransform): table<string, number> @SubItem の Transform を取得する。
 --- @field TableToSerialiable fun (data: table): table @json.parse が負の数値を扱えない問題(https://github.com/xanathar/moonsharp/issues/163)のワークアラウンドを行う。負の数値は、キー名に '#__CYTANB_NEGATIVE_NUMBER' タグを付加し、負の数値を文字列に変換する。
