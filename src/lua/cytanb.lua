@@ -3,44 +3,20 @@
 --  MIT Licensed
 ----------------------------------------------------------------
 
---- UUID、ログ、色、メッセージなど、基礎的な機能を提供するモジュールです。
+-- See also `cytanb_annotations.lua`
 local cytanb = (function ()
-	-- 定数定義。
 	local constants = {
-		--- 致命的なレベルのログを表す定数値。
 		FatalLogLevel = 100,
-
-		--- エラーレベルのログを表す定数値。
 		ErrorLogLevel = 200,
-
-		--- 警告レベルのログを表す定数値。
 		WarnLogLevel = 300,
-
-		--- 情報レベルのログを表す定数値。
 		InfoLogLevel = 400,
-
-		--- デバッグレベルのログを表す定数値。
 		DebugLogLevel = 500,
-
-		--- トレースレベルのログを表す定数値。
 		TraceLogLevel = 600,
-
-		--- デフォルトの色相のサンプル数。
 		ColorHueSamples = 10,
-	
-		--- デフォルトの彩度のサンプル数。
 		ColorSaturationSamples = 4,
-	
-		--- デフォルトの明度のサンプル数。
 		ColorBrightnessSamples = 5,
-	
-		--- デフォルトのカラーマップのサイズ。
 		ColorMapSize = 10 * 4 * 5,        -- ColorHueSamples * ColorSaturationSamples * ColorBrightnessSamples
-	
-		--- 負の数値を示すタグ。
 		NegativeNumberTag = '#__CYTANB_NEGATIVE_NUMBER',
-
-		--- インスタンス ID のパラーメーター名。
 		InstanceIDParameterName = '__CYTANB_INSTANCE_ID'
 	}
 
@@ -56,8 +32,6 @@ local cytanb = (function ()
 	local cytanb
 	
 	cytanb = {
-		--- インスタンス ID を取得する。
-		--- @return string @インスタンス ID の文字列。VCI を設置したユーザー以外では、同期完了前は空文字列を返す。
 		InstanceID = function()
 			if instanceID == '' then
 				instanceID = vci.state.Get(InstanceIDStateName) or ''
@@ -65,12 +39,6 @@ local cytanb = (function ()
 			return instanceID
 		end,
 
-		--- 変数の情報を文字列で返す。
-		--- @param v any @調べたい変数を指定する。
-		--- @param padding string @パディング文字列を指定する。省略可能。'__NOLF' を指定した場合は、インデントおよび改行を行わない。
-		--- @param indent string @省略。
-		--- @param refTable table @省略。
-		--- @return string 文字列化した変数の情報。
 		Vars = function (v, padding, indent, refTable)
 			local feed
 			if padding then
@@ -133,21 +101,14 @@ local cytanb = (function ()
 			end
 		end,
 
-		--- 現在のログレベルを取得する。
-		--- @return number
 		GetLogLevel = function()
 			return logLevel
 		end,
 
-		--- ログレベルを設定する。
-		--- @param level number
 		SetLogLevel = function(level)
 			logLevel = level
 		end,
 
-		--- ログを出力する。
-		--- @param level number @ログレベルを指定する。cytanb.SetLogLevel() で設定したレベル以下のときにログが出力される。
-		--- @vararg any @ログに出力する任意の数の引数を指定する。
 		Log = function (level, ...)
 			if level <= logLevel then
 				local args = table.pack(...)
@@ -171,28 +132,18 @@ local cytanb = (function ()
 			end
 		end,
 
-		-- 致命的なレベルのログを出力する。
 		FatalLog = function (...) cytanb.Log(constants.FatalLogLevel, ...) end,
 
-		-- エラーレベルのログを出力する。
 		ErrorLog = function (...) cytanb.Log(constants.ErrorLogLevel, ...) end,
 
-		-- 警告レベルのログを出力する。
 		WarnLog = function (...) cytanb.Log(constants.WarnLogLevel, ...) end,
 
-		-- 情報レベルのログを出力する。
 		InfoLog = function (...) cytanb.Log(constants.InfoLogLevel, ...) end,
 
-		-- デバッグレベルのログを出力する。
 		DebugLog = function (...) cytanb.Log(constants.DebugLogLevel, ...) end,
 
-		-- トレースレベルのログを出力する。
 		TraceLog = function (...) cytanb.Log(constants.TraceLogLevel, ...) end,
 
-		--- リストをテーブルに変換する。
-		--- @param list table @リストを指定する。要素の値がキー値となる。
-		--- @param itemValue any @要素の値を指定する。nil を指定するか省略した場合は、リストの要素の値が使われる。
-		--- @return table @変換結果のテーブル。
 		ListToMap = function (list, itemValue)
 			local table = {}
 			local valueIsNil = itemValue == nil
@@ -202,15 +153,11 @@ local cytanb = (function ()
 			return table
 		end,
 
-		--- 32 bit 整数値の範囲の疑似乱数を生成する。
-		--- @return number @生成した疑似の整数値。
 		Random32 = function ()
 			-- MoonSharp の実装上、2147483646 が渡すことのできる最大値。
 			return math.random(-2147483648, 2147483646)
 		end,
 
-		--- 乱数に基づく UUID version 4 を生成する。
-		--- @return table @生成した UUID。32 bit の数値データが 4 つ連続して格納された配列。
 		RandomUUID = function ()
 			return {
 				cytanb.Random32(),
@@ -220,9 +167,6 @@ local cytanb = (function ()
 			}
 		end,
 
-		--- UUID を文字列へ変換する。
-		--- @param uuid table @cytanbRandomUUID 関数で生成した UUID を指定する。
-		--- @return string @"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" 形式の文字列。
 		UUIDString = function (uuid)
 			local second = uuid[2] or 0
 			local third = uuid[3] or 0
@@ -237,9 +181,6 @@ local cytanb = (function ()
 			)
 		end,
 
-		--- ARGB 32 bit 値から、Color オブジェクトへ変換する。
-		--- @param argb32 number
-		--- @return Color
 		ColorFromARGB32 = function (argb32)
 			local n = (type(argb32) == 'number') and argb32 or 0xFF000000
 			return Color.__new(
@@ -250,9 +191,6 @@ local cytanb = (function ()
 			)
 		end,
 
-		--- Color オブジェクトから ARGB 32 bit 値へ変換する。
-		--- @param color Color
-		--- @return number
 		ColorToARGB32 = function (color)
 			return bit32.bor(
 				bit32.lshift(math.floor(255 * color.a + 0.5), 24),
@@ -262,13 +200,6 @@ local cytanb = (function ()
 			)
 		end,
 
-		--- カラーインデックスから対応する Color オブジェクトへ変換する。
-		--- @param colorIndex number @カラーインデックスを指定する。
-		--- @param hueSamples number @色相のサンプル数を指定する。省略した場合は、ColorHueSamples。
-		--- @param saturationSamples number @彩度のサンプル数を指定する。省略した場合は、ColorSaturationSamples。
-		--- @param brightnessSamples number @明度のサンプル数を指定する。省略した場合は、ColorBrightnessSamples。
-		--- @param omitScale boolean @グレイスケールを省略するかを指定する。省略した場合は、false。
-		--- @return Color @変換結果の Color オブジェクト。
 		ColorFromIndex = function (colorIndex, hueSamples, saturationSamples, brightnessSamples, omitScale)
 			local hueN = math.max(math.floor(hueSamples or constants.ColorHueSamples), 1)
 			local toneN = omitScale and hueN or (hueN - 1)
@@ -292,8 +223,6 @@ local cytanb = (function ()
 			end
 		end,
 
-		--- SubItem の Transform を取得する。
-		--- @return table<string, number> @Transform の情報を格納したテーブル。
 		GetSubItemTransform = function (subItem)
 			local position = subItem.GetPosition()
 			local rotation = subItem.GetRotation()
@@ -312,11 +241,6 @@ local cytanb = (function ()
 			}
 		end,
 
-		--- json.parse が負の数値を扱えない問題(https://github.com/xanathar/moonsharp/issues/163)のワークアラウンドを行う。
-		--- 負の数値は、キー名に '#__CYTANB_NEGATIVE_NUMBER' タグを付加し、負の数値を文字列に変換する。
-		--- @param data table @シリアライズするテーブルを指定する。
-		--- @param refTable table @省略。
-		--- @return table @修正後のテーブル。
 		TableToSerialiable = function (data, refTable)
 			if type(data) ~= 'table' then
 				return data
@@ -344,9 +268,6 @@ local cytanb = (function ()
 			return serData
 		end,
 
-		--- cytanb.TableToSerialiable() したテーブルを復元する。
-		--- @param serData table @cytanb.TableToSerialiable() したテーブルを指定する。
-		--- @return table @復元後のテーブル。
 		TableFromSerialiable = function (serData)
 			if type(serData) ~= 'table' then
 				return serData
@@ -363,18 +284,12 @@ local cytanb = (function ()
 			return data
 		end,
 
-		--- パラメーターを JSON シリアライズして `vci.message.Emit` する。
-		--- @param name string @メッセージ名を指定する。
-		--- @param parameterMap table @パラメーターのテーブルを指定する。省略可能。
 		EmitMessage = function (name, parameterMap)
 			local table = parameterMap and cytanb.TableToSerialiable(parameterMap) or {}
 			table[constants.InstanceIDParameterName] = cytanb.InstanceID()
 			vci.message.Emit(name, json.serialize(table))
 		end,
 
-		--- メッセージハンドラを登録する。
-		--- @param name string @メッセージ名を指定する。
-		--- @param callback fun(table:sender, string:name, table:parameterMap) @コールバック関数を指定する。
 		OnMessage = function (name, callback)
 			local f = function (sender, messageName, message)
 				local parameterMap
