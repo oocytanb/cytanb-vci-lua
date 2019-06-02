@@ -3,7 +3,7 @@
 --  MIT Licensed
 ----------------------------------------------------------------
 
--- See also `cytanb_annotations.lua`
+---@type cytanb @See `cytanb_annotations.lua`
 local cytanb = (function ()
 	local constants = {
 		FatalLogLevel = 100,
@@ -32,7 +32,7 @@ local cytanb = (function ()
 	local cytanb
 	
 	cytanb = {
-		InstanceID = function()
+		InstanceID = function ()
 			if instanceID == '' then
 				instanceID = vci.state.Get(InstanceIDStateName) or ''
 			end
@@ -101,11 +101,11 @@ local cytanb = (function ()
 			end
 		end,
 
-		GetLogLevel = function()
+		GetLogLevel = function ()
 			return logLevel
 		end,
 
-		SetLogLevel = function(level)
+		SetLogLevel = function (level)
 			logLevel = level
 		end,
 
@@ -309,7 +309,7 @@ local cytanb = (function ()
 			vci.message.On(name, f)
 			
 			return {
-				Off = function()
+				Off = function ()
 					if f then
 						-- Off が実装されたら、ここで処理をする。
 						-- vci.message.Off(name, f)
