@@ -42,7 +42,7 @@ local cytanb = (function ()
 		Vars = function (v, padding, indent, refTable)
 			local feed
 			if padding then
-			feed = padding ~= '__NOLF'
+				feed = padding ~= '__NOLF'
 			else
 				padding = '  '
 				feed = true
