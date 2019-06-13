@@ -5,6 +5,21 @@
 
 ---@type cytanb @See `cytanb_annotations.lua`
 local cytanb = (function ()
+	math.randomseed(os.time() - os.clock() * 10000)
+
+	local SetConstants = function (targetTable, constTable)
+		setmetatable(targetTable, {
+			__index = constTable,
+			__newindex = function (table, key, value)
+				if table == targetTable and constTable[key] ~= nil then
+					error('Cannot assign to read only field "' .. key .. '"')
+				end
+				rawset(table, key, value)
+			end
+		})
+		return targetTable
+	end
+
 	local constants = {
 		FatalLogLevel = 100,
 		ErrorLogLevel = 200,
@@ -37,6 +52,52 @@ local cytanb = (function ()
 				instanceID = vci.state.Get(InstanceIDStateName) or ''
 			end
 			return instanceID
+		end,
+
+		Extend = function (target, source, deep, preserve, refTable)
+			if type(target) ~= 'table' or type(source) ~= 'table' then
+				return target
+			end
+
+			if deep then
+				if not refTable then
+					refTable = {}
+				end
+
+				if refTable[source] then
+					error('circular reference')
+				end
+
+				refTable[source] = true
+			end
+
+			for k, v in pairs(source) do
+				local targetChild = target[k]
+				if deep and type(v) == 'table' then
+					local targetChildIsTable = type(targetChild) == 'table'
+					if not preserve or targetChildIsTable or targetChild == nil then
+						target[k] = vci.fake.Extend(targetChildIsTable and targetChild or {}, v, deep, preserve, refTable)
+					end
+				else
+					if not preserve or targetChild == nil then
+						target[k] = v
+					end
+				end
+			end
+
+			local sourceMetatable = getmetatable(source)
+			if type(sourceMetatable) == 'table' then
+				local targetMetatable = getmetatable(target)
+				if not preserve or not targetMetatable then
+					setmetatable(target, deep and vci.fake.Extend({}, sourceMetatable, true) or sourceMetatable)
+				end
+			end
+
+			if deep then
+				refTable[source] = nil
+			end
+
+			return target
 		end,
 
 		Vars = function (v, padding, indent, refTable)
@@ -320,8 +381,8 @@ local cytanb = (function ()
 		end
 	}
 
-	setmetatable(cytanb, {__index = constants})
-	package.loaded.cytanb = cytanb
+	SetConstants(cytanb, constants)
+	package.loaded['cytanb'] = cytanb
 
 	if vci.assets.IsMine then
 		instanceID = cytanb.UUIDString(cytanb.RandomUUID())

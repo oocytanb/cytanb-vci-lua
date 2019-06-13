@@ -22,6 +22,7 @@ globals = {
 self = false
 
 ignore = {
+    "212",
     "213",
     "211/cytanb"
 }
