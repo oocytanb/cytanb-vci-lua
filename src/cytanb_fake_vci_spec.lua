@@ -3,9 +3,17 @@
 --  MIT Licensed
 ----------------------------------------------------------------
 
-describe('Test cytanb_vci_mock', function ()
+describe('Test cytanb_fake_vci', function ()
 	setup(function ()
-		require('cytanb_vci_mock')
+		require('cytanb_fake_vci').vci.fake.Setup(_G)
+	end)
+
+	teardown(function()
+		vci.fake.Teardown(_G)
+	end)
+
+	it('_MOONSHARP', function ()
+		assert.same('2.0.0.0', _MOONSHARP.version)
 	end)
 
 	it('string.contains', function ()
@@ -55,5 +63,21 @@ describe('Test cytanb_vci_mock', function ()
 		assert.are.same(table2, json.parse(jstr2))
 		assert.are.same(table3, json.parse(jstr3))
 		assert.are.same(table4, json.parse(jstr4))
+	end)
+
+	it('vci.state', function ()
+		assert.is_nil(vci.state.Get('foo'))
+		vci.state.Set('foo', 12345)
+		assert.are.same(12345, vci.state.Get('foo'))
+		vci.state.Set('foo', false)
+		assert.is_false(vci.state.Get('foo'))
+		vci.state.Set('foo', 'orange')
+		assert.are.same('orange', vci.state.Get('foo'))
+		vci.state.Set('foo', {'table-data', 'not supported'})
+		assert.is_nil(vci.state.Get('foo'))
+
+		vci.state.Set('bar', 100)
+		vci.state.Add('bar', 20)
+		assert.are.same(120, vci.state.Get('bar'))
 	end)
 end)
