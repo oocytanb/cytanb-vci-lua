@@ -15,6 +15,7 @@ VCI のスクリプトから利用できる Lua のモジュールです。
 - [hererocks](https://github.com/mpeterv/hererocks)
 - [busted](https://olivinelabs.com/busted/)
 - [luacheck](https://github.com/mpeterv/luacheck)
+- [dkjson](http://dkolf.de/src/dkjson-lua.fsl/)
 
 ## Git
 
@@ -114,22 +115,21 @@ VCI のスクリプトから利用できる Lua のモジュールです。
         hererocks "%LUAENV%" --lua 5.2 -rlatest
         set PATH=%LUAENV%\bin;%PATH%
         luarocks install busted
+        luarocks install dkjson
         ```
 
     1. `busted` コマンドでテストを実行します。ファイル名に `_spec` が含まれている lua ファイルがテスト対象となります。
 
         ```
         chcp 65001
-        busted src/test/lua/
+        busted src/
         ```
 
     1. そのほか、`luacheck` による静的解析を行うこともできます。
         ```
         luarocks install luacheck
-        luacheck src/main/lua/ src/test/lua/
+        luacheck src/
         ```
-
-
 
 ## License
 
