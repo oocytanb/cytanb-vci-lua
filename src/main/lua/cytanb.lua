@@ -30,7 +30,7 @@ local cytanb = (function ()
 	local instanceID
 
 	local cytanb
-	
+
 	cytanb = {
 		InstanceID = function ()
 			if instanceID == '' then
@@ -51,15 +51,15 @@ local cytanb = (function ()
 			if not indent then
 				indent = ''
 			end
-		
+
 			if not refTable then
 				refTable = {}
 			end
-		
+
 			local t = type(v)
 			if t == 'table' then
 				refTable[v] = refTable[v] and refTable[v] + 1 or 1
-		
+
 				local childIndent = feed and (indent .. padding) or ''
 				local str = '(' .. tostring(v) .. ') {'
 
@@ -307,7 +307,7 @@ local cytanb = (function ()
 			end
 
 			vci.message.On(name, f)
-			
+
 			return {
 				Off = function ()
 					if f then

@@ -1,5 +1,7 @@
 # cytanb-vci-lua
 
+[![Build Status](https://travis-ci.org/oocytanb/cytanb-vci-lua.svg?branch=master)](https://travis-ci.org/oocytanb/cytanb-vci-lua)
+
 VCI のスクリプトから利用できる Lua のモジュールです。
 
 [cytanb-tso-collab](https://github.com/oocytanb/cytanb-tso-collab) は関連するプロジェクトです。
@@ -9,6 +11,10 @@ VCI のスクリプトから利用できる Lua のモジュールです。
 - [VCI](https://github.com/virtual-cast/VCI) 
 - [Lua](https://www.lua.org/) 5.2
 - [MoonSharp](https://www.moonsharp.org/) 2.0.0.0
+- [LuaRocks](https://luarocks.org/)
+- [hererocks](https://github.com/mpeterv/hererocks)
+- [busted](https://olivinelabs.com/busted/)
+- [luacheck](https://github.com/mpeterv/luacheck)
 
 ## Git
 
@@ -81,6 +87,49 @@ VCI のスクリプトから利用できる Lua のモジュールです。
     ```
     git push origin feature/sample
     ```
+
+## Unit testing
+
+- [Travis CI](https://travis-ci.org/) により、リポジトリに Push すると自動テストが行われます。
+
+- テスティングフレームワークとして、[busted](https://olivinelabs.com/busted/) を導入しています。
+
+- ローカル環境でテストを実行するには、[LuaRocks](https://luarocks.org/) とともにインストールします。
+
+- Lua 環境を構築する方法として、[hererocks](https://github.com/mpeterv/hererocks) を利用することができます。
+
+- Windows 環境では以下の手順になります。
+    1. [python](https://www.python.org/) をインストールします。
+    [depot_tools](https://dev.chromium.org/developers/how-tos/depottools) をインストールしている場合は、python が含まれていますので、それを利用することができます。
+
+    1. コンパイラーとして [Visual Studio](https://visualstudio.microsoft.com/) をインストールします。
+    (もしくは [gcc](https://gcc.gnu.org/) を利用することも可能です。)
+
+    1. Visual Studio の `Command Prompt` を開き、以下のコマンドを実行します。ここでは、`%LOCALAPPDATA%\luaenv` ディレクトリに Lua 環境をインストールしています。
+
+        ```
+        set LUAENV=%LOCALAPPDATA%\luaenv
+        python -m pip install hererocks --user
+        set PATH=%APPDATA%\Python\Scripts;%PATH%
+        hererocks "%LUAENV%" --lua 5.2 -rlatest
+        set PATH=%LUAENV%\bin;%PATH%
+        luarocks install busted
+        ```
+
+    1. `busted` コマンドでテストを実行します。ファイル名に `_spec` が含まれている lua ファイルがテスト対象となります。
+
+        ```
+        chcp 65001
+        busted src/test/lua/
+        ```
+
+    1. そのほか、`luacheck` による静的解析を行うこともできます。
+        ```
+        luarocks install luacheck
+        luacheck src/main/lua/ src/test/lua/
+        ```
+
+
 
 ## License
 
