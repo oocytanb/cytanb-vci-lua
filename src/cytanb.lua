@@ -54,7 +54,7 @@ local cytanb = (function ()
 			return instanceID
 		end,
 
-		Extend = function (target, source, deep, preserve, refTable)
+		Extend = function (target, source, deep, omitMetaTable, refTable)
 			if target == source or type(target) ~= 'table' or type(source) ~= 'table' then
 				return target
 			end
@@ -72,24 +72,23 @@ local cytanb = (function ()
 			end
 
 			for k, v in pairs(source) do
-				local targetChild = target[k]
 				if deep and type(v) == 'table' then
-					local targetChildIsTable = type(targetChild) == 'table'
-					if not preserve or targetChildIsTable or targetChild == nil then
-						target[k] = cytanb.Extend(targetChildIsTable and targetChild or {}, v, deep, preserve, refTable)
-					end
+					local targetChild = target[k]
+					target[k] = cytanb.Extend(type(targetChild) == 'table' and targetChild or {}, v, deep, omitMetaTable, refTable)
 				else
-					if not preserve or targetChild == nil then
-						target[k] = v
-					end
+					target[k] = v
 				end
 			end
 
-			local sourceMetatable = getmetatable(source)
-			if type(sourceMetatable) == 'table' then
-				local targetMetatable = getmetatable(target)
-				if not preserve or not targetMetatable then
-					setmetatable(target, deep and cytanb.Extend({}, sourceMetatable, true) or sourceMetatable)
+			if not omitMetaTable then
+				local sourceMetatable = getmetatable(source)
+				if type(sourceMetatable) == 'table' then
+					if deep then
+						local targetMetatable = getmetatable(target)
+						setmetatable(target, cytanb.Extend(type(targetMetatable) == 'table' and targetMetatable or {}, sourceMetatable, true))
+					else
+						setmetatable(target, sourceMetatable)
+					end
 				end
 			end
 
