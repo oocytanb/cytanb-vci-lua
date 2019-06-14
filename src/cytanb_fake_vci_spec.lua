@@ -8,7 +8,7 @@ describe('Test cytanb_fake_vci', function ()
 		require('cytanb_fake_vci').vci.fake.Setup(_G)
 	end)
 
-	teardown(function()
+	teardown(function ()
 		vci.fake.Teardown(_G)
 	end)
 

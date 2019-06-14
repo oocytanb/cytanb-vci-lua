@@ -162,7 +162,7 @@ return (function ()
 				package.loaded[ModuleName] = nil
 			end,
 
-			SetAssetsIsMine = function(mine)
+			SetAssetsIsMine = function (mine)
 				assetsConstants.IsMine = mine and true or nil
 			end
 		}
