@@ -55,7 +55,7 @@ local cytanb = (function ()
 		end,
 
 		Extend = function (target, source, deep, preserve, refTable)
-			if type(target) ~= 'table' or type(source) ~= 'table' then
+			if target == source or type(target) ~= 'table' or type(source) ~= 'table' then
 				return target
 			end
 
@@ -76,7 +76,7 @@ local cytanb = (function ()
 				if deep and type(v) == 'table' then
 					local targetChildIsTable = type(targetChild) == 'table'
 					if not preserve or targetChildIsTable or targetChild == nil then
-						target[k] = vci.fake.Extend(targetChildIsTable and targetChild or {}, v, deep, preserve, refTable)
+						target[k] = cytanb.Extend(targetChildIsTable and targetChild or {}, v, deep, preserve, refTable)
 					end
 				else
 					if not preserve or targetChild == nil then
@@ -89,7 +89,7 @@ local cytanb = (function ()
 			if type(sourceMetatable) == 'table' then
 				local targetMetatable = getmetatable(target)
 				if not preserve or not targetMetatable then
-					setmetatable(target, deep and vci.fake.Extend({}, sourceMetatable, true) or sourceMetatable)
+					setmetatable(target, deep and cytanb.Extend({}, sourceMetatable, true) or sourceMetatable)
 				end
 			end
 
