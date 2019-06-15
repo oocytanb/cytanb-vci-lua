@@ -16,5 +16,9 @@ before_install:
   - luarocks install busted
   - luarocks install dkjson
 
+install:
+  - lua -v
+  - busted --version
+
 script:
   - busted src/

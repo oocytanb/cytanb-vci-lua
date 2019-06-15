@@ -9,7 +9,6 @@ return (function ()
 	local dkjson = require('dkjson')
 
 	local ModuleName = 'cytanb_fake_vci'
-	local StringModuleName = 'string'
 
 	local SetConstants = function (targetTable, constTable)
 		setmetatable(targetTable, {
@@ -24,7 +23,17 @@ return (function ()
 		return targetTable
 	end
 
-	local fakeModule = {
+	local StringModuleName = 'string'
+	local moonsharpAdditions = {_MOONSHARP = true, json = true}
+
+	local assetsConstants = {
+		IsMine = true
+	}
+
+	local stateMap = {}
+
+	local fakeModule
+	fakeModule = {
 		-- [MoonSharp](https://www.moonsharp.org/additions.html) の拡張。
 		_MOONSHARP = {
 			version = '2.0.0.0',
@@ -91,83 +100,83 @@ return (function ()
 			null = function ()
 				return dkjson.null
 			end
-		}
-	}
-
-	-- [VirtualCast Official Wiki](https://virtualcast.jp/wiki/)
-	local vci
-
-	local assetsConstants = {
-		IsMine = true
-	}
-
-	local stateMap = {}
-
-	vci = {
-		assets = SetConstants({
-		}, assetsConstants),
-
-		state = {
-			Set = function (name, value)
-				local t = type(value)
-				if (t == 'number' or t == 'string' or t == 'boolean') then
-					stateMap[name] = value
-				else
-					stateMap[name] = nil
-				end
-			end,
-
-			Get = function (name)
-				return stateMap[name]
-			end,
-
-			Add = function (name, value)
-				if type(value) == 'number' then
-					local curValue = stateMap[name]
-					if type(curValue) == 'number' then
-						stateMap[name] = curValue + value
-					else
-						stateMap[name] = value
-					end
-				end
-			end
 		},
 
-		fake = {
-			Setup = function (target)
-				for k, v in pairs(fakeModule) do
-					if k ~= StringModuleName then
-						target[k] = v
+		-- [VirtualCast Official Wiki](https://virtualcast.jp/wiki/)
+		vci = {
+			assets = SetConstants({
+			}, assetsConstants),
+
+			state = {
+				Set = function (name, value)
+					local t = type(value)
+					if (t == 'number' or t == 'string' or t == 'boolean') then
+						stateMap[name] = value
+					else
+						stateMap[name] = nil
+					end
+				end,
+
+				Get = function (name)
+					return stateMap[name]
+				end,
+
+				Add = function (name, value)
+					if type(value) == 'number' then
+						local curValue = stateMap[name]
+						if type(curValue) == 'number' then
+							stateMap[name] = curValue + value
+						else
+							stateMap[name] = value
+						end
 					end
 				end
+			},
 
-				for k, v in pairs(fakeModule[StringModuleName]) do
-					target[StringModuleName][k] = v
-				end
-
-				package.loaded[ModuleName] = fakeModule
-			end,
-
-			Teardown = function (target)
-				for k, v in pairs(fakeModule) do
-					if k ~= StringModuleName then
-						target[k] = nil
+			-- fake module
+			fake = {
+				Setup = function (target)
+					for k, v in pairs(fakeModule) do
+						if moonsharpAdditions[k] then
+							if target[k] == nil then
+								target[k] = v
+							end
+						elseif k ~= StringModuleName then
+							target[k] = v
+						end
 					end
+
+					for k, v in pairs(fakeModule[StringModuleName]) do
+						if target[StringModuleName][k] == nil then
+							target[StringModuleName][k] = v
+						end
+					end
+
+					package.loaded[ModuleName] = fakeModule
+				end,
+
+				Teardown = function (target)
+					for k, v in pairs(fakeModule) do
+						if k ~= StringModuleName and target[k] == v then
+							target[k] = nil
+						end
+					end
+
+					for k, v in pairs(fakeModule[StringModuleName]) do
+						if target[StringModuleName][k] == v then
+							target[StringModuleName][k] = nil
+						end
+					end
+
+					package.loaded[ModuleName] = nil
+				end,
+
+				SetAssetsIsMine = function (mine)
+					assetsConstants.IsMine = mine and true or nil
 				end
-
-				for k, v in pairs(fakeModule[StringModuleName]) do
-					target[StringModuleName][k] = nil
-				end
-
-				package.loaded[ModuleName] = nil
-			end,
-
-			SetAssetsIsMine = function (mine)
-				assetsConstants.IsMine = mine and true or nil
-			end
+			}
 		}
 	}
 
-	fakeModule.vci = vci
 	return fakeModule
 end)()
