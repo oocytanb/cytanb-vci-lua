@@ -81,3 +81,23 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.same(120, vci.state.Get('bar'))
 	end)
 end)
+
+describe('Test cytanb_fake_vci setup and teardown', function ()
+	it('Setup/Teardown', function ()
+		assert.is.falsy(package.loaded['cytanb_fake_vci'])
+		assert.is.falsy(vci)
+		local startsWithExists = string.startsWith ~= nil
+		require('cytanb_fake_vci').vci.fake.Setup(_G)
+		assert.is.truthy(package.loaded['cytanb_fake_vci'])
+		assert.is.truthy(vci)
+		if startsWithExists then
+			assert.is.truthy(string.startsWith)
+		end
+		vci.fake.Teardown(_G)
+		assert.is.falsy(package.loaded['cytanb_fake_vci'])
+		assert.is.falsy(vci)
+		if startsWithExists then
+			assert.is.falsy(string.startsWith)
+		end
+	end)
+end)
