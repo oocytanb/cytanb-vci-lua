@@ -24,6 +24,21 @@ describe('Test cytanb owner user', function ()
 		assert.are.same(36, #cytanb.InstanceID())
 	end)
 
+	it('SetConst', function ()
+		local table = {foo = 123, bar = 'abc'}
+		cytanb.SetConst(table, 'HOGE', -543)
+		assert.are.same(-543, table.HOGE)
+		cytanb.SetConst(table, 'PIYO', false)
+		assert.is_false(table.PIYO)
+		cytanb.SetConst(table, 'PIYO', true)
+		assert.is_true(table.PIYO)
+		assert.has_error(function () table.PIYO = 'changed value' end)
+		assert.has_error(function () cytanb.SetConst(table, 'foo', 'CONST VALUE') end)
+		assert.are.same(123, table.foo)
+		table.foo = 65536
+		assert.are.same(65536, table.foo)
+	end)
+
 	it('Extend', function ()
 		local source1 = {foo = 123, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}
 		local source2 = {bar = 'opq', qux = {quux = 543, grault = 246}, zyzzy = 'rst'}
@@ -188,6 +203,11 @@ describe('Test cytanb owner user', function ()
 		assert.stub(print).was_not.called_with('baz false')
 		_G.print:revert()
 		cytanb.SetLogLevel(lastLevel)
+	end)
+
+	it('ListToMap', function ()
+		assert.are.same({foo = 'foo', bar = 'bar', baz = 'baz'}, cytanb.ListToMap({'foo', 'bar', 'baz'}))
+		assert.are.same({foo = 543, bar = 543, baz = 543}, cytanb.ListToMap({'foo', 'bar', 'baz'}, 543))
 	end)
 end)
 

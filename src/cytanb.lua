@@ -7,34 +7,6 @@
 local cytanb = (function ()
 	math.randomseed(os.time() - os.clock() * 10000)
 
-	local SetConstants = function (targetTable, constTable)
-		setmetatable(targetTable, {
-			__index = constTable,
-			__newindex = function (table, key, value)
-				if table == targetTable and constTable[key] ~= nil then
-					error('Cannot assign to read only field "' .. key .. '"')
-				end
-				rawset(table, key, value)
-			end
-		})
-		return targetTable
-	end
-
-	local constants = {
-		FatalLogLevel = 100,
-		ErrorLogLevel = 200,
-		WarnLogLevel = 300,
-		InfoLogLevel = 400,
-		DebugLogLevel = 500,
-		TraceLogLevel = 600,
-		ColorHueSamples = 10,
-		ColorSaturationSamples = 4,
-		ColorBrightnessSamples = 5,
-		ColorMapSize = 10 * 4 * 5,        -- ColorHueSamples * ColorSaturationSamples * ColorBrightnessSamples
-		NegativeNumberTag = '#__CYTANB_NEGATIVE_NUMBER',
-		InstanceIDParameterName = '__CYTANB_INSTANCE_ID'
-	}
-
 	--- インスタンス ID の状態変数名。
 	local InstanceIDStateName = '__CYTANB_INSTANCE_ID'
 
@@ -52,6 +24,40 @@ local cytanb = (function ()
 				instanceID = vci.state.Get(InstanceIDStateName) or ''
 			end
 			return instanceID
+		end,
+
+		SetConst = function(target, name, value)
+			if type(target) ~= 'table' then
+				error('Cannot set const to non-table target')
+			end
+
+			local curMeta = getmetatable(target)
+			local meta = curMeta or {}
+			local hasMetaIndex = type(meta.__index) == 'table'
+			if target[name] ~= nil and (not hasMetaIndex or meta.__index[name] == nil) then
+				error('Non-const field "' .. name .. '" already exists')
+			end
+
+			if not hasMetaIndex then
+				meta.__index = {}
+			end
+			local metaIndex = meta.__index
+			metaIndex[name] = value
+
+			if not hasMetaIndex or type(meta.__newindex) ~= 'function' then
+				meta.__newindex = function (table, key, v)
+					if table == target and metaIndex[key] ~= nil then
+						error('Cannot assign to read only field "' .. key .. '"')
+					end
+					rawset(table, key, v)
+				end
+			end
+
+			if not curMeta then
+				setmetatable(target, meta)
+			end
+
+			return target
 		end,
 
 		Extend = function (target, source, deep, omitMetaTable, refTable)
@@ -192,17 +198,17 @@ local cytanb = (function ()
 			end
 		end,
 
-		FatalLog = function (...) cytanb.Log(constants.FatalLogLevel, ...) end,
+		FatalLog = function (...) cytanb.Log(cytanb.FatalLogLevel, ...) end,
 
-		ErrorLog = function (...) cytanb.Log(constants.ErrorLogLevel, ...) end,
+		ErrorLog = function (...) cytanb.Log(cytanb.ErrorLogLevel, ...) end,
 
-		WarnLog = function (...) cytanb.Log(constants.WarnLogLevel, ...) end,
+		WarnLog = function (...) cytanb.Log(cytanb.WarnLogLevel, ...) end,
 
-		InfoLog = function (...) cytanb.Log(constants.InfoLogLevel, ...) end,
+		InfoLog = function (...) cytanb.Log(cytanb.InfoLogLevel, ...) end,
 
-		DebugLog = function (...) cytanb.Log(constants.DebugLogLevel, ...) end,
+		DebugLog = function (...) cytanb.Log(cytanb.DebugLogLevel, ...) end,
 
-		TraceLog = function (...) cytanb.Log(constants.TraceLogLevel, ...) end,
+		TraceLog = function (...) cytanb.Log(cytanb.TraceLogLevel, ...) end,
 
 		ListToMap = function (list, itemValue)
 			local table = {}
@@ -261,10 +267,10 @@ local cytanb = (function ()
 		end,
 
 		ColorFromIndex = function (colorIndex, hueSamples, saturationSamples, brightnessSamples, omitScale)
-			local hueN = math.max(math.floor(hueSamples or constants.ColorHueSamples), 1)
+			local hueN = math.max(math.floor(hueSamples or cytanb.ColorHueSamples), 1)
 			local toneN = omitScale and hueN or (hueN - 1)
-			local saturationN = math.max(math.floor(saturationSamples or constants.ColorSaturationSamples), 1)
-			local valueN = math.max(math.floor(brightnessSamples or constants.ColorBrightnessSamples), 1)
+			local saturationN = math.max(math.floor(saturationSamples or cytanb.ColorSaturationSamples), 1)
+			local valueN = math.max(math.floor(brightnessSamples or cytanb.ColorBrightnessSamples), 1)
 			local index = math.max(math.min(math.floor(colorIndex or 0), hueN * saturationN * valueN - 1), 0)
 
 			local x = index % hueN
@@ -318,7 +324,7 @@ local cytanb = (function ()
 			local serData = {}
 			for k, v in pairs(data) do
 				if type(v) == 'number' and v < 0 then
-					serData[k .. constants.NegativeNumberTag] = tostring(v)
+					serData[k .. cytanb.NegativeNumberTag] = tostring(v)
 				else
 					serData[k] = cytanb.TableToSerialiable(v, refTable)
 				end
@@ -335,8 +341,8 @@ local cytanb = (function ()
 
 			local data = {}
 			for k, v in pairs(serData) do
-				if type(v) == 'string' and string.endsWith(k, constants.NegativeNumberTag) then
-					data[string.sub(k, 1, #k - #constants.NegativeNumberTag)] = tonumber(v)
+				if type(v) == 'string' and string.endsWith(k, cytanb.NegativeNumberTag) then
+					data[string.sub(k, 1, #k - #cytanb.NegativeNumberTag)] = tonumber(v)
 				else
 					data[k] = cytanb.TableFromSerialiable(v)
 				end
@@ -346,7 +352,7 @@ local cytanb = (function ()
 
 		EmitMessage = function (name, parameterMap)
 			local table = parameterMap and cytanb.TableToSerialiable(parameterMap) or {}
-			table[constants.InstanceIDParameterName] = cytanb.InstanceID()
+			table[cytanb.InstanceIDParameterName] = cytanb.InstanceID()
 			vci.message.Emit(name, json.serialize(table))
 		end,
 
@@ -380,7 +386,19 @@ local cytanb = (function ()
 		end
 	}
 
-	SetConstants(cytanb, constants)
+	cytanb:SetConst('FatalLogLevel', 100)
+		:SetConst('ErrorLogLevel', 200)
+		:SetConst('WarnLogLevel', 300)
+		:SetConst('InfoLogLevel', 400)
+		:SetConst('DebugLogLevel', 500)
+		:SetConst('TraceLogLevel', 600)
+		:SetConst('ColorHueSamples', 10)
+		:SetConst('ColorSaturationSamples', 4)
+		:SetConst('ColorBrightnessSamples', 5)
+		:SetConst('ColorMapSize', cytanb.ColorHueSamples * cytanb.ColorSaturationSamples * cytanb.ColorBrightnessSamples)
+		:SetConst('NegativeNumberTag', '#__CYTANB_NEGATIVE_NUMBER')
+		:SetConst('InstanceIDParameterName', '__CYTANB_INSTANCE_ID')
+
 	package.loaded['cytanb'] = cytanb
 
 	if vci.assets.IsMine then

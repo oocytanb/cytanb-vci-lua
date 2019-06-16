@@ -8,31 +8,47 @@
 return (function ()
 	local dkjson = require('dkjson')
 
-	local ModuleName = 'cytanb_fake_vci'
+	local SetConst = function(target, name, value)
+		if type(target) ~= 'table' then
+			error('Cannot set const to non-table target')
+		end
 
-	local SetConstants = function (targetTable, constTable)
-		setmetatable(targetTable, {
-			__index = constTable,
-			__newindex = function (table, key, value)
-				if table == targetTable and constTable[key] ~= nil then
+		local curMeta = getmetatable(target)
+		local meta = curMeta or {}
+		local hasMetaIndex = type(meta.__index) == 'table'
+		if target[name] ~= nil and (not hasMetaIndex or meta.__index[name] == nil) then
+			error('Non-const field "' .. name .. '" already exists')
+		end
+
+		if not hasMetaIndex then
+			meta.__index = {}
+		end
+		local metaIndex = meta.__index
+		metaIndex[name] = value
+
+		if not hasMetaIndex or type(meta.__newindex) ~= 'function' then
+			meta.__newindex = function (table, key, v)
+				if table == target and metaIndex[key] ~= nil then
 					error('Cannot assign to read only field "' .. key .. '"')
 				end
-				rawset(table, key, value)
+				rawset(table, key, v)
 			end
-		})
-		return targetTable
+		end
+
+		if not curMeta then
+			setmetatable(target, meta)
+		end
+
+		return target
 	end
 
+	local ModuleName = 'cytanb_fake_vci'
 	local StringModuleName = 'string'
 	local moonsharpAdditions = {_MOONSHARP = true, json = true}
 
-	local assetsConstants = {
-		IsMine = true
-	}
-
 	local stateMap = {}
 
-	local fakeModule
+	local fakeModule, vci
 	fakeModule = {
 		-- [MoonSharp](https://www.moonsharp.org/additions.html) の拡張。
 		_MOONSHARP = {
@@ -104,8 +120,7 @@ return (function ()
 
 		-- [VirtualCast Official Wiki](https://virtualcast.jp/wiki/)
 		vci = {
-			assets = SetConstants({
-			}, assetsConstants),
+			assets = {},
 
 			state = {
 				Set = function (name, value)
@@ -172,11 +187,14 @@ return (function ()
 				end,
 
 				SetAssetsIsMine = function (mine)
-					assetsConstants.IsMine = mine and true or nil
+					SetConst(vci.assets, 'IsMine', mine and true or nil)
 				end
 			}
 		}
 	}
+
+	vci = fakeModule.vci
+	vci.fake.SetAssetsIsMine(true)
 
 	return fakeModule
 end)()
