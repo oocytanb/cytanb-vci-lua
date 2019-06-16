@@ -21,6 +21,7 @@
 ---@field NegativeNumberTag string @負の数値を示すタグ。
 ---@field InstanceIDParameterName string @インスタンス ID のパラーメーター名。
 ---@field InstanceID fun (): string @インスタンス ID を取得する。VCI を設置したユーザー以外では、同期完了前は空文字列を返す。
+---@field SetConst fun (target: table, name: string, value: any): table @`target` に定数フィールドを設定し、target 自身を返す。`name` に定数名を指定する。`value` に定数値を指定する。
 ---@field Extend fun (target: table, source: table, deep: boolean, omitMetaTable: boolean): table @`target` のテーブルフィールドを `source` のテーブルフィールドで拡張し、その結果を返す。`deep` に `true` を指定した場合は、ディープコピーを行う(省略するか `false` を指定した場合は、シャローコピーを行う)。`omitMetaTable` に 'true' を指定した場合は、メタテーブルをコピーしない。ただし、シャローコピーした場合は下位のテーブルの参照値がそのままコピーされる。(省略するか `false` を指定した場合は、コピーする)。
 ---@field Vars fun (v: any, padding: string): string @変数の情報を文字列で返す。`padding` は省略可能。`padding` に '__NOLF' を指定した場合は、インデントおよび改行を行わない。
 ---@field GetLogLevel fun (): number @現在のログレベルを取得する。
