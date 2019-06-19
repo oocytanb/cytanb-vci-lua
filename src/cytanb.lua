@@ -226,10 +226,10 @@ local cytanb = (function ()
 
 		RandomUUID = function ()
 			return {
-				cytanb.Random32(),
+				bit32.band(cytanb.Random32(), 0xFFFFFFFF),
 				bit32.bor(0x4000, bit32.band(cytanb.Random32(), 0xFFFF0FFF)),
 				bit32.bor(0x80000000, bit32.band(cytanb.Random32(), 0x3FFFFFFF)),
-				cytanb.Random32()
+				bit32.band(cytanb.Random32(), 0xFFFFFFFF)
 			}
 		end,
 
@@ -245,6 +245,49 @@ local cytanb = (function ()
 				bit32.band(third, 0xFFFF),
 				bit32.band(uuid[4] or 0, 0xFFFFFFFF)
 			)
+		end,
+
+		ParseUUID = function(str)
+			local len = string.len(str)
+			if len ~= 32 and len ~= 36 then return nil end
+
+			local reHex = '[0-9a-f-A-F]+'
+			local reHexString = '^(' .. reHex .. ')$'
+			local reHyphenHexString = '^-(' .. reHex .. ')$'
+
+			local uuid = {}
+			local mi, mj, token, token2
+			if len == 32 then
+				local startPos = 1
+				for i, endPos in ipairs({8, 16, 24, 32}) do
+					mi, mj, token = string.find(string.sub(str, startPos, endPos), reHexString)
+					if not mi then return nil end
+					uuid[i] = tonumber(token, 16)
+					startPos = endPos + 1
+				end
+			else
+				mi, mj, token = string.find(string.sub(str, 1, 8), reHexString)
+				if not mi then return nil end
+				uuid[1] = tonumber(token, 16)
+
+				mi, mj, token = string.find(string.sub(str, 9, 13), reHyphenHexString)
+				if not mi then return nil end
+				mi, mj, token2 = string.find(string.sub(str, 14, 18), reHyphenHexString)
+				if not mi then return nil end
+				uuid[2] = tonumber(token .. token2, 16)
+
+				mi, mj, token = string.find(string.sub(str, 19, 23), reHyphenHexString)
+				if not mi then return nil end
+				mi, mj, token2 = string.find(string.sub(str, 24, 28), reHyphenHexString)
+				if not mi then return nil end
+				uuid[3] = tonumber(token .. token2, 16)
+
+				mi, mj, token = string.find(string.sub(str, 29, 36), reHexString)
+				if not mi then return nil end
+				uuid[4] = tonumber(token, 16)
+			end
+
+			return uuid
 		end,
 
 		ColorFromARGB32 = function (argb32)
@@ -342,7 +385,7 @@ local cytanb = (function ()
 			local data = {}
 			for k, v in pairs(serData) do
 				if type(v) == 'string' and string.endsWith(k, cytanb.NegativeNumberTag) then
-					data[string.sub(k, 1, #k - #cytanb.NegativeNumberTag)] = tonumber(v)
+					data[string.sub(k, 1, #k - #cytanb.NegativeNumberTag)] = tonumber(v, 10)
 				else
 					data[k] = cytanb.TableFromSerialiable(v)
 				end
