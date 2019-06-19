@@ -122,13 +122,13 @@ VCI のスクリプトから利用できる Lua のモジュールです。
 
         ```
         chcp 65001
-        busted src/
+        busted src
         ```
 
     1. そのほか、`luacheck` による静的解析を行うこともできます。
         ```
         luarocks install luacheck
-        luacheck src/
+        luacheck src
         ```
 
 ## License

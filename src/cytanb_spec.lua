@@ -209,6 +209,36 @@ describe('Test cytanb owner user', function ()
 		assert.are.same({foo = 'foo', bar = 'bar', baz = 'baz'}, cytanb.ListToMap({'foo', 'bar', 'baz'}))
 		assert.are.same({foo = 543, bar = 543, baz = 543}, cytanb.ListToMap({'foo', 'bar', 'baz'}, 543))
 	end)
+
+	it('UUID', function ()
+		local uuid_std1 = '069f80ac-e66e-448c-b17c-5a54ea94dccc'
+		local uuid_hex1 = '069F80acE66e448cb17c5A54ea94dcCc'
+		local uuid1 = cytanb.ParseUUID(uuid_hex1)
+		assert.are.same(4, #uuid1)
+		assert.are.same(0x069f80ac, uuid1[1])
+		assert.are.same(0xe66e448c, uuid1[2])
+		assert.are.same(0xb17c5a54, uuid1[3])
+		assert.are.same(0xea94dccc, uuid1[4])
+		assert.are.same(uuid1, cytanb.ParseUUID(uuid_std1))
+		assert.are.same(uuid_std1, cytanb.UUIDString(uuid1))
+
+		assert.is_nil(cytanb.ParseUUID('G69f80ac-e66e-448c-b17c-5a54ea94dccc'))
+		assert.is_nil(cytanb.ParseUUID('069f80ac-e66e-448c-b17c-5a54ea94dccc0'))
+		assert.is_nil(cytanb.ParseUUID('069f80ac-e66e-448c-b17c-5a54ea94dcc'))
+
+		local uuidTable = {}
+		for i = 0, 127 do
+			local uuidN = cytanb.RandomUUID()
+			assert.are.same(4, #uuidN)
+			assert.are.same(4, bit32.band(bit32.rshift(uuidN[2], 12), 0xf))
+			assert.are.same(2, bit32.band(bit32.rshift(uuidN[3], 30), 0x3))
+			local uuidstrN = cytanb.UUIDString(uuidN)
+			assert.are.same(36, #uuidstrN)
+			assert.are.same(uuidN, cytanb.ParseUUID(uuidstrN))
+			assert.is_nil(uuidTable[uuidstrN])
+			uuidTable[uuidstrN] = uuidN
+		end
+	end)
 end)
 
 describe('Test cytanb guest user', function ()
