@@ -47,6 +47,8 @@ return (function ()
 	local moonsharpAdditions = {_MOONSHARP = true, json = true}
 
 	local stateMap = {}
+	local studioSharedMap = {}
+	local studioSharedCallbackMap = {}
 
 	local fakeModule, vci
 	fakeModule = {
@@ -124,12 +126,14 @@ return (function ()
 
 			state = {
 				Set = function (name, value)
+					local nv
 					local t = type(value)
 					if (t == 'number' or t == 'string' or t == 'boolean') then
-						stateMap[name] = value
+						nv = value
 					else
-						stateMap[name] = nil
+						nv = nil
 					end
+					stateMap[name] = nv
 				end,
 
 				Get = function (name)
@@ -146,6 +150,65 @@ return (function ()
 						end
 					end
 				end
+			},
+
+			studio = {
+				shared = {
+					Set = function (name, value)
+						local nv
+						local t = type(value)
+						if (t == 'number' or t == 'string' or t == 'boolean') then
+							nv = value
+						else
+							nv = nil
+						end
+
+						local changed = studioSharedMap[name] ~= nv
+						studioSharedMap[name] = nv
+						if changed then
+							local cbMap = studioSharedCallbackMap[name]
+							if cbMap then
+								for cb, v in pairs(cbMap) do
+									cb(nv)
+								end
+							end
+						end
+					end,
+
+					Get = function (name)
+						return studioSharedMap[name]
+					end,
+
+					Add = function (name, value)
+						if type(value) == 'number' then
+							local curValue = studioSharedMap[name]
+							local nv
+							if type(curValue) == 'number' then
+								nv = curValue + value
+							else
+								nv = value
+							end
+
+							local changed = studioSharedMap[name] ~= nv
+							studioSharedMap[name] = nv
+							if changed then
+								local cbMap = studioSharedCallbackMap[name]
+								if cbMap then
+									for cb, v in pairs(cbMap) do
+										cb(nv)
+									end
+								end
+							end
+						end
+					end,
+
+					Bind = function (name, callback)
+						if not studioSharedCallbackMap[name] then
+							studioSharedCallbackMap[name] = {}
+						end
+						studioSharedCallbackMap[name][callback] = true
+					end
+				}
 			},
 
 			-- fake module
@@ -188,6 +251,22 @@ return (function ()
 
 				SetAssetsIsMine = function (mine)
 					SetConst(vci.assets, 'IsMine', mine and true or nil)
+				end,
+
+				ClearState = function ()
+					stateMap = {}
+				end,
+
+				UnbindStudioShared = function (name, callback)
+					local cbMap = studioSharedCallbackMap[name]
+					if cbMap and cbMap[callback] then
+						cbMap[callback] = nil
+					end
+				end,
+
+				ClearStudioShared = function ()
+					studioSharedMap = {}
+					studioSharedCallbackMap = {}
 				end
 			}
 		}

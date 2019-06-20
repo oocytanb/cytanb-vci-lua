@@ -227,17 +227,52 @@ describe('Test cytanb owner user', function ()
 		assert.is_nil(cytanb.ParseUUID('069f80ac-e66e-448c-b17c-5a54ea94dcc'))
 
 		local uuidTable = {}
-		for i = 0, 127 do
+		local samples = {}
+		local sampleSize = 16
+		for i = 1, 128 do
 			local uuidN = cytanb.RandomUUID()
 			assert.are.same(4, #uuidN)
-			assert.are.same(4, bit32.band(bit32.rshift(uuidN[2], 12), 0xf))
+			assert.are.same(4, bit32.band(bit32.rshift(uuidN[2], 12), 0xF))
 			assert.are.same(2, bit32.band(bit32.rshift(uuidN[3], 30), 0x3))
 			local uuidstrN = cytanb.UUIDString(uuidN)
 			assert.are.same(36, #uuidstrN)
 			assert.are.same(uuidN, cytanb.ParseUUID(uuidstrN))
 			assert.is_nil(uuidTable[uuidstrN])
 			uuidTable[uuidstrN] = uuidN
+
+			for j = 1, 4 do
+				local r = uuidN[j]
+				for k = 0, 28, 4 do
+					-- バージョンビットは無視する
+					if (j ~= 2 or k ~= 12) and (j ~= 3 or k ~= 28) then
+						local s = bit32.band(bit32.rshift(r, k), 0xF) + 1
+						samples[s] = (samples[s] or 0) + 1
+					end
+				end
+			end
 		end
+
+		local calcVariance = false
+		if calcVariance then
+			print('---- UUID Random Variance ----')
+			local sum = 0
+			for i = 1, sampleSize do
+				sum = sum + (samples[i] or 0)
+			end
+			local average = sum / sampleSize
+			local varianceSum = 0
+			for i = 1, sampleSize do
+				varianceSum = varianceSum + math.pow((samples[i] or 0) - average, 2)
+				print((i - 1) .. ' | ' .. samples[i] .. ' | ' .. ((samples[i] or 0) - average))
+			end
+			local variance = varianceSum / sampleSize
+			print('variance | ' .. variance)
+			print('--------')
+		end
+	end)
+
+	it('TableToSerialiable', function ()
+		cytanb.TableToSerialiable({foo = 123, bar = 'abc', baz = true, qux = {["quux#__CYTANB_NEGATIVE_NUMBER"] = -9876.5, corge = false}}, {foo = 123, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}})
 	end)
 end)
 
