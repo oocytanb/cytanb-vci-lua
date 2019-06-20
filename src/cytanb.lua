@@ -220,16 +220,16 @@ local cytanb = (function ()
 		end,
 
 		Random32 = function ()
-			-- MoonSharp の実装上、2147483646 が渡すことのできる最大値。
-			return math.random(-2147483648, 2147483646)
+			-- MoonSharp は 32bit int 型で実装されていて、2147483646 が渡すことのできる最大値。
+			return bit32.band(math.random(-2147483648, 2147483646), 0xFFFFFFFF)
 		end,
 
 		RandomUUID = function ()
 			return {
-				bit32.band(cytanb.Random32(), 0xFFFFFFFF),
+				cytanb.Random32(),
 				bit32.bor(0x4000, bit32.band(cytanb.Random32(), 0xFFFF0FFF)),
 				bit32.bor(0x80000000, bit32.band(cytanb.Random32(), 0x3FFFFFFF)),
-				bit32.band(cytanb.Random32(), 0xFFFFFFFF)
+				cytanb.Random32()
 			}
 		end,
 
