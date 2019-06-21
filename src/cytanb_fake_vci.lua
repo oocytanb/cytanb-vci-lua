@@ -50,6 +50,8 @@ return (function ()
 	local studioSharedMap = {}
 	local studioSharedCallbackMap = {}
 
+	local messageCallbackMap = {}
+
 	local fakeModule, vci
 	fakeModule = {
 		-- [MoonSharp](https://www.moonsharp.org/additions.html) の拡張。
@@ -211,6 +213,32 @@ return (function ()
 				}
 			},
 
+			message = {
+				On = function (messageName, callback)
+					if not messageCallbackMap[messageName] then
+						messageCallbackMap[messageName] = {}
+					end
+					messageCallbackMap[messageName][callback] = true
+				end,
+
+				Emit = function (messageName, value)
+					local nv
+					local t = type(value)
+					if (t == 'number' or t == 'string' or t == 'boolean') then
+						nv = value
+					else
+						nv = nil
+					end
+
+					local cbMap = messageCallbackMap[messageName]
+					if cbMap then
+						for cb, v in pairs(cbMap) do
+							cb(nv)
+						end
+					end
+				end
+			},
+
 			-- fake module
 			fake = {
 				Setup = function (target)
@@ -267,6 +295,17 @@ return (function ()
 				ClearStudioShared = function ()
 					studioSharedMap = {}
 					studioSharedCallbackMap = {}
+				end,
+
+				OffMessage = function (messageName, callback)
+					local cbMap = messageCallbackMap[messageName]
+					if cbMap and cbMap[callback] then
+						cbMap[callback] = nil
+					end
+				end,
+
+				ClearMessage = function ()
+					messageCallbackMap = {}
 				end
 			}
 		}

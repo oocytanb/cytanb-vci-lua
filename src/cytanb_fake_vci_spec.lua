@@ -159,6 +159,76 @@ describe('Test cytanb_fake_vci', function ()
 		cbMap.cb2:revert()
 		cbMap.cb3:revert()
 	end)
+
+
+	it('vci.message', function ()
+		local cbMap = {
+			cb1 = function (value)
+			end,
+
+			cb2 = function (value)
+			end,
+
+			cb3 = function (value)
+			end
+		}
+
+		stub(cbMap, 'cb1')
+		stub(cbMap, 'cb2')
+		stub(cbMap, 'cb3')
+
+		vci.message.On('foo', cbMap.cb1)
+		vci.message.On('foo', cbMap.cb2)
+		vci.message.On('bar', cbMap.cb3)
+
+		vci.message.Emit('foo', 12345)
+		assert.stub(cbMap.cb1).was.called_with(12345)
+		assert.stub(cbMap.cb1).was.called(1)
+		assert.stub(cbMap.cb2).was.called_with(12345)
+		assert.stub(cbMap.cb2).was.called(1)
+		assert.stub(cbMap.cb3).was_not.called_with(12345)
+		assert.stub(cbMap.cb3).was.called(0)
+
+		vci.message.Emit('foo', 12345)
+		assert.stub(cbMap.cb1).was.called(2)
+		assert.stub(cbMap.cb2).was.called(2)
+		assert.stub(cbMap.cb3).was.called(0)
+
+		vci.message.Emit('foo', false)
+		assert.stub(cbMap.cb1).was.called_with(false)
+		assert.stub(cbMap.cb1).was.called(3)
+		assert.stub(cbMap.cb2).was.called_with(false)
+		assert.stub(cbMap.cb2).was.called(3)
+		assert.stub(cbMap.cb3).was.called(0)
+
+		vci.fake.OffMessage('foo', cbMap.cb1)
+		vci.message.Emit('foo', 'orange')
+		assert.stub(cbMap.cb1).was.called(3)
+		assert.stub(cbMap.cb2).was.called_with('orange')
+		assert.stub(cbMap.cb2).was.called(4)
+		assert.stub(cbMap.cb3).was.called(0)
+
+		vci.message.Emit('foo', {'table-data', 'not supported'})
+		assert.stub(cbMap.cb1).was.called(3)
+		assert.stub(cbMap.cb2).was.called(5)
+		assert.stub(cbMap.cb2).was.called_with(nil)
+		assert.stub(cbMap.cb3).was.called(0)
+
+		vci.message.Emit('bar', 100)
+		assert.stub(cbMap.cb1).was.called(3)
+		assert.stub(cbMap.cb2).was.called(5)
+		assert.stub(cbMap.cb3).was.called(1)
+
+		vci.fake.ClearMessage()
+
+		vci.message.Emit('bar', 404)
+		assert.stub(cbMap.cb3).was_not.called_with(404)
+		assert.stub(cbMap.cb3).was.called(1)
+
+		cbMap.cb1:revert()
+		cbMap.cb2:revert()
+		cbMap.cb3:revert()
+	end)
 end)
 
 describe('Test cytanb_fake_vci setup and teardown', function ()
