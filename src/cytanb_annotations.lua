@@ -42,8 +42,8 @@
 ---@field ColorToARGB32 fun (color: Color): number @Color オブジェクトから ARGB 32 bit 値へ変換する。
 ---@field ColorFromIndex fun (colorIndex: number, hueSamples: number, saturationSamples: number, brightnessSamples: number, omitScale: boolean): Color @カラーインデックスから対応する Color オブジェクトへ変換する。`hueSamples` は色相のサンプル数を指定し、省略した場合の値は　`ColorHueSamples`。`saturationSamples` は彩度のサンプル数を指定し、省略した場合の値は `ColorSaturationSamples`。`brightnessSamples` は明度のサンプル数を指定し、省略した場合の値は `ColorBrightnessSamples`。`omitScale` はグレースケールを省略するかを指定し、省略した場合の値は `false`。
 ---@field GetSubItemTransform fun (subItem: ExportTransform): table<string, number> @SubItem の Transform を取得する。
----@field TableToSerialiable fun (data: table): table @[json.parse が負の数値を扱えない問題](https://github.com/xanathar/moonsharp/issues/163) のワークアラウンドを行う。負の数値は、キー名に '#__CYTANB_NEGATIVE_NUMBER' タグを付加し、負の数値を文字列に変換する。
----@field TableFromSerialiable fun (serData: table): table @TableToSerialiable で変換したテーブルを復元する。
+---@field TableToSerializable fun (data: table): table @[json.parse が負の数値を扱えない問題](https://github.com/xanathar/moonsharp/issues/163) のワークアラウンドを行う。負の数値は、キー名に '#__CYTANB_NEGATIVE_NUMBER' タグを付加し、負の数値を文字列に変換する。
+---@field TableFromSerializable fun (serData: table): table @TableToSerializable で変換したテーブルを復元する。
 ---@field EmitMessage fun (name: string, parameterMap: table<string, any>) @パラメーターを JSON シリアライズして `vci.message.Emit` する。`name` はメッセージ名を指定する。`parameterMap` は送信するパラメーターのテーブルを指定する(省略可能)。また、`InstanceID` がパラメーターフィールド `__CYTANB_INSTANCE_ID` として付加されて送信される。
 ---@field OnMessage fun (name: string, callback: fun(sender: table, name: string, parameterMap: table)) @`EmitMessage` したメッセージを受信するコールバック関数を登録する。`name` はメッセージ名を指定する。`callback` 関数に渡される `parameterMap` は JSON データをデシリアライズしたテーブル。また、パラメーターフィールド `__CYTANB_INSTANCE_ID` を利用してメッセージ送信元のインスタンスを識別可能。
 cytanb = {}

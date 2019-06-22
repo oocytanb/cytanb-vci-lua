@@ -16,6 +16,16 @@ globals = {
     "Quaternion",
     "Matrix4x4",
     "TimeSpan",
+    "update",
+    "updateAll",
+    "onUse",
+    "onUnuse",
+    "onTriggerEnter",
+    "onTriggerExit",
+    "onCollisionEnter",
+    "onCollisionExit",
+    "onGrab",
+    "onUngrab",
     "cytanb"
 }
 

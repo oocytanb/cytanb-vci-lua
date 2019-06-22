@@ -271,12 +271,12 @@ describe('Test cytanb owner user', function ()
 		end
 	end)
 
-	it('TableToSerialiable', function ()
-		cytanb.TableToSerialiable({foo = 123, bar = 'abc', baz = true, qux = {["quux#__CYTANB_NEGATIVE_NUMBER"] = -9876.5, corge = false}}, {foo = 123, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}})
+	it('TableToSerializable', function ()
+		cytanb.TableToSerializable({foo = 123, bar = 'abc', baz = true, qux = {["quux#__CYTANB_NEGATIVE_NUMBER"] = -9876.5, corge = false}}, {foo = 123, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}})
 	end)
 
-	it('TableFromSerialiable', function ()
-		cytanb.TableFromSerialiable({foo = 123, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}, {foo = 123, bar = 'abc', baz = true, qux = {["quux#__CYTANB_NEGATIVE_NUMBER"] = -9876.5, corge = false}})
+	it('TableFromSerializable', function ()
+		cytanb.TableFromSerializable({foo = 123, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}, {foo = 123, bar = 'abc', baz = true, qux = {["quux#__CYTANB_NEGATIVE_NUMBER"] = -9876.5, corge = false}})
 	end)
 end)
 

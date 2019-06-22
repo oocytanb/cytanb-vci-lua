@@ -350,7 +350,7 @@ local cytanb = (function ()
 			}
 		end,
 
-		TableToSerialiable = function (data, refTable)
+		TableToSerializable = function (data, refTable)
 			if type(data) ~= 'table' then
 				return data
 			end
@@ -369,7 +369,7 @@ local cytanb = (function ()
 				if type(v) == 'number' and v < 0 then
 					serData[k .. cytanb.NegativeNumberTag] = tostring(v)
 				else
-					serData[k] = cytanb.TableToSerialiable(v, refTable)
+					serData[k] = cytanb.TableToSerializable(v, refTable)
 				end
 			end
 
@@ -377,7 +377,7 @@ local cytanb = (function ()
 			return serData
 		end,
 
-		TableFromSerialiable = function (serData)
+		TableFromSerializable = function (serData)
 			if type(serData) ~= 'table' then
 				return serData
 			end
@@ -385,16 +385,16 @@ local cytanb = (function ()
 			local data = {}
 			for k, v in pairs(serData) do
 				if type(v) == 'string' and string.endsWith(k, cytanb.NegativeNumberTag) then
-					data[string.sub(k, 1, #k - #cytanb.NegativeNumberTag)] = tonumber(v, 10)
+					data[string.sub(k, 1, #k - #cytanb.NegativeNumberTag)] = tonumber(v)
 				else
-					data[k] = cytanb.TableFromSerialiable(v)
+					data[k] = cytanb.TableFromSerializable(v)
 				end
 			end
 			return data
 		end,
 
 		EmitMessage = function (name, parameterMap)
-			local table = parameterMap and cytanb.TableToSerialiable(parameterMap) or {}
+			local table = parameterMap and cytanb.TableToSerializable(parameterMap) or {}
 			table[cytanb.InstanceIDParameterName] = cytanb.InstanceID()
 			vci.message.Emit(name, json.serialize(table))
 		end,
@@ -410,7 +410,7 @@ local cytanb = (function ()
 						cytanb.TraceLog('Invalid message format: ', message)
 						return
 					end
-					parameterMap = cytanb.TableFromSerialiable(serData)
+					parameterMap = cytanb.TableFromSerializable(serData)
 				end
 				callback(sender, messageName, parameterMap)
 			end
