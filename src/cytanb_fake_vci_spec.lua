@@ -86,14 +86,9 @@ describe('Test cytanb_fake_vci', function ()
 
 	it('vci.studio.shared', function ()
 		local cbMap = {
-			cb1 = function (value)
-			end,
-
-			cb2 = function (value)
-			end,
-
-			cb3 = function (value)
-			end
+			cb1 = function (value) end,
+			cb2 = function (value) end,
+			cb3 = function (value) end
 		}
 
 		stub(cbMap, 'cb1')
@@ -107,12 +102,12 @@ describe('Test cytanb_fake_vci', function ()
 		assert.is_nil(vci.studio.shared.Get('foo'))
 		vci.studio.shared.Set('foo', 12345)
 		assert.are.same(12345, vci.studio.shared.Get('foo'))
-		assert.stub(cbMap.cb1).was.called_with(12345)
 		assert.stub(cbMap.cb1).was.called(1)
-		assert.stub(cbMap.cb2).was.called_with(12345)
+		assert.stub(cbMap.cb1).was.called_with(12345)
 		assert.stub(cbMap.cb2).was.called(1)
-		assert.stub(cbMap.cb3).was_not.called_with(12345)
+		assert.stub(cbMap.cb2).was.called_with(12345)
 		assert.stub(cbMap.cb3).was.called(0)
+		assert.stub(cbMap.cb3).was_not.called_with(12345)
 
 		vci.studio.shared.Set('foo', 12345)
 		assert.stub(cbMap.cb1).was.called(1)
@@ -121,10 +116,10 @@ describe('Test cytanb_fake_vci', function ()
 
 		vci.studio.shared.Set('foo', false)
 		assert.is_false(vci.studio.shared.Get('foo'))
-		assert.stub(cbMap.cb1).was.called_with(false)
 		assert.stub(cbMap.cb1).was.called(2)
-		assert.stub(cbMap.cb2).was.called_with(false)
+		assert.stub(cbMap.cb1).was.called_with(false)
 		assert.stub(cbMap.cb2).was.called(2)
+		assert.stub(cbMap.cb2).was.called_with(false)
 		assert.stub(cbMap.cb3).was.called(0)
 
 		vci.fake.UnbindStudioShared('foo', cbMap.cb1)
@@ -152,8 +147,8 @@ describe('Test cytanb_fake_vci', function ()
 		assert.is_nil(vci.studio.shared.Get('bar'))
 
 		vci.studio.shared.Set('bar', 404)
-		assert.stub(cbMap.cb3).was_not.called_with(404)
 		assert.stub(cbMap.cb3).was.called(2)
+		assert.stub(cbMap.cb3).was_not.called_with(404)
 
 		cbMap.cb1:revert()
 		cbMap.cb2:revert()
@@ -162,56 +157,59 @@ describe('Test cytanb_fake_vci', function ()
 
 
 	it('vci.message', function ()
+		local lastVciName = vci.fake.GetVciName()
+		vci.fake.SetVciName('test-msg-vci')
+
 		local cbMap = {
-			cb1 = function (value)
-			end,
-
-			cb2 = function (value)
-			end,
-
-			cb3 = function (value)
-			end
+			cb1 = function (sender, name, message) end,
+			cb2 = function (sender, name, message) end,
+			cb3 = function (sender, name, message) end,
+			cbComment = function (sender, name, message) end
 		}
 
 		stub(cbMap, 'cb1')
 		stub(cbMap, 'cb2')
 		stub(cbMap, 'cb3')
+		stub(cbMap, 'cbComment')
 
 		vci.message.On('foo', cbMap.cb1)
 		vci.message.On('foo', cbMap.cb2)
 		vci.message.On('bar', cbMap.cb3)
+		vci.message.On('comment', cbMap.cbComment)
 
 		vci.message.Emit('foo', 12345)
-		assert.stub(cbMap.cb1).was.called_with(12345)
 		assert.stub(cbMap.cb1).was.called(1)
-		assert.stub(cbMap.cb2).was.called_with(12345)
+		assert.stub(cbMap.cb1).was.called_with({type = 'vci', name = 'test-msg-vci'}, 'foo', 12345)
 		assert.stub(cbMap.cb2).was.called(1)
-		assert.stub(cbMap.cb3).was_not.called_with(12345)
+		assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-msg-vci'}, 'foo', 12345)
 		assert.stub(cbMap.cb3).was.called(0)
+		assert.stub(cbMap.cb3).was_not.called_with({type = 'vci', name = 'test-msg-vci'}, 'foo', 12345)
 
-		vci.message.Emit('foo', 12345)
+		vci.fake.EmitVciMessage('other-vci', 'foo', 12.345)
 		assert.stub(cbMap.cb1).was.called(2)
+		assert.stub(cbMap.cb1).was.called_with({type = 'vci', name = 'other-vci'}, 'foo', 12.345)
 		assert.stub(cbMap.cb2).was.called(2)
+		assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'other-vci'}, 'foo', 12.345)
 		assert.stub(cbMap.cb3).was.called(0)
 
 		vci.message.Emit('foo', false)
-		assert.stub(cbMap.cb1).was.called_with(false)
 		assert.stub(cbMap.cb1).was.called(3)
-		assert.stub(cbMap.cb2).was.called_with(false)
+		assert.stub(cbMap.cb1).was.called_with({type = 'vci', name = 'test-msg-vci'}, 'foo', false)
 		assert.stub(cbMap.cb2).was.called(3)
+		assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-msg-vci'}, 'foo', false)
 		assert.stub(cbMap.cb3).was.called(0)
 
 		vci.fake.OffMessage('foo', cbMap.cb1)
 		vci.message.Emit('foo', 'orange')
 		assert.stub(cbMap.cb1).was.called(3)
-		assert.stub(cbMap.cb2).was.called_with('orange')
 		assert.stub(cbMap.cb2).was.called(4)
+		assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-msg-vci'}, 'foo', 'orange')
 		assert.stub(cbMap.cb3).was.called(0)
 
 		vci.message.Emit('foo', {'table-data', 'not supported'})
 		assert.stub(cbMap.cb1).was.called(3)
 		assert.stub(cbMap.cb2).was.called(5)
-		assert.stub(cbMap.cb2).was.called_with(nil)
+		assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-msg-vci'}, 'foo', nil)
 		assert.stub(cbMap.cb3).was.called(0)
 
 		vci.message.Emit('bar', 100)
@@ -219,15 +217,24 @@ describe('Test cytanb_fake_vci', function ()
 		assert.stub(cbMap.cb2).was.called(5)
 		assert.stub(cbMap.cb3).was.called(1)
 
+		vci.fake.EmitCommentMessage('TestUser', 'Hello, World!')
+		assert.stub(cbMap.cb1).was.called(3)
+		assert.stub(cbMap.cb2).was.called(5)
+		assert.stub(cbMap.cb3).was.called(1)
+		assert.stub(cbMap.cbComment).was.called_with({type = 'comment', name = 'TestUser'}, 'comment', 'Hello, World!')
+
 		vci.fake.ClearMessage()
 
 		vci.message.Emit('bar', 404)
-		assert.stub(cbMap.cb3).was_not.called_with(404)
 		assert.stub(cbMap.cb3).was.called(1)
+		assert.stub(cbMap.cb3).was_not.called_with(404)
 
 		cbMap.cb1:revert()
 		cbMap.cb2:revert()
 		cbMap.cb3:revert()
+		cbMap.cbComment:revert()
+
+		vci.fake.SetVciName(lastVciName)
 	end)
 end)
 

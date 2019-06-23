@@ -26,7 +26,7 @@ local cytanb = (function ()
 			return instanceID
 		end,
 
-		SetConst = function(target, name, value)
+		SetConst = function (target, name, value)
 			if type(target) ~= 'table' then
 				error('Cannot set const to non-table target')
 			end
@@ -158,7 +158,7 @@ local cytanb = (function ()
 					refTable[v] = nil
 				end
 				return str
-			elseif t == 'function' or t == "thread" or t == "userdata" then
+			elseif t == 'function' or t == 'thread' or t == 'userdata' then
 				return '(' .. t .. ')'
 			elseif t == 'string' then
 				return '(' .. t .. ') ' .. string.format('%q', v)
@@ -247,7 +247,7 @@ local cytanb = (function ()
 			)
 		end,
 
-		ParseUUID = function(str)
+		ParseUUID = function (str)
 			local len = string.len(str)
 			if len ~= 32 and len ~= 36 then return nil end
 
@@ -393,6 +393,16 @@ local cytanb = (function ()
 			return data
 		end,
 
+		-- @deprecated use TableToSerializable
+		TableToSerialiable = function (data, refTable)
+			return cytanb.TableToSerializable(data, refTable)
+		end,
+
+		-- @deprecated use TableFromSerializable
+		TableFromSerialiable = function (serData)
+			return cytanb.TableFromSerializable(serData)
+		end,
+
 		EmitMessage = function (name, parameterMap)
 			local table = parameterMap and cytanb.TableToSerializable(parameterMap) or {}
 			table[cytanb.InstanceIDParameterName] = cytanb.InstanceID()
@@ -401,17 +411,15 @@ local cytanb = (function ()
 
 		OnMessage = function (name, callback)
 			local f = function (sender, messageName, message)
-				local parameterMap
-				if message == '' then
-					parameterMap = {}
-				else
+				local decodedData = nil
+				if sender.type ~= 'comment' and type(message) == 'string' then
 					local pcallStatus, serData = pcall(json.parse, message)
-					if not pcallStatus or type(serData) ~= 'table' then
-						cytanb.TraceLog('Invalid message format: ', message)
-						return
+					if pcallStatus and type(serData) == 'table' then
+						decodedData = cytanb.TableFromSerializable(serData)
 					end
-					parameterMap = cytanb.TableFromSerializable(serData)
 				end
+
+				local parameterMap = decodedData and decodedData or {[cytanb.MessageValueParameterName] = message}
 				callback(sender, messageName, parameterMap)
 			end
 
@@ -441,6 +449,7 @@ local cytanb = (function ()
 		:SetConst('ColorMapSize', cytanb.ColorHueSamples * cytanb.ColorSaturationSamples * cytanb.ColorBrightnessSamples)
 		:SetConst('NegativeNumberTag', '#__CYTANB_NEGATIVE_NUMBER')
 		:SetConst('InstanceIDParameterName', '__CYTANB_INSTANCE_ID')
+		:SetConst('MessageValueParameterName', '__CYTANB_MESSAGE_VALUE')
 
 	package.loaded['cytanb'] = cytanb
 
