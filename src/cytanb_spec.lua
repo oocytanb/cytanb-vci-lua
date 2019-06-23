@@ -273,11 +273,15 @@ describe('Test cytanb owner user', function ()
 	end)
 
 	it('TableToSerializable', function ()
-		cytanb.TableToSerializable({foo = 123.45, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = -9876.5, corge = false}}, {foo = 123.45, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}})
+		assert.are.same({foo = 123.25, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', corge = false}}, cytanb.TableToSerializable({foo = 123.25, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}))
+
+		local circularTable = {foo = 123.25}
+		circularTable.ref = circularTable
+		assert.has_error(function () cytanb.TableToSerializable(circularTable) end)
 	end)
 
 	it('TableFromSerializable', function ()
-		cytanb.TableFromSerializable({foo = 123.45, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}, {foo = 123, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', corge = false}})
+		assert.are.same({foo = 123.25, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}, cytanb.TableFromSerializable({foo = 123.25, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', corge = false}}))
 	end)
 
 	it('Message', function ()

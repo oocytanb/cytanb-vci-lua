@@ -7,6 +7,7 @@
 -- Unit test を行うための、補助モジュールとしての利用を目的としている。
 -- 実環境を忠実にエミュレートするものではなく、挙動が異なる部分が多分にあるため、その点に留意して利用する必要がある。
 -- (例えば、3D オブジェクトの物理演算は行われない、ネットワーク通信は行われずローカルのインメモリーで処理される、など)
+-- **EXPERIMENTAL: 実験的なモジュールであるため、多くの変更が加えられる可能性がある。**
 
 return (function ()
 	local dkjson = require('dkjson')
@@ -57,7 +58,52 @@ return (function ()
 
 	local messageCallbackMap = {}
 
-	local fakeModule, vci
+	local fakeModule, Color, vci
+
+	local ColorMetatable = {
+		__add = function (op1, op2)
+			return Color.__new(op1.r + op2.r, op1.g + op2.g, op1.b + op2.b, op1.a + op2.a)
+		end,
+
+		__sub = function (op1, op2)
+			return Color.__new(op1.r - op2.r, op1.g - op2.g, op1.b - op2.b, op1.a - op2.a)
+		end,
+
+		__mul = function (op1, op2)
+			return Color.__new(op1.r * op2.r, op1.g * op2.g, op1.b * op2.b, op1.a * op2.a)
+		end,
+
+		__div = function (op1, op2)
+			return Color.__new(op1.r / op2, op1.g / op2, op1.b / op2, op1.a / op2)
+		end,
+
+		__eq = function (op1, op2)
+			return op1.r == op2.r and op1.g == op2.g and op1.b == op2.b and op1.a == op2.a
+		end,
+
+		__index = function (table, key)
+			if key == 'gamma' then
+				error('!!NOT IMPLEMENTED!!')
+			elseif key == 'grayscale' then
+				error('!!NOT IMPLEMENTED!!')
+			elseif key == 'linear' then
+				error('!!NOT IMPLEMENTED!!')
+			elseif key == 'maxColorComponent' then
+				return math.max(table.r, table.g, table.b)
+			else
+				error('Cannot access field "' .. key .. '"')
+			end
+		end,
+
+		__newindex = function (table, key, v)
+			error('Cannot assign to field "' .. key .. '"')
+		end,
+
+		__tostring = function (value)
+			return value.ToString()
+		end
+	}
+
 	fakeModule = {
 		-- [MoonSharp](https://www.moonsharp.org/additions.html) の拡張。
 		_MOONSHARP = {
@@ -124,6 +170,51 @@ return (function ()
 
 			null = function ()
 				return dkjson.null
+			end
+		},
+
+		Color = {
+			__new = function (r, g, b, a)
+				local rgbSpecified = r and g and b
+				local self
+				self = {
+					r = rgbSpecified and r or 0.0,
+					g = rgbSpecified and g or 0.0,
+					b = rgbSpecified and b or 0.0,
+					a = rgbSpecified and (a or 1.0) or 0.0,
+					ToString = function (format)
+						if format then
+							error('!!NOT IMPLEMENTED!!')
+						end
+						return string.format('RGBA(%.3f, %.3f, %.3f, %.3f)', self.r, self.g, self.b, self.a)
+					end,
+
+					GetHashCode = function ()
+						error('!!NOT IMPLEMENTED!!')
+					end,
+				}
+				setmetatable(self, ColorMetatable)
+				return self
+			end,
+
+			HSVToRGB = function (H, S, V)
+				error('!!NOT IMPLEMENTED!!')
+			end,
+
+			Lerp = function (a, b, t)
+				error('!!NOT IMPLEMENTED!!')
+			end,
+
+			LerpUnclamped = function (a, b, t)
+				error('!!NOT IMPLEMENTED!!')
+			end,
+
+			__toVector4 = function (color)
+				error('!!NOT IMPLEMENTED!!')
+			end,
+
+			__toColor = function (vec4)
+				error('!!NOT IMPLEMENTED!!')
 			end
 		},
 
@@ -345,7 +436,20 @@ return (function ()
 		}
 	}
 
+	Color = fakeModule.Color
+	SetConst(Color, 'black', Color.__new(0, 0, 0, 1))
+	SetConst(Color, 'blue', Color.__new(0, 0, 1, 1))
+	SetConst(Color, 'blue', Color.__new(0, 0, 1, 1))
+	SetConst(Color, 'clear', Color.__new(0, 0, 0, 0))
+	SetConst(Color, 'cyan', Color.__new(0, 1, 1, 1))
+	SetConst(Color, 'gray', Color.__new(0.5, 0.5, 0.5, 1))
+	SetConst(Color, 'magenta', Color.__new(1, 0, 1, 1))
+	SetConst(Color, 'red', Color.__new(1, 0, 0, 1))
+	SetConst(Color, 'white', Color.__new(1, 1, 1, 1))
+	SetConst(Color, 'yellow', Color.__new(1, 0.921568632125854, 0.0156862754374743, 1))
+
 	vci = fakeModule.vci
+
 	vci.fake.SetAssetsIsMine(true)
 
 	return fakeModule
