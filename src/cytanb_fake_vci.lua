@@ -4,11 +4,15 @@
 ----------------------------------------------------------------
 
 -- [VCI](https://github.com/virtual-cast/VCI) 環境の簡易 Fake モジュール。
+-- Unit test を行うための、補助モジュールとしての利用を目的としている。
+-- 実環境を忠実にエミュレートするものではなく、挙動が異なる部分が多分にあるため、その点に留意して利用する必要がある。
+-- (例えば、3D オブジェクトの物理演算は行われない、ネットワーク通信は行われずローカルのインメモリーで処理される、など)
 
 return (function ()
 	local dkjson = require('dkjson')
 
-	local SetConst = function(target, name, value)
+	-- @see cytanb.SetConst
+	local SetConst = function (target, name, value)
 		if type(target) ~= 'table' then
 			error('Cannot set const to non-table target')
 		end
@@ -46,6 +50,7 @@ return (function ()
 	local StringModuleName = 'string'
 	local moonsharpAdditions = {_MOONSHARP = true, json = true}
 
+	local currentVciName = ModuleName
 	local stateMap = {}
 	local studioSharedMap = {}
 	local studioSharedCallbackMap = {}
@@ -221,21 +226,25 @@ return (function ()
 					messageCallbackMap[messageName][callback] = true
 				end,
 
-				Emit = function (messageName, value)
+				Emit = function (messageName, ...)
+					if select('#', ...) < 1 then
+						-- value 引数が指定されない場合は、処理しない。
+						return
+					end
+
+					local value = ...
 					local nv
 					local t = type(value)
 					if (t == 'number' or t == 'string' or t == 'boolean') then
 						nv = value
-					else
+					elseif (t == 'nil' or t == 'table' or t == 'userdata') then
 						nv = nil
+					else
+						-- その他の型の場合は処理しない。
+						return
 					end
 
-					local cbMap = messageCallbackMap[messageName]
-					if cbMap then
-						for cb, v in pairs(cbMap) do
-							cb(nv)
-						end
-					end
+					vci.fake.EmitVciMessage(currentVciName, messageName, nv)
 				end
 			},
 
@@ -277,6 +286,14 @@ return (function ()
 					package.loaded[ModuleName] = nil
 				end,
 
+				SetVciName = function (name)
+					currentVciName = tostring(name)
+				end,
+
+				GetVciName = function ()
+					return currentVciName
+				end,
+
 				SetAssetsIsMine = function (mine)
 					SetConst(vci.assets, 'IsMine', mine and true or nil)
 				end,
@@ -295,6 +312,23 @@ return (function ()
 				ClearStudioShared = function ()
 					studioSharedMap = {}
 					studioSharedCallbackMap = {}
+				end,
+
+				EmitRawMessage = function (sender, messageName, value)
+					local cbMap = messageCallbackMap[messageName]
+					if cbMap then
+						for cb, v in pairs(cbMap) do
+							cb(sender, messageName, value)
+						end
+					end
+				end,
+
+				EmitVciMessage = function (vciName, messageName, value)
+					vci.fake.EmitRawMessage({type = 'vci', name = vciName}, messageName, value)
+				end,
+
+				EmitCommentMessage = function (userName, value)
+					vci.fake.EmitRawMessage({type = 'comment', name = userName or ''}, 'comment', tostring(value))
 				end,
 
 				OffMessage = function (messageName, callback)

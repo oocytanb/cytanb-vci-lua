@@ -4,6 +4,7 @@
 ----------------------------------------------------------------
 
 describe('Test cytanb owner user', function ()
+	---@type cytanb
 	local cytanb
 
 	setup(function ()
@@ -272,15 +273,73 @@ describe('Test cytanb owner user', function ()
 	end)
 
 	it('TableToSerializable', function ()
-		cytanb.TableToSerializable({foo = 123, bar = 'abc', baz = true, qux = {["quux#__CYTANB_NEGATIVE_NUMBER"] = -9876.5, corge = false}}, {foo = 123, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}})
+		cytanb.TableToSerializable({foo = 123.45, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = -9876.5, corge = false}}, {foo = 123.45, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}})
 	end)
 
 	it('TableFromSerializable', function ()
-		cytanb.TableFromSerializable({foo = 123, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}, {foo = 123, bar = 'abc', baz = true, qux = {["quux#__CYTANB_NEGATIVE_NUMBER"] = -9876.5, corge = false}})
+		cytanb.TableFromSerializable({foo = 123.45, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}, {foo = 123, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', corge = false}})
+	end)
+
+	it('Message', function ()
+		local lastVciName = vci.fake.GetVciName()
+		vci.fake.SetVciName('test-cytanb-module')
+
+		local cbMap = {
+			cb1 = function (sender ,name, parameterMap) end,
+			cb2 = function (sender ,name, parameterMap) end,
+			cb3 = function (sender ,name, parameterMap) end,
+			cbComment = function (sender, name, parameterMap) end
+		}
+
+		stub(cbMap, 'cb1')
+		stub(cbMap, 'cb2')
+		stub(cbMap, 'cb3')
+		stub(cbMap, 'cbComment')
+
+		cytanb.OnMessage('foo', cbMap.cb1)
+		cytanb.OnMessage('foo', cbMap.cb2)
+		cytanb.OnMessage('bar', cbMap.cb3)
+		cytanb.OnMessage('comment', cbMap.cbComment)
+
+		cytanb.EmitMessage('foo')
+		assert.stub(cbMap.cb1).was.called(1)
+		assert.stub(cbMap.cb1).was.called_with({type = 'vci', name = 'test-cytanb-module'}, 'foo', {[cytanb.InstanceIDParameterName] = cytanb.InstanceID()})
+		assert.stub(cbMap.cb2).was.called(1)
+		assert.stub(cbMap.cb3).was.called(0)
+		assert.stub(cbMap.cbComment).was.called(0)
+
+		cytanb.EmitMessage('bar', {hoge = 123.45, piyo = 'abc', fuga = true, hogera = {hogehoge = -9876.5, piyopiyo = false}})
+		assert.stub(cbMap.cb1).was.called(1)
+		assert.stub(cbMap.cb2).was.called(1)
+		assert.stub(cbMap.cb3).was.called(1)
+		assert.stub(cbMap.cb3).was.called_with({type = 'vci', name = 'test-cytanb-module'}, 'bar', {[cytanb.InstanceIDParameterName] = cytanb.InstanceID(), hoge = 123.45, piyo = 'abc', fuga = true, hogera = {hogehoge = -9876.5, piyopiyo = false}})
+		assert.stub(cbMap.cbComment).was.called(0)
+
+		vci.message.Emit('foo', -36.5)
+		assert.stub(cbMap.cb1).was.called(2)
+		assert.stub(cbMap.cb2).was.called(2)
+		assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-cytanb-module'}, 'foo', {[cytanb.MessageValueParameterName] = -36.5})
+		assert.stub(cbMap.cb3).was.called(1)
+		assert.stub(cbMap.cbComment).was.called(0)
+
+		vci.fake.EmitCommentMessage('TestUser', 'Hello, World!')
+		assert.stub(cbMap.cb1).was.called(2)
+		assert.stub(cbMap.cb2).was.called(2)
+		assert.stub(cbMap.cb3).was.called(1)
+		assert.stub(cbMap.cbComment).was.called(1)
+		assert.stub(cbMap.cbComment).was.called_with({type = 'comment', name = 'TestUser'}, 'comment', {[cytanb.MessageValueParameterName] = 'Hello, World!'})
+
+		cbMap.cb1:revert()
+		cbMap.cb2:revert()
+		cbMap.cb3:revert()
+		cbMap.cbComment:revert()
+
+		vci.fake.SetVciName(lastVciName)
 	end)
 end)
 
 describe('Test cytanb guest user', function ()
+	---@type cytanb
 	local cytanb
 
 	setup(function ()

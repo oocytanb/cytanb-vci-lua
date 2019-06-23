@@ -20,6 +20,7 @@
 ---@field ColorMapSize number @デフォルトのカラーマップのサイズ。
 ---@field NegativeNumberTag string @負の数値を示すタグ。
 ---@field InstanceIDParameterName string @インスタンス ID のパラーメーター名。
+---@field MessageValueParameterName string @メッセージ値のパラーメーター名。
 ---@field InstanceID fun (): string @インスタンス ID を取得する。VCI を設置したユーザー以外では、同期完了前は空文字列を返す。
 ---@field SetConst fun (target: table, name: string, value: any): table @`target` に定数フィールドを設定し、target 自身を返す。`name` に定数名を指定する。`value` に定数値を指定する。
 ---@field Extend fun (target: table, source: table, deep: boolean, omitMetaTable: boolean): table @`target` のテーブルフィールドを `source` のテーブルフィールドで拡張し、その結果を返す。`deep` に `true` を指定した場合は、ディープコピーを行う(省略するか `false` を指定した場合は、シャローコピーを行う)。`omitMetaTable` に 'true' を指定した場合は、メタテーブルをコピーしない。ただし、シャローコピーした場合は下位のテーブルの参照値がそのままコピーされる。(省略するか `false` を指定した場合は、コピーする)。
@@ -45,5 +46,5 @@
 ---@field TableToSerializable fun (data: table): table @[json.parse が負の数値を扱えない問題](https://github.com/xanathar/moonsharp/issues/163) のワークアラウンドを行う。負の数値は、キー名に '#__CYTANB_NEGATIVE_NUMBER' タグを付加し、負の数値を文字列に変換する。
 ---@field TableFromSerializable fun (serData: table): table @TableToSerializable で変換したテーブルを復元する。
 ---@field EmitMessage fun (name: string, parameterMap: table<string, any>) @パラメーターを JSON シリアライズして `vci.message.Emit` する。`name` はメッセージ名を指定する。`parameterMap` は送信するパラメーターのテーブルを指定する(省略可能)。また、`InstanceID` がパラメーターフィールド `__CYTANB_INSTANCE_ID` として付加されて送信される。
----@field OnMessage fun (name: string, callback: fun(sender: table, name: string, parameterMap: table)) @`EmitMessage` したメッセージを受信するコールバック関数を登録する。`name` はメッセージ名を指定する。`callback` 関数に渡される `parameterMap` は JSON データをデシリアライズしたテーブル。また、パラメーターフィールド `__CYTANB_INSTANCE_ID` を利用してメッセージ送信元のインスタンスを識別可能。
+---@field OnMessage fun (name: string, callback: fun(sender: table, name: string, parameterMap: table)) @`EmitMessage` したメッセージを受信するコールバック関数を登録する。`name` はメッセージ名を指定する。`callback` 関数に渡される `parameterMap` は JSON データをデシリアライズしたテーブル。また、パラメーターフィールド `__CYTANB_INSTANCE_ID` を利用してメッセージ送信元のインスタンスを識別可能。もしデシリアライズできないデータであった場合は、パラメーターフィールド `__CYTANB_MESSAGE_VALUE` に値がセットされる。
 cytanb = {}
