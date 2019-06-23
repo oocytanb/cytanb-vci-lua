@@ -65,6 +65,41 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.same(table4, json.parse(jstr4))
 	end)
 
+	it('Color', function ()
+		assert.are.equal('RGBA(1.000, 0.000, 1.000, 1.000)', tostring(Color.magenta))
+		assert.are.equal(Color.__new(1, 0, 1), Color.magenta)
+		assert.are_not.equal(Color.__new(1, 0, 1, 0.5), Color.magenta)
+		assert.are.equal(Color.__new(0, 0, 1, 1), Color.blue)
+		assert.are.equal('RGBA(1.000, 0.922, 0.016, 1.000)', tostring(Color.yellow))
+		assert.are.equal(Color.__new(0, 0, 0, 0), Color.clear)
+		assert.are.equal(Color.clear, Color.__new())
+		assert.are.equal(Color.clear, Color.__new(0.25))
+		assert.are.equal(Color.clear, Color.__new(0.25, 0.5))
+		assert.are.equal('RGBA(0.250, 1234.500, 0.200, 1.000)', tostring(Color.__new(0.25, 1234.5, 0.2)))
+		assert.are.equal(Color.__new(1, 0, 0, 0), Color.magenta - Color.blue)
+		assert.are.equal(Color.__new(1.000, 0.000, -1.000, -1.000), Color.magenta - Color.blue - Color.blue)
+
+		local c2 = Color.magenta - (Color.blue + Color.blue)
+		c2.g = 0.25
+		c2.r = 0.75
+		c2.a = 0.95
+		assert.are.equal(Color.__new(0.750, 0.250, -1.000, 0.950), c2)
+		assert.are.equal(0.75, c2.maxColorComponent)
+
+		assert.are.equal(Color.__new(0.000, 0.500, 3.000, 1.000), Color.__new(0.5, 0.25, 1) * Color.__new(0, 2, 3))
+		assert.are.equal(Color.__new(0.250, 0.125, 0.500, 0.500), Color.__new(0.5, 0.25, 1) / 2)
+
+		-- local dictSize = 0
+		-- local dict = {}
+		-- dict[Color.__new(0.5, 0.25, 1)] = 'one'
+		-- dict[Color.__new(0.5, 0.25, 1)] = 'two'
+		-- for k, v in pairs(dict) do
+		-- 	dictSize = dictSize + 1
+		-- end
+		-- assert.are.equal(1, dictSize)
+		-- assert.are.equal('two', dict[Color.__new(0.5, 0.25, 1)])
+	end)
+
 	it('vci.state', function ()
 		assert.is_nil(vci.state.Get('foo'))
 		vci.state.Set('foo', 12345)
