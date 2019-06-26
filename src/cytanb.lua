@@ -366,13 +366,14 @@ local cytanb = (function ()
 			refTable[data] = true
 			local serData = {}
 			for k, v in pairs(data) do
-				if type(k) == 'number' then
-					k = cytanb.ArrayNumberTag .. k
-				end
+				-- 数値インデックスであれば、タグを付加する
+				local nk = (type(k) == 'number') and tostring(k) .. cytanb.ArrayNumberTag or k
+
 				if type(v) == 'number' and v < 0 then
-					serData[k .. cytanb.NegativeNumberTag] = tostring(v)
+					-- 負の数値であれば、タグを付加する
+					serData[tostring(nk) .. cytanb.NegativeNumberTag] = tostring(v)
 				else
-					serData[k] = cytanb.TableToSerializable(v, refTable)
+					serData[nk] = cytanb.TableToSerializable(v, refTable)
 				end
 			end
 
@@ -387,19 +388,30 @@ local cytanb = (function ()
 
 			local data = {}
 			for k, v in pairs(serData) do
-				if type(v) == 'string' and string.endsWith(k, cytanb.NegativeNumberTag) then
-                    if k:startsWith(cytanb.ArrayNumberTag) then
-                        k = k:sub(1, #k - #cytanb.NegativeNumberTag)
-                        data[tonumber(k:sub(#cytanb.ArrayNumberTag + 1,#k))] = tonumber(v)
-                    else
-                        data[k:sub(1, #k - #cytanb.NegativeNumberTag)] = tonumber(v)
-                    end
-                else
-                    if k:startsWith(cytanb.ArrayNumberTag) then
-                        data[tonumber(k:sub(#cytanb.ArrayNumberTag + 1,#k))] = cytanb.TableFromSerializable(v)
-                    else
-                        data[k] = cytanb.TableFromSerializable(v)
-                    end
+				local nk
+				local valueIsNegativeNumber
+				if type(k) == 'string' then
+					if string.endsWith(k, cytanb.NegativeNumberTag) then
+						nk = string.sub(k, 1, -1 - #cytanb.NegativeNumberTag)
+						valueIsNegativeNumber = true
+					else
+						nk = k
+						valueIsNegativeNumber = false
+					end
+
+					if string.endsWith(nk, cytanb.ArrayNumberTag) then
+						local strBody = string.sub(nk, 1, -1 - #cytanb.ArrayNumberTag)
+						nk = tonumber(strBody) or strBody
+					end
+				else
+					nk = k
+					valueIsNegativeNumber = false
+				end
+
+				if valueIsNegativeNumber then
+					data[nk] = type(v) == 'string' and tonumber(v) or cytanb.TableFromSerializable(v)
+				else
+					data[nk] = cytanb.TableFromSerializable(v)
 				end
 			end
 			return data
