@@ -366,6 +366,9 @@ local cytanb = (function ()
 			refTable[data] = true
 			local serData = {}
 			for k, v in pairs(data) do
+				if type(k) == 'number' then
+					k = cytanb.ArrayNumberTag .. k
+				end
 				if type(v) == 'number' and v < 0 then
 					serData[k .. cytanb.NegativeNumberTag] = tostring(v)
 				else
@@ -385,9 +388,18 @@ local cytanb = (function ()
 			local data = {}
 			for k, v in pairs(serData) do
 				if type(v) == 'string' and string.endsWith(k, cytanb.NegativeNumberTag) then
-					data[string.sub(k, 1, #k - #cytanb.NegativeNumberTag)] = tonumber(v)
-				else
-					data[k] = cytanb.TableFromSerializable(v)
+                    if k:startsWith(cytanb.ArrayNumberTag) then
+                        k = k:sub(1, #k - #cytanb.NegativeNumberTag)
+                        data[tonumber(k:sub(#cytanb.ArrayNumberTag + 1,#k))] = tonumber(v)
+                    else
+                        data[k:sub(1, #k - #cytanb.NegativeNumberTag)] = tonumber(v)
+                    end
+                else
+                    if k:startsWith(cytanb.ArrayNumberTag) then
+                        data[tonumber(k:sub(#cytanb.ArrayNumberTag + 1,#k))] = cytanb.TableFromSerializable(v)
+                    else
+                        data[k] = cytanb.TableFromSerializable(v)
+                    end
 				end
 			end
 			return data
@@ -448,6 +460,7 @@ local cytanb = (function ()
 		:SetConst('ColorBrightnessSamples', 5)
 		:SetConst('ColorMapSize', cytanb.ColorHueSamples * cytanb.ColorSaturationSamples * cytanb.ColorBrightnessSamples)
 		:SetConst('NegativeNumberTag', '#__CYTANB_NEGATIVE_NUMBER')
+		:SetConst('ArrayNumberTag', '#__CYTANB_ARRAY_NUMBER')
 		:SetConst('InstanceIDParameterName', '__CYTANB_INSTANCE_ID')
 		:SetConst('MessageValueParameterName', '__CYTANB_MESSAGE_VALUE')
 
