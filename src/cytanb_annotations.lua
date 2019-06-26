@@ -7,6 +7,21 @@
 
 ---@alias cytanb_uuid_t number[]
 
+---@class cytanb_transform
+---@field position Vector3
+---@field rotation Quaternion
+---@field scale Vector3
+---@field positionX number
+---@field positionY number
+---@field positionZ number
+---@field rotationX number
+---@field rotationY number
+---@field rotationZ number
+---@field rotationW number
+---@field scaleX number
+---@field scaleY number
+---@field scaleZ number
+
 ---@class cytanb UUID、ログ、色、メッセージなど、基礎的な機能を提供するモジュール。
 ---@field FatalLogLevel number @致命的なレベルのログを表す定数値。
 ---@field ErrorLogLevel number @エラーレベルのログを表す定数値。
@@ -43,7 +58,7 @@
 ---@field ColorFromARGB32 fun (argb32: number): Color @ARGB 32 bit 値から、Color オブジェクトへ変換する。
 ---@field ColorToARGB32 fun (color: Color): number @Color オブジェクトから ARGB 32 bit 値へ変換する。
 ---@field ColorFromIndex fun (colorIndex: number, hueSamples: number, saturationSamples: number, brightnessSamples: number, omitScale: boolean): Color @カラーインデックスから対応する Color オブジェクトへ変換する。`hueSamples` は色相のサンプル数を指定し、省略した場合の値は　`ColorHueSamples`。`saturationSamples` は彩度のサンプル数を指定し、省略した場合の値は `ColorSaturationSamples`。`brightnessSamples` は明度のサンプル数を指定し、省略した場合の値は `ColorBrightnessSamples`。`omitScale` はグレースケールを省略するかを指定し、省略した場合の値は `false`。
----@field GetSubItemTransform fun (subItem: ExportTransform): table<string, number> @SubItem の Transform を取得する。
+---@field GetSubItemTransform fun (subItem: ExportTransform): cytanb_transform @SubItem の Transform を取得する。
 ---@field TableToSerializable fun (data: table): table @[json.parse が負の数値を扱えない問題](https://github.com/xanathar/moonsharp/issues/163) のワークアラウンドを行う。負の数値は、キー名に '#__CYTANB_NEGATIVE_NUMBER' タグを付加し、負の数値を文字列に変換する。
 ---@field TableFromSerializable fun (serData: table): table @TableToSerializable で変換したテーブルを復元する。
 ---@field EmitMessage fun (name: string, parameterMap: table<string, any>) @パラメーターを JSON シリアライズして `vci.message.Emit` する。`name` はメッセージ名を指定する。`parameterMap` は送信するパラメーターのテーブルを指定する(省略可能)。また、`InstanceID` がパラメーターフィールド `__CYTANB_INSTANCE_ID` として付加されて送信される。

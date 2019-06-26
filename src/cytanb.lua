@@ -337,6 +337,9 @@ local cytanb = (function ()
 			local rotation = subItem.GetRotation()
 			local scale = subItem.GetLocalScale()
 			return {
+				position = position,
+				rotation = rotation,
+				scale = scale,
 				positionX = position.x,
 				positionY = position.y,
 				positionZ = position.z,
