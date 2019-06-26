@@ -273,7 +273,13 @@ describe('Test cytanb owner user', function ()
 	end)
 
 	it('TableToSerializable', function ()
+		assert.are.same({}, cytanb.TableToSerializable({}))
 		assert.are.same({foo = 123.25, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', corge = false}}, cytanb.TableToSerializable({foo = 123.25, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}))
+		assert.are.same({100, 200, 300, 400}, cytanb.TableToSerializable({100, 200, 300, 400}))
+		assert.are.same({['1#__CYTANB_ARRAY_NUMBER#__CYTANB_NEGATIVE_NUMBER'] = '-100'}, cytanb.TableToSerializable({-100}))
+		assert.are.same({['1#__CYTANB_ARRAY_NUMBER'] = 100, ['2#__CYTANB_ARRAY_NUMBER'] = 200, ['3#__CYTANB_ARRAY_NUMBER#__CYTANB_NEGATIVE_NUMBER'] = '-300', ['4#__CYTANB_ARRAY_NUMBER'] = 400}, cytanb.TableToSerializable({100, 200, -300, 400}))
+		assert.are.same({'apple', 'orange', {'cyan', 'magenta'}}, cytanb.TableToSerializable({'apple', 'orange', {'cyan', 'magenta'}}))
+		assert.are.same({100, 200, {['1#__CYTANB_ARRAY_NUMBER'] = 2010, ['2#__CYTANB_ARRAY_NUMBER#__CYTANB_NEGATIVE_NUMBER'] = '-2020', ['3#__CYTANB_ARRAY_NUMBER'] = 2030}}, cytanb.TableToSerializable({100, 200, {2010, -2020, 2030}}))
 
 		local circularTable = {foo = 123.25}
 		circularTable.ref = circularTable
@@ -281,7 +287,13 @@ describe('Test cytanb owner user', function ()
 	end)
 
 	it('TableFromSerializable', function ()
+		assert.are.same({}, cytanb.TableFromSerializable({}))
 		assert.are.same({foo = 123.25, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}, cytanb.TableFromSerializable({foo = 123.25, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', corge = false}}))
+		assert.are.same({100, 200, 300, 400}, cytanb.TableFromSerializable({100, 200, 300, 400}))
+		assert.are.same({-100}, cytanb.TableFromSerializable({['1#__CYTANB_ARRAY_NUMBER#__CYTANB_NEGATIVE_NUMBER'] = '-100'}))
+		assert.are.same({100, 200, -300, 400}, cytanb.TableFromSerializable({['1#__CYTANB_ARRAY_NUMBER'] = 100, ['2#__CYTANB_ARRAY_NUMBER'] = 200, ['3#__CYTANB_ARRAY_NUMBER#__CYTANB_NEGATIVE_NUMBER'] = '-300', ['4#__CYTANB_ARRAY_NUMBER'] = 400}))
+		assert.are.same({'apple', 'orange', {'cyan', 'magenta'}}, cytanb.TableFromSerializable({'apple', 'orange', {'cyan', 'magenta'}}))
+		assert.are.same({100, 200, {2010, -2020, 2030}}, cytanb.TableFromSerializable({100, 200, {['1#__CYTANB_ARRAY_NUMBER'] = 2010, ['2#__CYTANB_ARRAY_NUMBER#__CYTANB_NEGATIVE_NUMBER'] = '-2020', ['3#__CYTANB_ARRAY_NUMBER'] = 2030}}))
 	end)
 
 	it('Message', function ()
