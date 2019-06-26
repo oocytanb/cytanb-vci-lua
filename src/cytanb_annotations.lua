@@ -19,6 +19,7 @@
 ---@field ColorBrightnessSamples number @デフォルトの明度のサンプル数。
 ---@field ColorMapSize number @デフォルトのカラーマップのサイズ。
 ---@field NegativeNumberTag string @負の数値を示すタグ。
+---@field ArrayNumberTag string @連想配列でなく、keyが数値であることを示すタグ。
 ---@field InstanceIDParameterName string @インスタンス ID のパラーメーター名。
 ---@field MessageValueParameterName string @メッセージ値のパラーメーター名。
 ---@field InstanceID fun (): string @インスタンス ID を取得する。VCI を設置したユーザー以外では、同期完了前は空文字列を返す。
