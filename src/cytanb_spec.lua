@@ -272,6 +272,34 @@ describe('Test cytanb owner user', function ()
 		end
 	end)
 
+	it('Color', function ()
+		local indexRgbList = {
+			[{0, 0, 0}] = 0xff0000,
+			[{1, 1, 0}] = 0xffbf40,
+			[{2, 2, 0}] = 0xd5ff80,
+			[{3, 3, 0}] = 0xbfffbf,
+			[{4, 0, 1}] = 0x00cc88,
+			[{5, 2, 1}] = 0x66aacc,
+			[{6, 1, 2}] = 0x262699,
+			[{7, 3, 2}] = 0x8c7399,
+			[{8, 0, 3}] = 0x660044,
+			[{9, 2, 4}] = 0x222222,
+			[{9, 0, 0}] = 0x000000,
+			[{9, 2, 0}] = 0xaaaaaa,
+			[{9, 3, 0}] = 0xffffff
+		}
+
+		for iv, rgb24 in pairs(indexRgbList) do
+			local index = iv[1] + iv[2] * cytanb.ColorHueSamples + iv[3] * cytanb.ColorHueSamples * cytanb.ColorSaturationSamples
+			local rgb32 = bit32.bor(0xff000000, rgb24)
+			local c32 = cytanb.ColorFromARGB32(rgb32)
+			local cidx = cytanb.ColorFromIndex(index)
+			local diff = cidx - c32
+			assert.are.equal(Color.clear, vci.fake.RoundColor(diff, 2))
+			assert.are.equal(rgb32, cytanb.ColorToARGB32(c32))
+		end
+	end)
+
 	it('TableToSerializable', function ()
 		assert.are.same({}, cytanb.TableToSerializable({}))
 		assert.are.same({foo = 123.25, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', corge = false}}, cytanb.TableToSerializable({foo = 123.25, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}))

@@ -47,6 +47,32 @@ return (function ()
 		return target
 	end
 
+	-- @see cytanb.Round
+	local Round = function (n, decimalPlaces)
+		if decimalPlaces then
+			local m = 10 ^ decimalPlaces
+			return math.floor(n * m + 0.5) / m
+		else
+			return math.floor(n + 0.5)
+		end
+	end
+
+	-- @see UnityEngine.Mathf.Lerp
+	local Lerp = function (a, b, t)
+		if t <= 0.0 then
+			return a
+		elseif t >= 1.0 then
+			return b
+		else
+			return a + (b - a) * t
+		end
+	end
+
+	-- @see UnityEngine.Mathf.LerpUnclamped
+	local LerpUnclamped = function (a, b, t)
+		return a + (b - a) * t
+	end
+
 	local ModuleName = 'cytanb_fake_vci'
 	local StringModuleName = 'string'
 	local moonsharpAdditions = {_MOONSHARP = true, json = true}
@@ -183,9 +209,7 @@ return (function ()
 					b = rgbSpecified and b or 0.0,
 					a = rgbSpecified and (a or 1.0) or 0.0,
 					ToString = function (format)
-						if format then
-							error('!!NOT IMPLEMENTED!!')
-						end
+						-- format argument is not implemented
 						return string.format('RGBA(%.3f, %.3f, %.3f, %.3f)', self.r, self.g, self.b, self.a)
 					end,
 
@@ -198,15 +222,57 @@ return (function ()
 			end,
 
 			HSVToRGB = function (H, S, V)
-				error('!!NOT IMPLEMENTED!!')
+				local h = math.max(0.0, math.min(H, 1.0)) * 6.0
+				local s = math.max(0.0, math.min(S, 1.0))
+				local v = math.max(0.0, math.min(V, 1.0))
+				local c = v * s
+				local x = c * (1 - math.abs((h % 2) - 1))
+				local m = v - c
+				local r, g, b
+				if h < 1 then
+					r = c
+					g = x
+					b = 0.0
+				elseif h < 2 then
+					r = x
+					g = c
+					b = 0.0
+				elseif h < 3 then
+					r = 0.0
+					g = c
+					b = x
+				elseif h < 4 then
+					r = 0.0
+					g = x
+					b = c
+				elseif h < 5 then
+					r = x
+					g = 0.0
+					b = c
+				else
+					r = c
+					g = 0.0
+					b = x
+				end
+				return Color.__new(r + m, g + m, b + m)
 			end,
 
 			Lerp = function (a, b, t)
-				error('!!NOT IMPLEMENTED!!')
+				return Color.__new(
+					Lerp(a.r, b.r, t),
+					Lerp(a.g, b.g, t),
+					Lerp(a.b, b.b, t),
+					Lerp(a.a, b.a, t)
+				)
 			end,
 
 			LerpUnclamped = function (a, b, t)
-				error('!!NOT IMPLEMENTED!!')
+				return Color.__new(
+					LerpUnclamped(a.r, b.r, t),
+					LerpUnclamped(a.g, b.g, t),
+					LerpUnclamped(a.b, b.b, t),
+					LerpUnclamped(a.a, b.a, t)
+				)
 			end,
 
 			__toVector4 = function (color)
@@ -375,6 +441,15 @@ return (function ()
 					end
 
 					package.loaded[ModuleName] = nil
+				end,
+
+				RoundColor = function (color, decimalPlaces)
+					return Color.__new(
+						Round(color.r, decimalPlaces),
+						Round(color.g, decimalPlaces),
+						Round(color.b, decimalPlaces),
+						Round(color.a, decimalPlaces)
+					)
 				end,
 
 				SetVciName = function (name)
