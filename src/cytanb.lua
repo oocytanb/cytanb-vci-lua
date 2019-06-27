@@ -237,6 +237,29 @@ local cytanb = (function ()
 			return table
 		end,
 
+		Round = function (num, decimalPlaces)
+			if decimalPlaces then
+				local m = 10 ^ decimalPlaces
+				return math.floor(num * m + 0.5) / m
+			else
+				return math.floor(num + 0.5)
+			end
+		end,
+
+		Lerp = function (a, b, t)
+			if t <= 0.0 then
+				return a
+			elseif t >= 1.0 then
+				return b
+			else
+				return a + (b - a) * t
+			end
+		end,
+
+		LerpUnclamped = function (a, b, t)
+			return a + (b - a) * t
+		end,
+
 		Random32 = function ()
 			-- MoonSharp は 32bit int 型で実装されていて、2147483646 が渡すことのできる最大値。
 			return bit32.band(math.random(-2147483648, 2147483646), 0xFFFFFFFF)
