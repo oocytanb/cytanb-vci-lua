@@ -198,17 +198,35 @@ local cytanb = (function ()
 			end
 		end,
 
-		FatalLog = function (...) cytanb.Log(cytanb.FatalLogLevel, ...) end,
+		LogFatal = function (...) cytanb.Log(cytanb.LogLevelFatal, ...) end,
 
-		ErrorLog = function (...) cytanb.Log(cytanb.ErrorLogLevel, ...) end,
+		LogError = function (...) cytanb.Log(cytanb.LogLevelError, ...) end,
 
-		WarnLog = function (...) cytanb.Log(cytanb.WarnLogLevel, ...) end,
+		LogWarn = function (...) cytanb.Log(cytanb.LogLevelWarn, ...) end,
 
-		InfoLog = function (...) cytanb.Log(cytanb.InfoLogLevel, ...) end,
+		LogInfo = function (...) cytanb.Log(cytanb.LogLevelInfo, ...) end,
 
-		DebugLog = function (...) cytanb.Log(cytanb.DebugLogLevel, ...) end,
+		LogDebug = function (...) cytanb.Log(cytanb.LogLevelDebug, ...) end,
 
-		TraceLog = function (...) cytanb.Log(cytanb.TraceLogLevel, ...) end,
+		LogTrace = function (...) cytanb.Log(cytanb.LogLevelTrace, ...) end,
+
+		-- @deprecated
+		FatalLog = function (...) cytanb.LogFatal(...) end,
+
+		-- @deprecated
+		ErrorLog = function (...) cytanb.LogError(...) end,
+
+		-- @deprecated
+		WarnLog = function (...) cytanb.LogWarn(...) end,
+
+		-- @deprecated
+		InfoLog = function (...) cytanb.LogInfo(...) end,
+
+		-- @deprecated
+		DebugLog = function (...) cytanb.LogDebug(...) end,
+
+		-- @deprecated
+		TraceLog = function (...) cytanb.LogTrace(...) end,
 
 		ListToMap = function (list, itemValue)
 			local table = {}
@@ -461,12 +479,18 @@ local cytanb = (function ()
 		end
 	}
 
-	cytanb:SetConst('FatalLogLevel', 100)
-		:SetConst('ErrorLogLevel', 200)
-		:SetConst('WarnLogLevel', 300)
-		:SetConst('InfoLogLevel', 400)
-		:SetConst('DebugLogLevel', 500)
-		:SetConst('TraceLogLevel', 600)
+	cytanb:SetConst('LogLevelFatal', 100)
+		:SetConst('LogLevelError', 200)
+		:SetConst('LogLevelWarn', 300)
+		:SetConst('LogLevelInfo', 400)
+		:SetConst('LogLevelDebug', 500)
+		:SetConst('LogLevelTrace', 600)
+		:SetConst('FatalLogLevel', cytanb.LogLevelFatal)
+		:SetConst('ErrorLogLevel', cytanb.LogLevelError)
+		:SetConst('WarnLogLevel', cytanb.LogLevelWarn)
+		:SetConst('InfoLogLevel', cytanb.LogLevelInfo)
+		:SetConst('DebugLogLevel', cytanb.LogLevelDebug)
+		:SetConst('TraceLogLevel', cytanb.LogLevelTrace)
 		:SetConst('ColorHueSamples', 10)
 		:SetConst('ColorSaturationSamples', 4)
 		:SetConst('ColorBrightnessSamples', 5)

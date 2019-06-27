@@ -20,12 +20,12 @@
 ---@field scaleZ number
 
 ---@class cytanb UUID、ログ、色、メッセージなど、基礎的な機能を提供するモジュール。
----@field FatalLogLevel number @致命的なレベルのログを表す定数値。
----@field ErrorLogLevel number @エラーレベルのログを表す定数値。
----@field WarnLogLevel number @警告レベルのログを表す定数値。
----@field InfoLogLevel number @情報レベルのログを表す定数値。
----@field DebugLogLevel number @デバッグレベルのログを表す定数値。
----@field TraceLogLevel number @トレースレベルのログを表す定数値。
+---@field LogLevelFatal number @致命的なレベルのログを表す定数値。
+---@field LogLevelError number @エラーレベルのログを表す定数値。
+---@field LogLevelWarn number @警告レベルのログを表す定数値。
+---@field LogLevelInfo number @情報レベルのログを表す定数値。
+---@field LogLevelDebug number @デバッグレベルのログを表す定数値。
+---@field LogLevelTrace number @トレースレベルのログを表す定数値。
 ---@field ColorHueSamples number @デフォルトの色相のサンプル数。
 ---@field ColorSaturationSamples number @デフォルトの彩度のサンプル数。
 ---@field ColorBrightnessSamples number @デフォルトの明度のサンプル数。
@@ -41,12 +41,12 @@
 ---@field GetLogLevel fun (): number @現在のログレベルを取得する。
 ---@field SetLogLevel fun (level: number) @ログレベルを設定する。
 ---@field Log fun (level: number, ...) @`level <= cytanb.GetLogLevel()` のときにログを出力する。
----@field FatalLog fun (...) @致命的なレベルのログを出力する。
----@field ErrorLog fun (...) @エラーレベルのログを出力する。
----@field WarnLog fun (...) @警告レベルのログを出力する。
----@field InfoLog fun (...) @情報レベルのログを出力する。
----@field DebugLog fun (...) @デバッグレベルのログを出力する。
----@field TraceLog fun (...) @トレースレベルのログを出力する。
+---@field LogFatal fun (...) @致命的なレベルのログを出力する。
+---@field LogError fun (...) @エラーレベルのログを出力する。
+---@field LogWarn fun (...) @警告レベルのログを出力する。
+---@field LogInfo fun (...) @情報レベルのログを出力する。
+---@field LogDebug fun (...) @デバッグレベルのログを出力する。
+---@field LogTrace fun (...) @トレースレベルのログを出力する。
 ---@field ListToMap fun (list: any[], itemValue: any): table @リストをテーブルに変換する。リストの要素の値がキー値となる。`itemValue` に要素の値を指定する。`itemValue` に `nil` を指定するか省略した場合は、リストの要素の値が使われる。
 ---@field Random32 fun (): number @32 bit 整数値の範囲の疑似乱数を生成する。
 ---@field RandomUUID fun (): cytanb_uuid_t @乱数に基づく UUID version 4 を生成し、32 bit の数値データ4個分の配列を返す。
