@@ -88,6 +88,7 @@ describe('Test cytanb_fake_vci', function ()
 
 		assert.are.equal(Color.__new(0.000, 0.500, 3.000, 1.000), Color.__new(0.5, 0.25, 1) * Color.__new(0, 2, 3))
 		assert.are.equal(Color.__new(0.250, 0.125, 0.500, 0.500), Color.__new(0.5, 0.25, 1) / 2)
+		assert.are.equal(Color.__new(-0.500, 2.250, 4.000, 0.800), Color.__new(0.5, 0.25, 1) + Color.__new(-1, 2, 3, -0.2))
 
 		local lpa = Color.__new(0.33, 1.0, -2.0, 1.0)
 		local lpb = Color.__new(1.5, 3.0, 1.0, -3.0)
@@ -110,13 +111,13 @@ describe('Test cytanb_fake_vci', function ()
 
 		-- local dictSize = 0
 		-- local dict = {}
-		-- dict[Color.__new(0.5, 0.25, 1)] = 'one'
-		-- dict[Color.__new(0.5, 0.25, 1)] = 'two'
+		-- dict[Color.__new(0.5, 0.25, 1).GetHashCode()] = 'one'
+		-- dict[Color.__new(0.5, 0.25, 1).GetHashCode()] = 'two'
 		-- for k, v in pairs(dict) do
 		-- 	dictSize = dictSize + 1
 		-- end
 		-- assert.are.equal(1, dictSize)
-		-- assert.are.equal('two', dict[Color.__new(0.5, 0.25, 1)])
+		-- assert.are.equal('two', dict[Color.__new(0.5, 0.25, 1).GetHashCode()])
 	end)
 
 	it('vci.state', function ()

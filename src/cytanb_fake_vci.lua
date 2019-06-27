@@ -12,66 +12,64 @@
 return (function ()
 	local dkjson = require('dkjson')
 
-	-- @see cytanb.SetConst
-	local SetConst = function (target, name, value)
-		if type(target) ~= 'table' then
-			error('Cannot set const to non-table target')
-		end
-
-		local curMeta = getmetatable(target)
-		local meta = curMeta or {}
-		local hasMetaIndex = type(meta.__index) == 'table'
-		if target[name] ~= nil and (not hasMetaIndex or meta.__index[name] == nil) then
-			error('Non-const field "' .. name .. '" already exists')
-		end
-
-		if not hasMetaIndex then
-			meta.__index = {}
-		end
-		local metaIndex = meta.__index
-		metaIndex[name] = value
-
-		if not hasMetaIndex or type(meta.__newindex) ~= 'function' then
-			meta.__newindex = function (table, key, v)
-				if table == target and metaIndex[key] ~= nil then
-					error('Cannot assign to read only field "' .. key .. '"')
-				end
-				rawset(table, key, v)
+	local cytanb = {
+		SetConst = function (target, name, value)
+			if type(target) ~= 'table' then
+				error('Cannot set const to non-table target')
 			end
-		end
 
-		if not curMeta then
-			setmetatable(target, meta)
-		end
+			local curMeta = getmetatable(target)
+			local meta = curMeta or {}
+			local hasMetaIndex = type(meta.__index) == 'table'
+			if target[name] ~= nil and (not hasMetaIndex or meta.__index[name] == nil) then
+				error('Non-const field "' .. name .. '" already exists')
+			end
 
-		return target
-	end
+			if not hasMetaIndex then
+				meta.__index = {}
+			end
+			local metaIndex = meta.__index
+			metaIndex[name] = value
 
-	-- @see cytanb.Round
-	local Round = function (num, decimalPlaces)
-		if decimalPlaces then
-			local m = 10 ^ decimalPlaces
-			return math.floor(num * m + 0.5) / m
-		else
-			return math.floor(num + 0.5)
-		end
-	end
+			if not hasMetaIndex or type(meta.__newindex) ~= 'function' then
+				meta.__newindex = function (table, key, v)
+					if table == target and metaIndex[key] ~= nil then
+						error('Cannot assign to read only field "' .. key .. '"')
+					end
+					rawset(table, key, v)
+				end
+			end
 
-	-- @see UnityEngine.Mathf.Lerp
-	local Lerp = function (a, b, t)
-		if t <= 0.0 then
-			return a
-		elseif t >= 1.0 then
-			return b
-		else
+			if not curMeta then
+				setmetatable(target, meta)
+			end
+
+			return target
+		end,
+
+		Round = function (num, decimalPlaces)
+			if decimalPlaces then
+				local m = math.pow(10, decimalPlaces)
+				return math.floor(num * m + 0.5) / m
+			else
+				return math.floor(num + 0.5)
+			end
+		end,
+
+		Lerp = function (a, b, t)
+			if t <= 0.0 then
+				return a
+			elseif t >= 1.0 then
+				return b
+			else
+				return a + (b - a) * t
+			end
+		end,
+
+		LerpUnclamped = function (a, b, t)
 			return a + (b - a) * t
 		end
-	end
-
-	-- @see UnityEngine.Mathf.LerpUnclamped
-	local LerpUnclamped = function (a, b, t)
-		return a + (b - a) * t
-	end
+	}
 
 	local ModuleName = 'cytanb_fake_vci'
 	local StringModuleName = 'string'
@@ -259,19 +257,19 @@ return (function ()
 
 			Lerp = function (a, b, t)
 				return Color.__new(
-					Lerp(a.r, b.r, t),
-					Lerp(a.g, b.g, t),
-					Lerp(a.b, b.b, t),
-					Lerp(a.a, b.a, t)
+					cytanb.Lerp(a.r, b.r, t),
+					cytanb.Lerp(a.g, b.g, t),
+					cytanb.Lerp(a.b, b.b, t),
+					cytanb.Lerp(a.a, b.a, t)
 				)
 			end,
 
 			LerpUnclamped = function (a, b, t)
 				return Color.__new(
-					LerpUnclamped(a.r, b.r, t),
-					LerpUnclamped(a.g, b.g, t),
-					LerpUnclamped(a.b, b.b, t),
-					LerpUnclamped(a.a, b.a, t)
+					cytanb.LerpUnclamped(a.r, b.r, t),
+					cytanb.LerpUnclamped(a.g, b.g, t),
+					cytanb.LerpUnclamped(a.b, b.b, t),
+					cytanb.LerpUnclamped(a.a, b.a, t)
 				)
 			end,
 
@@ -445,10 +443,10 @@ return (function ()
 
 				RoundColor = function (color, decimalPlaces)
 					return Color.__new(
-						Round(color.r, decimalPlaces),
-						Round(color.g, decimalPlaces),
-						Round(color.b, decimalPlaces),
-						Round(color.a, decimalPlaces)
+						cytanb.Round(color.r, decimalPlaces),
+						cytanb.Round(color.g, decimalPlaces),
+						cytanb.Round(color.b, decimalPlaces),
+						cytanb.Round(color.a, decimalPlaces)
 					)
 				end,
 
@@ -461,7 +459,7 @@ return (function ()
 				end,
 
 				SetAssetsIsMine = function (mine)
-					SetConst(vci.assets, 'IsMine', mine and true or nil)
+					cytanb.SetConst(vci.assets, 'IsMine', mine and true or nil)
 				end,
 
 				ClearState = function ()
@@ -512,16 +510,16 @@ return (function ()
 	}
 
 	Color = fakeModule.Color
-	SetConst(Color, 'black', Color.__new(0, 0, 0, 1))
-	SetConst(Color, 'blue', Color.__new(0, 0, 1, 1))
-	SetConst(Color, 'blue', Color.__new(0, 0, 1, 1))
-	SetConst(Color, 'clear', Color.__new(0, 0, 0, 0))
-	SetConst(Color, 'cyan', Color.__new(0, 1, 1, 1))
-	SetConst(Color, 'gray', Color.__new(0.5, 0.5, 0.5, 1))
-	SetConst(Color, 'magenta', Color.__new(1, 0, 1, 1))
-	SetConst(Color, 'red', Color.__new(1, 0, 0, 1))
-	SetConst(Color, 'white', Color.__new(1, 1, 1, 1))
-	SetConst(Color, 'yellow', Color.__new(1, 0.921568632125854, 0.0156862754374743, 1))
+	cytanb.SetConst(Color, 'black', Color.__new(0, 0, 0, 1))
+	cytanb.SetConst(Color, 'blue', Color.__new(0, 0, 1, 1))
+	cytanb.SetConst(Color, 'blue', Color.__new(0, 0, 1, 1))
+	cytanb.SetConst(Color, 'clear', Color.__new(0, 0, 0, 0))
+	cytanb.SetConst(Color, 'cyan', Color.__new(0, 1, 1, 1))
+	cytanb.SetConst(Color, 'gray', Color.__new(0.5, 0.5, 0.5, 1))
+	cytanb.SetConst(Color, 'magenta', Color.__new(1, 0, 1, 1))
+	cytanb.SetConst(Color, 'red', Color.__new(1, 0, 0, 1))
+	cytanb.SetConst(Color, 'white', Color.__new(1, 1, 1, 1))
+	cytanb.SetConst(Color, 'yellow', Color.__new(1, 0.921568632125854, 0.0156862754374743, 1))
 
 	vci = fakeModule.vci
 

@@ -239,7 +239,7 @@ local cytanb = (function ()
 
 		Round = function (num, decimalPlaces)
 			if decimalPlaces then
-				local m = 10 ^ decimalPlaces
+				local m = math.pow(10, decimalPlaces)
 				return math.floor(num * m + 0.5) / m
 			else
 				return math.floor(num + 0.5)
@@ -343,10 +343,10 @@ local cytanb = (function ()
 
 		ColorToARGB32 = function (color)
 			return bit32.bor(
-				bit32.lshift(math.floor(255 * color.a + 0.5), 24),
-				bit32.lshift(math.floor(255 * color.r + 0.5), 16),
-				bit32.lshift(math.floor(255 * color.g + 0.5), 8),
-				math.floor(255 * color.b + 0.5)
+				bit32.lshift(bit32.band(cytanb.Round(0xFF * color.a), 0xFF), 24),
+				bit32.lshift(bit32.band(cytanb.Round(0xFF * color.r), 0xFF), 16),
+				bit32.lshift(bit32.band(cytanb.Round(0xFF * color.g), 0xFF), 8),
+				bit32.band(cytanb.Round(0xFF * color.b), 0xFF)
 			)
 		end,
 
@@ -449,11 +449,7 @@ local cytanb = (function ()
 					valueIsNegativeNumber = false
 				end
 
-				if valueIsNegativeNumber then
-					data[nk] = type(v) == 'string' and tonumber(v) or cytanb.TableFromSerializable(v)
-				else
-					data[nk] = cytanb.TableFromSerializable(v)
-				end
+				data[nk] = (valueIsNegativeNumber and type(v) == 'string') and tonumber(v) or cytanb.TableFromSerializable(v)
 			end
 			return data
 		end,
@@ -508,12 +504,12 @@ local cytanb = (function ()
 		:SetConst('LogLevelInfo', 400)
 		:SetConst('LogLevelDebug', 500)
 		:SetConst('LogLevelTrace', 600)
-		:SetConst('FatalLogLevel', cytanb.LogLevelFatal)
-		:SetConst('ErrorLogLevel', cytanb.LogLevelError)
-		:SetConst('WarnLogLevel', cytanb.LogLevelWarn)
-		:SetConst('InfoLogLevel', cytanb.LogLevelInfo)
-		:SetConst('DebugLogLevel', cytanb.LogLevelDebug)
-		:SetConst('TraceLogLevel', cytanb.LogLevelTrace)
+		:SetConst('FatalLogLevel', cytanb.LogLevelFatal)    -- @deprecated
+		:SetConst('ErrorLogLevel', cytanb.LogLevelError)    -- @deprecated
+		:SetConst('WarnLogLevel', cytanb.LogLevelWarn)    -- @deprecated
+		:SetConst('InfoLogLevel', cytanb.LogLevelInfo)    -- @deprecated
+		:SetConst('DebugLogLevel', cytanb.LogLevelDebug)    -- @deprecated
+		:SetConst('TraceLogLevel', cytanb.LogLevelTrace)    -- @deprecated
 		:SetConst('ColorHueSamples', 10)
 		:SetConst('ColorSaturationSamples', 4)
 		:SetConst('ColorBrightnessSamples', 5)
