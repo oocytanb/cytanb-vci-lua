@@ -89,6 +89,25 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.equal(Color.__new(0.000, 0.500, 3.000, 1.000), Color.__new(0.5, 0.25, 1) * Color.__new(0, 2, 3))
 		assert.are.equal(Color.__new(0.250, 0.125, 0.500, 0.500), Color.__new(0.5, 0.25, 1) / 2)
 
+		local lpa = Color.__new(0.33, 1.0, -2.0, 1.0)
+		local lpb = Color.__new(1.5, 3.0, 1.0, -3.0)
+		assert.are.equal(Color.__new(1.266, 2.600, 0.400, -2.200), vci.fake.RoundColor(Color.Lerp(lpa, lpb, 0.8), 5))
+		assert.are.equal(Color.__new(0.330, 1.000, -2.000, 1.000), vci.fake.RoundColor(Color.Lerp(lpa, lpb, -123), 5))
+		assert.are.equal(Color.__new(0.330, 1.000, -2.000, 1.000), vci.fake.RoundColor(Color.Lerp(lpa, lpb, -5.7), 5))
+		assert.are.equal(Color.__new(0.6225, 1.500, -1.250, 0.000), vci.fake.RoundColor(Color.Lerp(lpa, lpb, 0.25), 5))
+		assert.are.equal(Color.__new(0.330, 1.000, -2.000, 1.000), vci.fake.RoundColor(Color.Lerp(lpa, lpb, -0.25), 5))
+		assert.are.equal(Color.__new(1.266, 2.600, 0.400, -2.200), vci.fake.RoundColor(Color.LerpUnclamped(lpa, lpb, 0.8), 5))
+		assert.are.equal(Color.__new(-143.580, -245.000, -371.000, 493.000), vci.fake.RoundColor(Color.LerpUnclamped(lpa, lpb, -123), 5))
+		assert.are.equal(Color.__new(-6.339, -10.400, -19.100, 23.800), vci.fake.RoundColor(Color.LerpUnclamped(lpa, lpb, -5.7), 5))
+		assert.are.equal(Color.__new(0.6225, 1.500, -1.250, 0.000), vci.fake.RoundColor(Color.LerpUnclamped(lpa, lpb, 0.25), 5))
+		assert.are.equal(Color.__new(0.0375, 0.500, -2.750, 2.000), vci.fake.RoundColor(Color.LerpUnclamped(lpa, lpb, -0.25), 5))
+
+		assert.are.equal(Color.__new(0, 0, 0), Color.HSVToRGB(0, 0, 0))
+		assert.are.equal(Color.__new(0.21875, 0.25, 0.1875), Color.HSVToRGB(0.25, 0.25, 0.25))
+		assert.are.equal(Color.__new(0.25, 0.5, 0.5), Color.HSVToRGB(0.5, 0.5, 0.5))
+		assert.are.equal(Color.__new(0.46875, 0.1875, 0.75), Color.HSVToRGB(0.75, 0.75, 0.75))
+		assert.are.equal(Color.__new(1, 0, 0), Color.HSVToRGB(1, 1, 1))
+
 		-- local dictSize = 0
 		-- local dict = {}
 		-- dict[Color.__new(0.5, 0.25, 1)] = 'one'

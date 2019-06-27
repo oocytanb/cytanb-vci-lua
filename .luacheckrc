@@ -25,8 +25,7 @@ globals = {
     "onCollisionEnter",
     "onCollisionExit",
     "onGrab",
-    "onUngrab",
-    "cytanb"
+    "onUngrab"
 }
 
 self = false
