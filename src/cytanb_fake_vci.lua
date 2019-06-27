@@ -48,12 +48,12 @@ return (function ()
 	end
 
 	-- @see cytanb.Round
-	local Round = function (n, decimalPlaces)
+	local Round = function (num, decimalPlaces)
 		if decimalPlaces then
 			local m = 10 ^ decimalPlaces
-			return math.floor(n * m + 0.5) / m
+			return math.floor(num * m + 0.5) / m
 		else
-			return math.floor(n + 0.5)
+			return math.floor(num + 0.5)
 		end
 	end
 
