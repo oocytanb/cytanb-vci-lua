@@ -18,28 +18,28 @@ local cytanb = (function ()
 
 	local cytanb
 
-	local CompareUUID = function (op1, op2)
-		for i = 1, 4 do
-			local diff = op1[i] - op2[i]
-			if diff ~= 0 then
-				return diff
-			end
-		end
-		return 0
-	end
-
 	local UUIDMetatable
 	UUIDMetatable = {
 		__eq = function (op1, op2)
 			return op1[1] == op2[1] and op1[2] == op2[2] and op1[3] == op2[3] and op1[4] == op2[4]
 		end,
 
+		Compare = function (op1, op2)
+			for i = 1, 4 do
+				local diff = op1[i] - op2[i]
+				if diff ~= 0 then
+					return diff
+				end
+			end
+			return 0
+		end,
+
 		__lt = function (op1, op2)
-			return CompareUUID(op1, op2) < 0
+			return UUIDMetatable.Compare(op1, op2) < 0
 		end,
 
 		__le = function (op1, op2)
-			return CompareUUID(op1, op2) <= 0
+			return UUIDMetatable.Compare(op1, op2) <= 0
 		end,
 
 		__tostring = function (value)
@@ -57,12 +57,14 @@ local cytanb = (function ()
 		end,
 
 		__concat = function (op1, op2)
-			local m1 = getmetatable(op1) == UUIDMetatable
-			local m2 = getmetatable(op2) == UUIDMetatable
-			if not m1 and not m2 then
+			local meta1 = getmetatable(op1)
+			local c1 = meta1 == UUIDMetatable or (type(meta1) == 'table' and meta1.__concat == UUIDMetatable.__concat)
+			local meta2 = getmetatable(op2)
+			local c2 = meta2 == UUIDMetatable or (type(meta2) == 'table' and meta2.__concat == UUIDMetatable.__concat)
+			if not c1 and not c2 then
 				error('attempt to concatenate illegal values')
 			end
-			return (m1 and tostring(op1) or op1) .. (m2 and tostring(op2) or op2)
+			return (c1 and UUIDMetatable.__tostring(op1) or op1) .. (c2 and UUIDMetatable.__tostring(op2) or op2)
 		end
 	}
 
@@ -334,8 +336,25 @@ local cytanb = (function ()
 			return UUIDMetatable.__tostring(uuid)
 		end,
 
-		UUIDFromNumbers = function (num1, num2, num3, num4)
-			local uuid = {num1 or 0, num2 or 0, num3 or 0, num4 or 0}
+		UUIDFromNumbers = function (...)
+			local first = ...
+			local t = type(first)
+			local num1, num2, num3, num4
+			if t == 'table' then
+				num1 = first[1]
+				num2 = first[2]
+				num3 = first[3]
+				num4 = first[4]
+			else
+				num1, num2, num3, num4 = ...
+			end
+
+			local uuid = {
+				bit32.band(num1 or 0, 0xFFFFFFFF),
+				bit32.band(num2 or 0, 0xFFFFFFFF),
+				bit32.band(num3 or 0, 0xFFFFFFFF),
+				bit32.band(num4 or 0, 0xFFFFFFFF)
+			}
 			setmetatable(uuid, UUIDMetatable)
 			return uuid
 		end,
