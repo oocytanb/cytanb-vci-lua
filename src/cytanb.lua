@@ -108,6 +108,13 @@ local cytanb = (function ()
 			return target
 		end,
 
+		SetConstEach = function (target, entries)
+			for k, v in pairs(entries) do
+				cytanb.SetConst(target, k, v)
+			end
+			return target
+		end,
+
 		Extend = function (target, source, deep, omitMetaTable, refTable)
 			if target == source or type(target) ~= 'table' or type(source) ~= 'table' then
 				return target
@@ -549,26 +556,31 @@ local cytanb = (function ()
 		end
 	}
 
-	cytanb:SetConst('LogLevelFatal', 100)
-		:SetConst('LogLevelError', 200)
-		:SetConst('LogLevelWarn', 300)
-		:SetConst('LogLevelInfo', 400)
-		:SetConst('LogLevelDebug', 500)
-		:SetConst('LogLevelTrace', 600)
-		:SetConst('FatalLogLevel', cytanb.LogLevelFatal)    -- @deprecated
-		:SetConst('ErrorLogLevel', cytanb.LogLevelError)    -- @deprecated
-		:SetConst('WarnLogLevel', cytanb.LogLevelWarn)    -- @deprecated
-		:SetConst('InfoLogLevel', cytanb.LogLevelInfo)    -- @deprecated
-		:SetConst('DebugLogLevel', cytanb.LogLevelDebug)    -- @deprecated
-		:SetConst('TraceLogLevel', cytanb.LogLevelTrace)    -- @deprecated
-		:SetConst('ColorHueSamples', 10)
-		:SetConst('ColorSaturationSamples', 4)
-		:SetConst('ColorBrightnessSamples', 5)
-		:SetConst('ColorMapSize', cytanb.ColorHueSamples * cytanb.ColorSaturationSamples * cytanb.ColorBrightnessSamples)
-		:SetConst('NegativeNumberTag', '#__CYTANB_NEGATIVE_NUMBER')
-		:SetConst('ArrayNumberTag', '#__CYTANB_ARRAY_NUMBER')
-		:SetConst('InstanceIDParameterName', '__CYTANB_INSTANCE_ID')
-		:SetConst('MessageValueParameterName', '__CYTANB_MESSAGE_VALUE')
+	cytanb.SetConstEach(cytanb, {
+		LogLevelFatal = 100,
+		LogLevelError = 200,
+		LogLevelWarn = 300,
+		LogLevelInfo = 400,
+		LogLevelDebug = 500,
+		LogLevelTrace = 600,
+		ColorHueSamples = 10,
+		ColorSaturationSamples = 4,
+		ColorBrightnessSamples = 5,
+		NegativeNumberTag = '#__CYTANB_NEGATIVE_NUMBER',
+		ArrayNumberTag = '#__CYTANB_ARRAY_NUMBER',
+		InstanceIDParameterName = '__CYTANB_INSTANCE_ID',
+		MessageValueParameterName = '__CYTANB_MESSAGE_VALUE'
+	})
+
+	cytanb.SetConstEach(cytanb, {
+		ColorMapSize = cytanb.ColorHueSamples * cytanb.ColorSaturationSamples * cytanb.ColorBrightnessSamples,
+		FatalLogLevel = cytanb.LogLevelFatal,    -- @deprecated
+		ErrorLogLevel = cytanb.LogLevelError,    -- @deprecated
+		WarnLogLevel = cytanb.LogLevelWarn,      -- @deprecated
+		InfoLogLevel = cytanb.LogLevelInfo,      -- @deprecated
+		DebugLogLevel = cytanb.LogLevelDebug,    -- @deprecated
+		TraceLogLevel = cytanb.LogLevelTrace     -- @deprecated
+	})
 
 	package.loaded['cytanb'] = cytanb
 

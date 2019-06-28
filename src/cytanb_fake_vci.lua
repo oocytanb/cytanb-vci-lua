@@ -12,7 +12,8 @@
 return (function ()
 	local dkjson = require('dkjson')
 
-	local cytanb = {
+	local cytanb
+	cytanb = {
 		SetConst = function (target, name, value)
 			if type(target) ~= 'table' then
 				error('Cannot set const to non-table target')
@@ -44,6 +45,13 @@ return (function ()
 				setmetatable(target, meta)
 			end
 
+			return target
+		end,
+
+		SetConstEach = function (target, entries)
+			for k, v in pairs(entries) do
+				cytanb.SetConst(target, k, v)
+			end
 			return target
 		end,
 
@@ -510,16 +518,19 @@ return (function ()
 	}
 
 	Color = fakeModule.Color
-	cytanb.SetConst(Color, 'black', Color.__new(0, 0, 0, 1))
-	cytanb.SetConst(Color, 'blue', Color.__new(0, 0, 1, 1))
-	cytanb.SetConst(Color, 'blue', Color.__new(0, 0, 1, 1))
-	cytanb.SetConst(Color, 'clear', Color.__new(0, 0, 0, 0))
-	cytanb.SetConst(Color, 'cyan', Color.__new(0, 1, 1, 1))
-	cytanb.SetConst(Color, 'gray', Color.__new(0.5, 0.5, 0.5, 1))
-	cytanb.SetConst(Color, 'magenta', Color.__new(1, 0, 1, 1))
-	cytanb.SetConst(Color, 'red', Color.__new(1, 0, 0, 1))
-	cytanb.SetConst(Color, 'white', Color.__new(1, 1, 1, 1))
-	cytanb.SetConst(Color, 'yellow', Color.__new(1, 0.921568632125854, 0.0156862754374743, 1))
+	cytanb.SetConstEach(Color, {
+		black = Color.__new(0, 0, 0, 1),
+		blue = Color.__new(0, 0, 1, 1),
+		clear = Color.__new(0, 0, 0, 0),
+		cyan = Color.__new(0, 1, 1, 1),
+		gray = Color.__new(0.5, 0.5, 0.5, 1),
+		green = Color.__new(0, 1, 0, 1),
+		grey = Color.__new(0.5, 0.5, 0.5, 1),
+		magenta = Color.__new(1, 0, 1, 1),
+		red = Color.__new(1, 0, 0, 1),
+		white = Color.__new(1, 1, 1, 1),
+		yellow = Color.__new(1, 235 / 255, 4 / 255, 1)
+	})
 
 	vci = fakeModule.vci
 
