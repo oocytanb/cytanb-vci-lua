@@ -54,7 +54,7 @@
 ---@field LerpUnclamped fun (a: number, b: number, t: number): number @see UnityEngine.Mathf.LerpUnclamped
 ---@field Random32 fun (): number @32 bit 整数値の範囲の疑似乱数を生成する。
 ---@field RandomUUID fun (): cytanb_uuid_t @乱数に基づく UUID version 4 を生成し、UUID オブジェクトを返す。
----@field UUIDFromNumbers fun (num1: number, num2: number, num3: number, num4: number): cytanb_uuid_t @指定した数値で、UUID オブジェクトを生成する。`num1` が最上位 32 bit で、`num4` が最下位 32 bit となる。
+---@field UUIDFromNumbers fun (...): cytanb_uuid_t @指定した数値で、UUID オブジェクトを生成する。数値引数リストの1番目が最上位 32 bit で、4番目が最下位 32 bit となる。数値引数リストの替わりに数値配列を指定することも可能。
 ---@field UUIDFromString fun (str: string): cytanb_uuid_t @UUID の文字列表現から、UUID オブジェクトを生成する。無効な形式であった場合は nil を返す。
 ---@field ColorFromARGB32 fun (argb32: number): Color @ARGB 32 bit 値から、Color オブジェクトへ変換する。
 ---@field ColorToARGB32 fun (color: Color): number @Color オブジェクトから ARGB 32 bit 値へ変換する。
