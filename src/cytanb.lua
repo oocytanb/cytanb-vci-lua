@@ -18,6 +18,54 @@ local cytanb = (function ()
 
 	local cytanb
 
+	local CompareUUID = function (op1, op2)
+		for i = 1, 4 do
+			local diff = op1[i] - op2[i]
+			if diff ~= 0 then
+				return diff
+			end
+		end
+		return 0
+	end
+
+	local UUIDMetatable
+	UUIDMetatable = {
+		__eq = function (op1, op2)
+			return op1[1] == op2[1] and op1[2] == op2[2] and op1[3] == op2[3] and op1[4] == op2[4]
+		end,
+
+		__lt = function (op1, op2)
+			return CompareUUID(op1, op2) < 0
+		end,
+
+		__le = function (op1, op2)
+			return CompareUUID(op1, op2) <= 0
+		end,
+
+		__tostring = function (value)
+			local second = value[2] or 0
+			local third = value[3] or 0
+			return string.format(
+				'%08x-%04x-%04x-%04x-%04x%08x',
+				bit32.band(value[1] or 0, 0xFFFFFFFF),
+				bit32.band(bit32.rshift(second, 16), 0xFFFF),
+				bit32.band(second, 0xFFFF),
+				bit32.band(bit32.rshift(third, 16), 0xFFFF),
+				bit32.band(third, 0xFFFF),
+				bit32.band(value[4] or 0, 0xFFFFFFFF)
+			)
+		end,
+
+		__concat = function (op1, op2)
+			local m1 = getmetatable(op1) == UUIDMetatable
+			local m2 = getmetatable(op2) == UUIDMetatable
+			if not m1 and not m2 then
+				error('attempt to concatenate illegal values')
+			end
+			return (m1 and tostring(op1) or op1) .. (m2 and tostring(op2) or op2)
+		end
+	}
+
 	cytanb = {
 		InstanceID = function ()
 			if instanceID == '' then
@@ -266,29 +314,26 @@ local cytanb = (function ()
 		end,
 
 		RandomUUID = function ()
-			return {
+			return cytanb.UUIDFromNumbers(
 				cytanb.Random32(),
 				bit32.bor(0x4000, bit32.band(cytanb.Random32(), 0xFFFF0FFF)),
 				bit32.bor(0x80000000, bit32.band(cytanb.Random32(), 0x3FFFFFFF)),
 				cytanb.Random32()
-			}
-		end,
-
-		UUIDString = function (uuid)
-			local second = uuid[2] or 0
-			local third = uuid[3] or 0
-			return string.format(
-				'%08x-%04x-%04x-%04x-%04x%08x',
-				bit32.band(uuid[1] or 0, 0xFFFFFFFF),
-				bit32.band(bit32.rshift(second, 16), 0xFFFF),
-				bit32.band(second, 0xFFFF),
-				bit32.band(bit32.rshift(third, 16), 0xFFFF),
-				bit32.band(third, 0xFFFF),
-				bit32.band(uuid[4] or 0, 0xFFFFFFFF)
 			)
 		end,
 
-		ParseUUID = function (str)
+		-- @deprecated use tostring(uuid)
+		UUIDString = function (uuid)
+			return UUIDMetatable.__tostring(uuid)
+		end,
+
+		UUIDFromNumbers = function (num1, num2, num3, num4)
+			local uuid = {num1 or 0, num2 or 0, num3 or 0, num4 or 0}
+			setmetatable(uuid, UUIDMetatable)
+			return uuid
+		end,
+
+		UUIDFromString = function (str)
 			local len = string.len(str)
 			if len ~= 32 and len ~= 36 then return nil end
 
@@ -296,9 +341,9 @@ local cytanb = (function ()
 			local reHexString = '^(' .. reHex .. ')$'
 			local reHyphenHexString = '^-(' .. reHex .. ')$'
 
-			local uuid = {}
 			local mi, mj, token, token2
 			if len == 32 then
+				local uuid = cytanb.UUIDFromNumbers(0, 0, 0, 0)
 				local startPos = 1
 				for i, endPos in ipairs({8, 16, 24, 32}) do
 					mi, mj, token = string.find(string.sub(str, startPos, endPos), reHexString)
@@ -306,29 +351,35 @@ local cytanb = (function ()
 					uuid[i] = tonumber(token, 16)
 					startPos = endPos + 1
 				end
+				return uuid
 			else
 				mi, mj, token = string.find(string.sub(str, 1, 8), reHexString)
 				if not mi then return nil end
-				uuid[1] = tonumber(token, 16)
+				local num1 = tonumber(token, 16)
 
 				mi, mj, token = string.find(string.sub(str, 9, 13), reHyphenHexString)
 				if not mi then return nil end
 				mi, mj, token2 = string.find(string.sub(str, 14, 18), reHyphenHexString)
 				if not mi then return nil end
-				uuid[2] = tonumber(token .. token2, 16)
+				local num2 = tonumber(token .. token2, 16)
 
 				mi, mj, token = string.find(string.sub(str, 19, 23), reHyphenHexString)
 				if not mi then return nil end
 				mi, mj, token2 = string.find(string.sub(str, 24, 28), reHyphenHexString)
 				if not mi then return nil end
-				uuid[3] = tonumber(token .. token2, 16)
+				local num3 = tonumber(token .. token2, 16)
 
 				mi, mj, token = string.find(string.sub(str, 29, 36), reHexString)
 				if not mi then return nil end
-				uuid[4] = tonumber(token, 16)
-			end
+				local num4 = tonumber(token, 16)
 
-			return uuid
+				return cytanb.UUIDFromNumbers(num1, num2, num3, num4)
+			end
+		end,
+
+		-- @deprecated use UUIDFromString
+		ParseUUID = function (str)
+			return cytanb.UUIDFromString(str)
 		end,
 
 		ColorFromARGB32 = function (argb32)
@@ -522,7 +573,7 @@ local cytanb = (function ()
 	package.loaded['cytanb'] = cytanb
 
 	if vci.assets.IsMine then
-		instanceID = cytanb.UUIDString(cytanb.RandomUUID())
+		instanceID = tostring(cytanb.RandomUUID())
 		vci.state.Set(InstanceIDStateName, instanceID)
 	else
 		instanceID = ''
