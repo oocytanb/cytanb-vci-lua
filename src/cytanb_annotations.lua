@@ -5,7 +5,7 @@
 
 -- `cytanb.lua` モジュールのアノテーション用ファイル。
 
----@alias cytanb_uuid_t number[]
+---@class cytanb_uuid_t UUID オブジェクト。`tostring` および比較演算子を使用できる。
 
 ---@class cytanb_transform_t
 ---@field positionX number
@@ -52,9 +52,9 @@
 ---@field Lerp fun (a: number, b: number, t: number): number @see UnityEngine.Mathf.Lerp
 ---@field LerpUnclamped fun (a: number, b: number, t: number): number @see UnityEngine.Mathf.LerpUnclamped
 ---@field Random32 fun (): number @32 bit 整数値の範囲の疑似乱数を生成する。
----@field RandomUUID fun (): cytanb_uuid_t @乱数に基づく UUID version 4 を生成し、32 bit の数値データ4個分の配列を返す。
----@field UUIDString fun (uuid: cytanb_uuid_t): string @RandomUUID 関数で生成した UUID を文字列へ変換する。
----@field ParseUUID fun (string: str): cytanb_uuid_t @UUID 文字列をパースし、32 bit の数値データ4個分の配列を返す。パースに失敗した場合は nil を返す。
+---@field RandomUUID fun (): cytanb_uuid_t @乱数に基づく UUID version 4 を生成し、UUID オブジェクトを返す。
+---@field UUIDFromNumbers fun (num1: number, num2: number, num3: number, num4: number): cytanb_uuid_t @指定した数値で、UUID オブジェクトを生成する。`num1` が最上位 32 bit で、`num4` が最下位 32 bit となる。
+---@field UUIDFromString fun (str: string): cytanb_uuid_t @UUID の文字列表現から、UUID オブジェクトを生成する。無効な形式であった場合は nil を返す。
 ---@field ColorFromARGB32 fun (argb32: number): Color @ARGB 32 bit 値から、Color オブジェクトへ変換する。
 ---@field ColorToARGB32 fun (color: Color): number @Color オブジェクトから ARGB 32 bit 値へ変換する。
 ---@field ColorFromIndex fun (colorIndex: number, hueSamples: number, saturationSamples: number, brightnessSamples: number, omitScale: boolean): Color @カラーインデックスから対応する Color オブジェクトへ変換する。`hueSamples` は色相のサンプル数を指定し、省略した場合の値は　`ColorHueSamples`。`saturationSamples` は彩度のサンプル数を指定し、省略した場合の値は `ColorSaturationSamples`。`brightnessSamples` は明度のサンプル数を指定し、省略した場合の値は `ColorBrightnessSamples`。`omitScale` はグレースケールを省略するかを指定し、省略した場合の値は `false`。
