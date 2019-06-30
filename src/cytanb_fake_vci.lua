@@ -79,6 +79,33 @@ return (function ()
 		end
 	}
 
+	local NumberHashCode = function (num, carry)
+		local result = bit32.band(carry ~= 0 and carry or 31, 0xFFFFFFFF)
+		if num == 0 then
+			result = bit32.band(31 * result, 0xFFFFFFFF)
+		else
+			local integerPart = math.floor(num)
+			if integerPart ~= num then
+				local fractionPart = num - integerPart
+				for i = 1, 5 do
+					local mf = fractionPart * 0x1000000
+					local mfInteger = math.floor(mf)
+					result = bit32.band(31 * result + bit32.band(mfInteger, 0xFFFFFFFF), 0xFFFFFFFF)
+					fractionPart = mf - mfInteger
+					if fractionPart == 0 then
+						break
+					end
+				end
+			end
+
+			while integerPart ~= 0 do
+				result = bit32.band(31 * result + bit32.band(integerPart, 0xFFFFFFFF), 0xFFFFFFFF)
+				integerPart = math.floor(integerPart / 0x100000000)
+			end
+		end
+		return result
+	end
+
 	local ModuleName = 'cytanb_fake_vci'
 	local StringModuleName = 'string'
 	local moonsharpAdditions = {_MOONSHARP = true, json = true}
@@ -220,7 +247,7 @@ return (function ()
 					end,
 
 					GetHashCode = function ()
-						error('!!NOT IMPLEMENTED!!')
+						return NumberHashCode(self.r, NumberHashCode(self.g, NumberHashCode(self.b, NumberHashCode(self.a))))
 					end,
 				}
 				setmetatable(self, ColorMetatable)

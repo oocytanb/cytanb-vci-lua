@@ -371,6 +371,20 @@ describe('Test cytanb owner user', function ()
 			assert.are.equal(Color.clear, vci.fake.RoundColor(diff, 2))
 			assert.are.equal(rgb32, cytanb.ColorToARGB32(c32))
 		end
+
+		local conflictCount = 0
+		local colorMap = {}
+		for i = 1, cytanb.ColorMapSize do
+			local cidx = cytanb.ColorFromIndex(i - 1)
+			local hashCode = cidx.GetHashCode()
+			local ce = colorMap[hashCode]
+			if ce and vci.fake.RoundColor(cidx - ce, 5) ~= Color.clear then
+				conflictCount = conflictCount + 1
+			else
+				colorMap[hashCode] = cidx
+			end
+		end
+		assert.is_true(conflictCount <= 0)
 	end)
 
 	it('TableToSerializable', function ()

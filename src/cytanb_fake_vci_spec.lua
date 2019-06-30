@@ -109,19 +109,17 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.equal(Color.__new(0.46875, 0.1875, 0.75), Color.HSVToRGB(0.75, 0.75, 0.75))
 		assert.are.equal(Color.__new(1, 0, 0), Color.HSVToRGB(1, 1, 1))
 
-		pending('Color.GetHashCode', function ()
-			local dictSize = 0
-			local dict = {}
-			dict[Color.__new(0.5, 0.25, 1).GetHashCode()] = 'one'
-			dict[Color.__new(0.9, 0.8, 0.7).GetHashCode()] = 'car'
-			dict[Color.__new(0.5, 0.25, 1).GetHashCode()] = 'two'
-			for k, v in pairs(dict) do
-				dictSize = dictSize + 1
-			end
-			assert.are.equal(2, dictSize)
-			assert.are.equal('two', dict[Color.__new(0.5, 0.25, 1).GetHashCode()])
-			assert.are.equal('car', dict[Color.__new(0.9, 0.8, 0.7).GetHashCode()])
-		end)
+		local dictSize = 0
+		local dict = {}
+		dict[Color.__new(0.5, 0.25, 1).GetHashCode()] = 'one'
+		dict[Color.__new(0.9, 0.8, 0.7).GetHashCode()] = 'car'
+		dict[Color.__new(0.5, 0.25, 1).GetHashCode()] = 'two'
+		for k, v in pairs(dict) do
+			dictSize = dictSize + 1
+		end
+		assert.are.equal(2, dictSize)
+		assert.are.equal('two', dict[Color.__new(0.5, 0.25, 1).GetHashCode()])
+		assert.are.equal('car', dict[Color.__new(0.9, 0.8, 0.7).GetHashCode()])
 	end)
 
 	it('vci.state', function ()
