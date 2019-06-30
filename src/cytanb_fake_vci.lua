@@ -55,15 +55,6 @@ return (function ()
 			return target
 		end,
 
-		Round = function (num, decimalPlaces)
-			if decimalPlaces then
-				local m = math.pow(10, decimalPlaces)
-				return math.floor(num * m + 0.5) / m
-			else
-				return math.floor(num + 0.5)
-			end
-		end,
-
 		Lerp = function (a, b, t)
 			if t <= 0.0 then
 				return a
@@ -85,8 +76,17 @@ return (function ()
 			result = bit32.band(31 * result, 0xFFFFFFFF)
 		else
 			local integerPart = math.floor(num)
-			if integerPart ~= num then
-				local fractionPart = num - integerPart
+			local fractionPart = num - integerPart
+
+			for i = 1, 4 do
+				result = bit32.band(31 * result + bit32.band(integerPart, 0xFFFFFFFF), 0xFFFFFFFF)
+				integerPart = math.floor(integerPart / 0x100000000)
+				if integerPart == 0 then
+					break
+				end
+			end
+
+			if fractionPart ~= 0 then
 				for i = 1, 5 do
 					local mf = fractionPart * 0x1000000
 					local mfInteger = math.floor(mf)
@@ -96,11 +96,6 @@ return (function ()
 						break
 					end
 				end
-			end
-
-			while integerPart ~= 0 do
-				result = bit32.band(31 * result + bit32.band(integerPart, 0xFFFFFFFF), 0xFFFFFFFF)
-				integerPart = math.floor(integerPart / 0x100000000)
 			end
 		end
 		return result
@@ -117,7 +112,72 @@ return (function ()
 
 	local messageCallbackMap = {}
 
-	local fakeModule, Color, vci
+	local fakeModule, Vector2, Color, vci
+
+	local Vector2IndexMap = {'x', 'y'}
+
+	local Vector2Metatable
+	Vector2Metatable = {
+		__add = function (op1, op2)
+			return Vector2.__new(op1.x + op2.x, op1.y + op2.y)
+		end,
+
+		__sub = function (op1, op2)
+			return Vector2.__new(op1.x - op2.x, op1.y - op2.y)
+		end,
+
+		__mul = function (op1, op2)
+			local numType1 = type(op1) == 'number'
+			local numType2 = type(op2) == 'number'
+			if numType1 or numType2 then
+				local vec, m
+				if numType1 then
+					vec = op2
+					m = op1
+				else
+					vec = op1
+					m = op2
+				end
+				return Vector2.__new(vec.x * m, vec.y * m)
+			else
+				return Vector2.__new(op1.x * op2.x, op1.y * op2.y)
+			end
+		end,
+
+		__div = function (op1, op2)
+			if type(op2) == 'number' then
+				return Vector2.__new(op1.x / op2, op1.y / op2)
+			else
+				return Vector2.__new(op1.x / op2.x, op1.y / op2.y)
+			end
+		end,
+
+		__eq = function (op1, op2)
+			return op1.x == op2.x and op1.y == op2.y
+		end,
+
+		__index = function (table, key)
+			if key == 'magnitude' then
+				return math.sqrt(table.sqrMagnitude)
+			elseif key == 'normalized' then
+				local vec = Vector2.__new(table.x, table.y)
+				vec.Normalize()
+				return vec
+			elseif key == 'sqrMagnitude' then
+				return math.pow(table.x, 2) + math.pow(table.y, 2)
+			else
+				error('Cannot access field "' .. key .. '"')
+			end
+		end,
+
+		__newindex = function (table, key, v)
+			error('Cannot assign to field "' .. key .. '"')
+		end,
+
+		__tostring = function (value)
+			return value.ToString()
+		end
+	}
 
 	local ColorMetatable = {
 		__add = function (op1, op2)
@@ -129,7 +189,21 @@ return (function ()
 		end,
 
 		__mul = function (op1, op2)
-			return Color.__new(op1.r * op2.r, op1.g * op2.g, op1.b * op2.b, op1.a * op2.a)
+			local numType1 = type(op1) == 'number'
+			local numType2 = type(op2) == 'number'
+			if numType1 or numType2 then
+				local color, m
+				if numType1 then
+					color = op2
+					m = op1
+				else
+					color = op1
+					m = op2
+				end
+				return Color.__new(color.r * m, color.g * m, color.b * m, color.a * m)
+			else
+				return Color.__new(op1.r * op2.r, op1.g * op2.g, op1.b * op2.b, op1.a * op2.a)
+			end
 		end,
 
 		__div = function (op1, op2)
@@ -232,15 +306,109 @@ return (function ()
 			end
 		},
 
-		Color = {
-			__new = function (r, g, b, a)
-				local rgbSpecified = r and g and b
+		Vector2 = {
+			__new = function (x, y)
 				local self
 				self = {
-					r = rgbSpecified and r or 0.0,
-					g = rgbSpecified and g or 0.0,
-					b = rgbSpecified and b or 0.0,
-					a = rgbSpecified and (a or 1.0) or 0.0,
+					x = x or 0.0,
+					y = y or 0.0,
+
+					set_Item = function (index, value)
+						local key = Vector2IndexMap[index + 1]
+						if key then
+							self[key] = value
+						else
+							error('Invalid index: ' .. tostring(index))
+						end
+					end,
+
+					Set = function (newX, newY)
+						self.x = newX
+						self.y = newY
+					end,
+
+					Normalize = function ()
+						local m = self.magnitude
+						if math.abs(m) <= Vector2.kEpsilon then
+							self.x = 0.0
+							self.y = 0.0
+						else
+							self.x = self.x / m
+							self.y = self.y / m
+						end
+					end,
+
+					ToString = function (format)
+						-- format argument is not implemented
+						return string.format('(%.1f, %.1f)', self.x, self.y)
+					end,
+
+					GetHashCode = function ()
+						return NumberHashCode(self.x, NumberHashCode(self.y))
+					end,
+
+					-- 正しくは static 関数として実装すべきものだと考えられる。
+					-- Vector3, Vector4 の SqrMagnitude は、static として実装されている。
+					-- sqrMagnitude フィールドと機能が重複している。
+					SqrMagnitude = function ()
+						return self.sqrMagnitude
+					end
+				}
+				setmetatable(self, Vector2Metatable)
+				return self
+			end,
+
+			Lerp = function (a, b, t)
+				return Vector2.__new(
+					cytanb.Lerp(a.x, b.x, t),
+					cytanb.Lerp(a.y, b.y, t)
+				)
+			end,
+
+			LerpUnclamped = function (a, b, t)
+				return Vector2.__new(
+					cytanb.LerpUnclamped(a.x, b.x, t),
+					cytanb.LerpUnclamped(a.y, b.y, t)
+				)
+			end,
+
+			Scale = function (a, b)
+				return a * b
+			end,
+
+			Dot = function (lhs, rhs)
+				return lhs.x * rhs.x + lhs.y * rhs.y
+			end,
+
+			Angle = function (from, to)
+				local dot = Vector2.Dot(from, to)
+				local scale = from.magnitude * to.magnitude
+				return math.acos(dot / scale) * 180 / math.pi
+			end,
+
+			Distance = function (a, b)
+				return (a - b).magnitude
+			end,
+
+			__toVector2 = function (vec3)
+				error('!!NOT IMPLEMENTED!!')
+			end,
+
+			__toVector3 = function (vec2)
+				error('!!NOT IMPLEMENTED!!')
+			end
+		},
+
+		Color = {
+			__new = function (r, g, b, a)
+				local argsSpecified = r and g and b
+				local self
+				self = {
+					r = argsSpecified and r or 0.0,
+					g = argsSpecified and g or 0.0,
+					b = argsSpecified and b or 0.0,
+					a = argsSpecified and (a or 1.0) or 0.0,
+
 					ToString = function (format)
 						-- format argument is not implemented
 						return string.format('RGBA(%.3f, %.3f, %.3f, %.3f)', self.r, self.g, self.b, self.a)
@@ -476,12 +644,28 @@ return (function ()
 					package.loaded[ModuleName] = nil
 				end,
 
+				Round = function (num, decimalPlaces)
+					if decimalPlaces then
+						local m = math.pow(10, decimalPlaces)
+						return math.floor(num * m + 0.5) / m
+					else
+						return math.floor(num + 0.5)
+					end
+				end,
+
+				RoundVector2 = function (vec, decimalPlaces)
+					return Vector2.__new(
+						vci.fake.Round(vec.x, decimalPlaces),
+						vci.fake.Round(vec.y, decimalPlaces)
+					)
+				end,
+
 				RoundColor = function (color, decimalPlaces)
 					return Color.__new(
-						cytanb.Round(color.r, decimalPlaces),
-						cytanb.Round(color.g, decimalPlaces),
-						cytanb.Round(color.b, decimalPlaces),
-						cytanb.Round(color.a, decimalPlaces)
+						vci.fake.Round(color.r, decimalPlaces),
+						vci.fake.Round(color.g, decimalPlaces),
+						vci.fake.Round(color.b, decimalPlaces),
+						vci.fake.Round(color.a, decimalPlaces)
 					)
 				end,
 
@@ -543,6 +727,18 @@ return (function ()
 			}
 		}
 	}
+
+	Vector2 = fakeModule.Vector2
+	cytanb.SetConstEach(Vector2, {
+		down = Vector2.__new(0, -1),
+		left = Vector2.__new(-1, 0),
+		one = Vector2.__new(1, 1),
+		right = Vector2.__new(1, 0),
+		up = Vector2.__new(0, 1),
+		zero = Vector2.__new(0, 0),
+		kEpsilon = 9.99999974737875E-06,
+		kEpsilonNormalSqrt = 1.00000000362749E-15
+	})
 
 	Color = fakeModule.Color
 	cytanb.SetConstEach(Color, {

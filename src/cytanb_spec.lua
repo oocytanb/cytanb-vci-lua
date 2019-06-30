@@ -384,7 +384,7 @@ describe('Test cytanb owner user', function ()
 				colorMap[hashCode] = cidx
 			end
 		end
-		assert.is_true(conflictCount <= 0)
+		assert.are.equal(0, conflictCount)
 	end)
 
 	it('TableToSerializable', function ()

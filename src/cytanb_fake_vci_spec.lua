@@ -65,6 +65,118 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.same(table4, json.parse(jstr4))
 	end)
 
+	it('Vector2 getter', function()
+		pending('Vector2 getter')
+		local vOne = Vector2.one
+		vOne.x = 0.5
+		vOne.y = 0.75
+		assert.are.equal(vOne.__new(0.5, 0.75), vOne)
+		assert.are.equal(Vector2.__new(1, 1), Vector2.one)
+	end)
+
+	it('Vector2', function ()
+		assert.are_not.equal(0, 0 + Vector2.kEpsilon)
+		assert.are_not.equal(0, 0 - Vector2.kEpsilon)
+		assert.are.equal(0, math.floor(Vector2.kEpsilon * 100000) / 100000)
+		assert.are.equal(0, math.floor(Vector2.kEpsilonNormalSqrt * 100000) / 100000)
+
+		assert.are.equal('(0.0, -1.0)', tostring(Vector2.down))
+		assert.are.equal(Vector2.__new(0, -1), Vector2.down)
+		assert.are.equal(Vector2.__new(-1, 0), Vector2.left)
+		assert.are.equal(Vector2.__new(1, 0), Vector2.right)
+		assert.are.equal(Vector2.__new(0, 1), Vector2.up)
+
+		assert.are.equal(Vector2.zero, Vector2.__new())
+		assert.are.equal(Vector2.__new(500, 0), Vector2.__new(500))
+
+		local v12 = Vector2.__new(0, 0)
+		v12.Set(120, 240)
+		assert.are.equal(Vector2.__new(120, 240), v12)
+
+		local v1 = Vector2.__new(10, 200)
+		v1.set_Item(0, -0.5)
+		v1.set_Item(1, 987)
+		assert.are.equal(Vector2.__new(-0.5, 987), v1)
+
+		local v2 = Vector2.__new(3, 5)
+		assert.are.equal(5.83095, vci.fake.Round(v2.magnitude, 5))
+		assert.are.equal(34, v2.sqrMagnitude)
+		assert.are.equal(34, v2.SqrMagnitude())
+		assert.are.equal(v2.magnitude, math.sqrt(v2.sqrMagnitude))
+		assert.are.equal(v2.magnitude, Vector2.__new(-3, -5).magnitude)
+
+		assert.are.equal('(0.5, 0.9)', tostring(v2.normalized))
+		assert.are.equal(Vector2.__new(0.51450, 0.85749), vci.fake.RoundVector2(v2.normalized, 5))
+		local v3 = Vector2.__new(3, 5)
+		v3.Normalize()
+		assert.are.equal(v2.normalized, v3)
+		assert.are.equal(Vector2.__new(-0.51450, -0.85749), vci.fake.RoundVector2(Vector2.__new(-3, -5).normalized, 5))
+		assert.are.equal(Vector2.zero, Vector2.__new(Vector2.kEpsilon, Vector2.kEpsilonNormalSqrt).normalized)
+
+		assert.are.equal(Vector2.__new(3.0, 5.0), Vector2.__new(1, 2) + Vector2.__new(2, 3))
+		assert.are.equal(Vector2.__new(-1.0, -1.0), Vector2.__new(1, 2) - Vector2.__new(2, 3))
+		assert.are.equal(Vector2.__new(2.0, 6.0), Vector2.__new(1, 2) * Vector2.__new(2, 3))
+		assert.are.equal(Vector2.__new(2.0, 6.0), Vector2.Scale(Vector2.__new(1, 2), Vector2.__new(2, 3)))
+		assert.are.equal(Vector2.__new(5.0, 10.0), Vector2.__new(1, 2) * 5)
+		assert.are.equal(Vector2.__new(-5.0, -10.0), -5 * Vector2.__new(1, 2))
+		assert.are.equal(Vector2.__new(0.5, 0.66667), vci.fake.RoundVector2(Vector2.__new(1, 2) / Vector2.__new(2, 3), 5))
+		assert.are.equal(Vector2.__new(0.2, 0.4), Vector2.__new(1, 2) / 5)
+		
+		assert.are.equal(2.82843, vci.fake.Round(Vector2.Distance(Vector2.__new(1, 2), Vector2.__new(3, 4)), 5))
+		assert.are.equal(11, Vector2.Dot(Vector2.__new(1, 2), Vector2.__new(3, 4)))
+
+		assert.are.equal(Vector2.__new(4.0, 2.0), Vector2.Lerp(Vector2.__new(4, 2), Vector2.__new(-1, -2), -0.5))
+		assert.are.equal(Vector2.__new(4.0, 2.0), Vector2.Lerp(Vector2.__new(4, 2), Vector2.__new(-1, -2), -0))
+		assert.are.equal(Vector2.__new(2.75, 1.0), Vector2.Lerp(Vector2.__new(4, 2), Vector2.__new(-1, -2), 0.25))
+		assert.are.equal(Vector2.__new(0.25, -1.0), Vector2.Lerp(Vector2.__new(4, 2), Vector2.__new(-1, -2), 0.75))
+		assert.are.equal(Vector2.__new(-1.0, -2.0), Vector2.Lerp(Vector2.__new(4, 2), Vector2.__new(-1, -2), 1))
+		assert.are.equal(Vector2.__new(-1.0, -2.0), Vector2.Lerp(Vector2.__new(4, 2), Vector2.__new(-1, -2), 1.5))
+
+		assert.are.equal(Vector2.__new(6.5, 4.0), Vector2.LerpUnclamped(Vector2.__new(4, 2), Vector2.__new(-1, -2), -0.5))
+		assert.are.equal(Vector2.__new(4.0, 2.0), Vector2.LerpUnclamped(Vector2.__new(4, 2), Vector2.__new(-1, -2), -0))
+		assert.are.equal(Vector2.__new(2.75, 1.0), Vector2.LerpUnclamped(Vector2.__new(4, 2), Vector2.__new(-1, -2), 0.25))
+		assert.are.equal(Vector2.__new(0.25, -1.0), Vector2.LerpUnclamped(Vector2.__new(4, 2), Vector2.__new(-1, -2), 0.75))
+		assert.are.equal(Vector2.__new(-1.0, -2.0), Vector2.LerpUnclamped(Vector2.__new(4, 2), Vector2.__new(-1, -2), 1))
+		assert.are.equal(Vector2.__new(-3.5, -4.0), Vector2.LerpUnclamped(Vector2.__new(4, 2), Vector2.__new(-1, -2), 1.5))
+
+		local angleTargets = {
+			[{2, 0}] = 0,
+			[{2, 1}] = 26.56505,
+			[{0, 2}] = 90,
+			[{-1, 2}] = 116.56505,
+			[{-2, 0}] = 180,
+			[{-2, -1}] = 153.43495,
+			[{0, -2}] = 90,
+			[{1, -2}] = 63.43495
+		}
+
+		local angleMap = {}
+		local angleBase = Vector2.__new(4, 0)
+		local angleConflictCount = 0
+
+		for iv, angle in pairs(angleTargets) do
+			local vec = Vector2.__new(iv[1], iv[2])
+			assert.are.equal(angle, vci.fake.Round(Vector2.Angle(angleBase, vec), 5))
+			local hashCode = vec.GetHashCode()
+			if angleMap[hashCode] then
+				angleConflictCount = angleConflictCount + 1
+			else
+				angleMap[hashCode] = vec
+			end
+		end
+		assert.are.equal(0, angleConflictCount)
+	end)
+
+	it('Color getter', function ()
+		pending('pending')
+
+		local cCyan = Color.cyan
+		cCyan.r = 0.5
+		cCyan.a = 0.75
+		assert.are.equal(Color.__new(0.5, 1, 1, 0.75), cCyan)
+		assert.are.equal(Color.__new(0, 1, 1, 1), Color.cyan)
+	end)
+
 	it('Color', function ()
 		assert.are.equal('RGBA(1.000, 0.000, 1.000, 1.000)', tostring(Color.magenta))
 		assert.are.equal(Color.__new(1, 0, 1), Color.magenta)
@@ -86,6 +198,7 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.equal(Color.__new(0.750, 0.250, -1.000, 0.950), c2)
 		assert.are.equal(0.75, c2.maxColorComponent)
 
+		assert.are.equal(Color.__new(1.000, 0.500, 2.000, 2.000), Color.__new(0.5, 0.25, 1) * 2)
 		assert.are.equal(Color.__new(0.000, 0.500, 3.000, 1.000), Color.__new(0.5, 0.25, 1) * Color.__new(0, 2, 3))
 		assert.are.equal(Color.__new(0.250, 0.125, 0.500, 0.500), Color.__new(0.5, 0.25, 1) / 2)
 		assert.are.equal(Color.__new(-0.500, 2.250, 4.000, 0.800), Color.__new(0.5, 0.25, 1) + Color.__new(-1, 2, 3, -0.2))
