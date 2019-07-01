@@ -84,7 +84,10 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.equal(Vector2.__new(0, 1), Vector2.up)
 
 		assert.are.equal(Vector2.zero, Vector2.__new())
-		assert.are.equal(Vector2.__new(500, 0), Vector2.__new(500))
+		assert.are.equal(Vector2.zero, Vector2.__new(500))
+
+		assert.are.equal(Vector2.__new(3.0, 4.0), Vector2.__toVector2(Vector3.__new(3, 4, 5)))
+		assert.are.equal(Vector3.__new(30.0, 40.0, 0.0), Vector2.__toVector3(Vector2.__new(30, 40)))
 
 		local v12 = Vector2.__new(0, 0)
 		v12.Set(120, 240)
@@ -101,6 +104,7 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.equal(34, v2.SqrMagnitude())
 		assert.are.equal(v2.magnitude, math.sqrt(v2.sqrMagnitude))
 		assert.are.equal(v2.magnitude, Vector2.__new(-3, -5).magnitude)
+		assert.are.equal(0, Vector2.zero.magnitude)
 
 		assert.are.equal('(0.5, 0.9)', tostring(v2.normalized))
 		assert.are.equal(Vector2.__new(0.51450, 0.85749), vci.fake.RoundVector2(v2.normalized, 5))
@@ -108,7 +112,8 @@ describe('Test cytanb_fake_vci', function ()
 		v3.Normalize()
 		assert.are.equal(v2.normalized, v3)
 		assert.are.equal(Vector2.__new(-0.51450, -0.85749), vci.fake.RoundVector2(Vector2.__new(-3, -5).normalized, 5))
-		assert.are.equal(Vector2.zero, Vector2.__new(Vector2.kEpsilon, Vector2.kEpsilonNormalSqrt).normalized)
+		assert.are.equal(Vector2.zero, Vector2.__new(Vector2.kEpsilon, -Vector2.kEpsilonNormalSqrt).normalized)
+		assert.are.equal(Vector2.zero, Vector2.zero.normalized)
 
 		assert.are.equal(Vector2.__new(3.0, 5.0), Vector2.__new(1, 2) + Vector2.__new(2, 3))
 		assert.are.equal(Vector2.__new(-1.0, -1.0), Vector2.__new(1, 2) - Vector2.__new(2, 3))
@@ -154,6 +159,268 @@ describe('Test cytanb_fake_vci', function ()
 		for iv, angle in pairs(angleTargets) do
 			local vec = Vector2.__new(iv[1], iv[2])
 			assert.are.equal(angle, vci.fake.Round(Vector2.Angle(angleBase, vec), 5))
+			local hashCode = vec.GetHashCode()
+			if angleMap[hashCode] then
+				angleConflictCount = angleConflictCount + 1
+			else
+				angleMap[hashCode] = vec
+			end
+		end
+		assert.are.equal(0, angleConflictCount)
+	end)
+
+	it('Vector3', function ()
+		local vForward = Vector3.forward
+		vForward.x = 0.5
+		vForward.y = 0.75
+		assert.are.equal(Vector3.__new(0.5, 0.75, 1), vForward)
+		assert.are.equal(Vector3.__new(0, 0, 1), Vector3.forward)
+
+		assert.are.equal(Vector2.kEpsilon, Vector3.kEpsilon)
+		assert.are.equal(Vector2.kEpsilonNormalSqrt, Vector3.kEpsilonNormalSqrt)
+
+		assert.are.equal(Vector3.__new(0, 0, -1), Vector3.back)
+		assert.are.equal('(0.0, -1.0, 0.0)', tostring(Vector3.down))
+		assert.are.equal(Vector3.__new(0, -1, 0), Vector3.down)
+		assert.are.equal(Vector3.__new(0, 0, 1), Vector3.forward)
+		assert.are.equal(Vector3.__new(-1, 0, 0), Vector3.left)
+		assert.are.equal(Vector3.__new(1, 1, 1), Vector3.one)
+		assert.are.equal(Vector3.__new(1, 0, 0), Vector3.right)
+		assert.are.equal(Vector3.__new(0, 1, 0), Vector3.up)
+
+		assert.are.equal(Vector3.zero, Vector3.__new())
+		assert.are.equal(Vector3.zero, Vector3.__new(500))
+		assert.are.equal(Vector3.__new(500, 600, 0), Vector3.__new(500, 600))
+
+		local v12 = Vector3.__new(0, 0, 0)
+		v12.Set(120, 240, 360)
+		assert.are.equal(Vector3.__new(120, 240, 360), v12)
+
+		local v1 = Vector3.__new(10, 200, 3000)
+		v1.set_Item(0, -0.5)
+		v1.set_Item(1, 987)
+		v1.set_Item(2, 6.5)
+		assert.are.equal(Vector3.__new(-0.5, 987, 6.5), v1)
+
+		local v2 = Vector3.__new(3, 4, 5)
+		assert.are.equal(7.07107, vci.fake.Round(v2.magnitude, 5))
+		assert.are.equal(50, v2.sqrMagnitude)
+		assert.are.equal(50, Vector3.SqrMagnitude(v2))
+		assert.are.equal(Vector3.Magnitude(v2), math.sqrt(v2.sqrMagnitude))
+		assert.are.equal(v2.magnitude, Vector3.__new(-3, -4, -5).magnitude)
+		assert.are.equal(0, Vector3.zero.magnitude)
+
+		assert.are.equal('(0.4, 0.6, 0.7)', tostring(v2.normalized))
+		assert.are.equal(Vector3.__new(0.42426, 0.56569, 0.70711), vci.fake.RoundVector3(v2.normalized, 5))
+		local v3 = Vector3.__new(5, 12, 13)
+		v3.Normalize()
+		assert.are.equal(Vector3.__new(0.27196, 0.65271, 0.70711), vci.fake.RoundVector3(v3, 5))
+		assert.are.equal(v3, Vector3.Normalize(Vector3.__new(5, 12, 13)))
+		assert.are.equal(Vector3.__new(-0.27196, -0.65271, -0.70711), vci.fake.RoundVector3(Vector3.__new(-5, -12, -13).normalized, 5))
+		assert.are.equal(Vector3.zero, Vector3.__new(Vector3.kEpsilon, -Vector3.kEpsilonNormalSqrt).normalized)
+		assert.are.equal(Vector3.zero, Vector3.zero.normalized)
+
+		assert.are.equal(Vector3.__new(11.0, 19.0, 22.0), Vector3.__new(3, 4, 5) + Vector3.__new(8, 15, 17))
+		assert.are.equal(Vector3.__new(-5.0, -11.0, -12.0), Vector3.__new(3, 4, 5) - Vector3.__new(8, 15, 17))
+		assert.are.equal(Vector3.__new(24.0, 60.0, 85.0), Vector3.Scale(Vector3.__new(3, 4, 5), Vector3.__new(8, 15, 17)))
+		assert.are.equal(Vector3.__new(15.0, 20.0, 25.0), Vector3.__new(3, 4, 5) * 5)
+		assert.are.equal(Vector3.__new(-15.0, -20.0, -25.0), -5 * Vector3.__new(3, 4, 5))
+		assert.are.equal(Vector3.__new(0.6, 0.8, 1.0), Vector3.__new(3, 4, 5) / 5)
+
+		assert.are.equal(17.02939, vci.fake.Round(Vector3.Distance(Vector3.__new(3, 4, 5), Vector3.__new(8, 15, 17)), 5))
+
+		assert.are.equal(169, Vector3.Dot(Vector3.__new(3, 4, 5), Vector3.__new(8, 15, 17)))
+
+		assert.are.equal(Vector3.__new(3.0, 4.0, -5.0), Vector3.Lerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), -0.5))
+		assert.are.equal(Vector3.__new(3.0, 4.0, -5.0), Vector3.Lerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), -0))
+		assert.are.equal(Vector3.__new(4.25, -0.75, -8.0), Vector3.Lerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 0.25))
+		assert.are.equal(Vector3.__new(6.75, -10.25, -14.0), Vector3.Lerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 0.75))
+		assert.are.equal(Vector3.__new(8.0, -15.0, -17.0), Vector3.Lerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 1))
+		assert.are.equal(Vector3.__new(8.0, -15.0, -17.0), Vector3.Lerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 1.5))
+
+		assert.are.equal(Vector3.__new(0.5, 13.5, 1.0), Vector3.LerpUnclamped(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), -0.5))
+		assert.are.equal(Vector3.__new(3.0, 4.0, -5.0), Vector3.LerpUnclamped(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), -0))
+		assert.are.equal(Vector3.__new(4.25, -0.75, -8.0), Vector3.LerpUnclamped(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 0.25))
+		assert.are.equal(Vector3.__new(6.75, -10.25, -14.0), Vector3.LerpUnclamped(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 0.75))
+		assert.are.equal(Vector3.__new(8.0, -15.0, -17.0), Vector3.LerpUnclamped(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 1))
+		assert.are.equal(Vector3.__new(10.5, -24.5, -23.0), Vector3.LerpUnclamped(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 1.5))
+
+		assert.are.equal(Vector3.__new(3.0, 4.0, -5.0), Vector3.Slerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), -0.5))
+		assert.are.equal(Vector3.__new(3.0, 4.0, -5.0), Vector3.Slerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), -0))
+		assert.are.equal(Vector3.__new(5.3382, 3.1545, -9.4632), vci.fake.RoundVector3(Vector3.Slerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 0.25), 4))
+		assert.are.equal(Vector3.__new(7.3367, -0.5644, -13.7060), vci.fake.RoundVector3(Vector3.Slerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 0.5), 4))
+		assert.are.equal(Vector3.__new(8.3877, -6.8842, -16.5606), vci.fake.RoundVector3(Vector3.Slerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 0.75), 4))
+		assert.are.equal(Vector3.__new(8.3515, -11.6094, -17.1684), vci.fake.RoundVector3(Vector3.Slerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 0.9), 4))
+		assert.are.equal(Vector3.__new(8.0, -15.0, -17.0), Vector3.Slerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 1))
+		assert.are.equal(Vector3.__new(8.0, -15.0, -17.0), Vector3.Slerp(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 1.5))
+		--assert.are.equal(Vector3.__new(0, 0, -2), Vector3.Slerp(Vector3.__new(2, 0, 0), Vector3.__new(-2, 0, 0), 0.5))
+		--assert.are.equal(Vector3.__new(-1.4142, 0, -1.4142), vci.fake.RoundVector3(Vector3.Slerp(Vector3.__new(2, 0, 0), Vector3.__new(-2, 0, 0), 0.75), 4))
+		assert.are.equal(Vector3.__new(3.5, 0, 0), Vector3.Slerp(Vector3.__new(2, 0, 0), Vector3.__new(4, 0, 0), 0.75))
+
+		assert.are.equal(Vector3.__new(-0.29611, -1.33542, 0.35914), vci.fake.RoundVector3(Vector3.SlerpUnclamped(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), -0.5), 5))
+		assert.are.equal(Vector3.__new(3.0, 4.0, -5.0), Vector3.SlerpUnclamped(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), -0))
+		assert.are.equal(Vector3.__new(5.3382, 3.1545, -9.4632), vci.fake.RoundVector3(Vector3.SlerpUnclamped(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 0.25), 4))
+		assert.are.equal(Vector3.__new(8.0, -15.0, -17.0), Vector3.SlerpUnclamped(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 1))
+		assert.are.equal(Vector3.__new(2.03283, -31.39484, -8.26023), vci.fake.RoundVector3(Vector3.SlerpUnclamped(Vector3.__new(3, 4, -5), Vector3.__new(8, -15, -17), 1.5), 5))
+
+		local v103 = Vector3.zero
+		local v103t = Vector3.zero
+		Vector3.OrthoNormalize(v103, v103t)
+		assert.are.equal(Vector3.__new(1, 0, 0), v103)
+		assert.are.equal(Vector3.__new(0, 1, 0), v103t)
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v103, v103t), 5))
+
+		local v104 = Vector3.left
+		local v104t = Vector3.zero
+		Vector3.OrthoNormalize(v104, v104t)
+		assert.are.equal(Vector3.__new(0, -1, 0), v104t)
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v104, v104t), 5))
+
+		local v105 = Vector3.right
+		local v105t = Vector3.zero
+		Vector3.OrthoNormalize(v105, v105t)
+		assert.are.equal(Vector3.__new(0, 1, 0), v105t)
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v105, v105t), 5))
+
+		local v106 = Vector3.up
+		local v106t = Vector3.zero
+		Vector3.OrthoNormalize(v106, v106t)
+		-- assert.are.equal(Vector3.__new(-1, 0, 0), v106t)
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v106, v106t), 5))
+
+		local v107 = Vector3.down
+		local v107t = Vector3.zero
+		Vector3.OrthoNormalize(v107, v107t)
+		-- assert.are.equal(Vector3.__new(1, 0, 0), v107t)
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v107, v107t), 5))
+
+		local v108 = Vector3.forward
+		local v108t = Vector3.zero
+		Vector3.OrthoNormalize(v108, v108t)
+		-- assert.are.equal(Vector3.__new(0, -1, 0), v108t)
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v108, v108t), 5))
+
+		local v109 = Vector3.back
+		local v109t = Vector3.zero
+		Vector3.OrthoNormalize(v109, v109t)
+		-- assert.are.equal(Vector3.__new(0, 1, 0), v108t)
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v109, v109t), 5))
+
+		local v110 = Vector3.__new(1, 1, 0)
+		local v110t = Vector3.zero
+		Vector3.OrthoNormalize(v110, v110t)
+		-- assert.are.equal(Vector3.__new(-0.70711, 0.70711, 0), vci.fake.RoundVector3(v110t, 5))
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v110, v110t), 5))
+
+		local v111 = Vector3.__new(0, 1, 1)
+		local v111t = Vector3.zero
+		Vector3.OrthoNormalize(v111, v111t)
+		-- assert.are.equal(Vector3.__new(-1, 0, 0), vci.fake.RoundVector3(v111t, 5))
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v111, v111t), 5))
+
+		local v112 = Vector3.__new(1, 0, 1)
+		local v112t = Vector3.zero
+		Vector3.OrthoNormalize(v112, v112t)
+		-- assert.are.equal(Vector3.__new(0, 1, 0), vci.fake.RoundVector3(v112t, 5))
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v112, v112t), 5))
+
+		local v113 = Vector3.__new(1, 1, 1)
+		local v113t = Vector3.zero
+		Vector3.OrthoNormalize(v113, v113t)
+		-- assert.are.equal(Vector3.__new(-0.70711, 0.70711, 0), v113t)
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v113, v113t), 5))
+
+		local v150 = Vector3.__new(4, 0, 0)
+		local v151 = Vector3.__new(0, 2, 0)
+		Vector3.OrthoNormalize(v150, v151)
+		assert.are.equal(Vector3.__new(1, 0, 0), v150)
+		assert.are.equal(Vector3.__new(0, 1, 0), v151)
+
+		local v152 = Vector3.__new(4, 0, 0)
+		local v153 = Vector3.__new(0, -2, 0)
+		Vector3.OrthoNormalize(v152, v153)
+		assert.are.equal(Vector3.__new(1, 0, 0), v152)
+		assert.are.equal(Vector3.__new(0, -1, 0), v153)
+
+		local v154 = Vector3.__new(4, 0, 0)
+		local v155 = Vector3.__new(-3, -4, -5)
+		Vector3.OrthoNormalize(v154, v155)
+		assert.are.equal(Vector3.__new(1, 0, 0), v154)
+		assert.are.equal(Vector3.__new(0, -0.62470, -0.78087), vci.fake.RoundVector3(v155, 5))
+
+		local v156 = Vector3.__new(3, 4, 5)
+		local v157 = Vector3.__new(3, 4, 5)
+		Vector3.OrthoNormalize(v156, v157)
+		-- assert.are.equal(Vector3.__new(-0.8, 0.6, 0), vci.fake.RoundVector3(v157, 5))
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v156, v157), 5))
+
+		local v158 = Vector3.__new(3, 4, 5)
+		local v159 = Vector3.__new(-3, -4, -5)
+		Vector3.OrthoNormalize(v158, v159)
+		-- assert.are.equal(Vector3.__new(-0.8, 0.6, 0), vci.fake.RoundVector3(v159, 5))
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v158, v159), 5))
+
+		local v160 = Vector3.__new(3, 4, 5)
+		local v161 = Vector3.zero
+		Vector3.OrthoNormalize(v160, v161)
+		assert.are.equal(Vector3.__new(0.42426, 0.56569, 0.70711), vci.fake.RoundVector3(v160, 5))
+		-- assert.are.equal(Vector3.__new(-0.8, 0.6, 0), vci.fake.RoundVector3(v161, 5))
+		assert.are.equal(0, vci.fake.Round(Vector3.Dot(v160, v161), 5))
+
+		local v162 = Vector3.__new(3, 4, 5)
+		local v163 = Vector3.__new(-2, -1, -9)
+		Vector3.OrthoNormalize(v162, v163)
+		assert.are.equal(Vector3.__new(0.25744, 0.67330, -0.69310), vci.fake.RoundVector3(v163, 5))
+
+		local v164 = Vector3.__new(4, 0, 0)
+		local v165 = Vector3.__new(8, -15, -17)
+		Vector3.OrthoNormalize(v164, v165)
+		assert.are.equal(Vector3.__new(0, -0.66162, -0.74984), vci.fake.RoundVector3(v165, 5))
+
+		assert.are.equal(Vector3.__new(3.0, 4.0, 5.0), Vector3.MoveTowards(Vector3.__new(3, 4, 5), Vector3.__new(8, -15, -17), 0))
+		assert.are.equal(Vector3.__new(3.08476, 3.67792, 4.62707), vci.fake.RoundVector3(Vector3.MoveTowards(Vector3.__new(3, 4, 5), Vector3.__new(8, -15, -17), 0.5), 5))
+		assert.are.equal(Vector3.__new(2.49145, 5.93248, 7.23761), vci.fake.RoundVector3(Vector3.MoveTowards(Vector3.__new(3, 4, 5), Vector3.__new(8, -15, -17), -3), 5))
+		assert.are.equal(Vector3.__new(8.0, -15.0, -17.0), Vector3.MoveTowards(Vector3.__new(3, 4, 5), Vector3.__new(8, -15, -17), 100))
+
+		assert.are.equal(Vector3.zero, Vector3.Cross(Vector3.__new(2, 0, 0), Vector3.__new(-2, 0, 0)))
+		assert.are.equal(Vector3.__new(7, 91, -77), Vector3.Cross(Vector3.__new(3, 4, 5), Vector3.__new(8, -15, -17)))
+
+		assert.are.equal(Vector3.__new(3, 0, 0), Vector3.Project(Vector3.__new(3, 4, 5), Vector3.__new(2, 0, 0)))
+		assert.are.equal(Vector3.__new(-1.67474, 3.14014, 3.55882), vci.fake.RoundVector3(Vector3.Project(Vector3.__new(3, 4, 5), Vector3.__new(8, -15, -17)), 5))
+
+		assert.are.equal(Vector3.__new(0, 4, 5), Vector3.ProjectOnPlane(Vector3.__new(3, 4, 5), Vector3.__new(2, 0, 0)))
+		assert.are.equal(Vector3.__new(4.67474, 0.85986, 1.44118), vci.fake.RoundVector3(Vector3.ProjectOnPlane(Vector3.__new(3, 4, 5), Vector3.__new(8, -15, -17)), 5))
+
+		assert.are.equal(6.48074, vci.fake.Round(Vector3.Distance(Vector3.__new(3, 4, 5), Vector3.__new(2, 0, 0)), 5))
+		assert.are.equal(29.49576, vci.fake.Round(Vector3.Distance(Vector3.__new(3, 4, 5), Vector3.__new(8, -15, -17)), 5))
+
+		assert.are.equal(Vector3.__new(-0.84853, -1.13137, -1.41421), vci.fake.RoundVector3(Vector3.ClampMagnitude(Vector3.__new(3, 4, 5), -2), 5))
+		assert.are.equal(Vector3.zero, Vector3.ClampMagnitude(Vector3.__new(3, 4, 5), 0))
+		assert.are.equal(Vector3.__new(0.84853, 1.13137, 1.41421), vci.fake.RoundVector3(Vector3.ClampMagnitude(Vector3.__new(3, 4, 5), 2), 5))
+		assert.are.equal(Vector3.__new(3, 4, 5), Vector3.ClampMagnitude(Vector3.__new(3, 4, 5), 1000))
+
+		assert.are.equal(Vector3.__new(1, 2, 2), Vector3.Min(Vector3.__new(1, 2, 3), Vector3.__new(4, 3, 2)))
+
+		assert.are.equal(Vector3.__new(4, 3, 3), Vector3.Max(Vector3.__new(1, 2, 3), Vector3.__new(4, 3, 2)))
+
+		local angleTargets = {
+			[{2, 0, 0}] = 0,
+			[{2, 1, 1}] = 35.26439,
+			[{0, 2, 2}] = 90,
+			[{-1, 2, -1}] = 114.09484,
+			[{-2, 0, -2}] = 135,
+			[{-2, -1, 0.5}] = 150.79407,
+			[{0, -2, -0.25}] = 90,
+			[{1, -2, 0}] = 63.43495
+		}
+
+		local angleMap = {}
+		local angleBase = Vector3.__new(4, 0, 0)
+		local angleConflictCount = 0
+
+		for iv, angle in pairs(angleTargets) do
+			local vec = Vector3.__new(iv[1], iv[2], iv[3])
+			assert.are.equal(angle, vci.fake.Round(Vector3.Angle(angleBase, vec), 5))
 			local hashCode = vec.GetHashCode()
 			if angleMap[hashCode] then
 				angleConflictCount = angleConflictCount + 1

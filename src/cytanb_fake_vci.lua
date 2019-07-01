@@ -12,6 +12,37 @@
 return (function ()
 	local dkjson = require('dkjson')
 
+	local ConstVariablesFieldName = '__CYTANB_CONST_VARIABLES'
+
+	local ConstIndexHandler = function (table, key)
+		local meta = getmetatable(table)
+		if meta then
+			local mc = rawget(meta, ConstVariablesFieldName)
+			if mc then
+				local h = rawget(mc, key)
+				if type(h) == 'function' then
+					return (h(table, key))
+				else
+					return h
+				end
+			end
+		end
+		return nil
+	end
+
+	local ConstNewIndexHandler = function (table, key, v)
+		local meta = getmetatable(table)
+		if meta then
+			local mc = rawget(meta, ConstVariablesFieldName)
+			if mc then
+				if rawget(mc, key) ~= nil then
+					error('Cannot assign to read only field "' .. key .. '"')
+				end
+			end
+		end
+		rawset(table, key, v)
+	end
+
 	local cytanb
 	cytanb = {
 		SetConst = function (target, name, value)
@@ -21,32 +52,19 @@ return (function ()
 
 			local curMeta = getmetatable(target)
 			local meta = curMeta or {}
-			local metaConstVariables = meta.__CYTANB_CONST_VARIABLES
-			if target[name] ~= nil and (not metaConstVariables or metaConstVariables[name] == nil) then
+			local metaConstVariables = rawget(meta, ConstVariablesFieldName)
+			if rawget(target, name) ~= nil then
 				error('Non-const field "' .. name .. '" already exists')
 			end
 
 			if not metaConstVariables then
 				metaConstVariables = {}
-				meta.__CYTANB_CONST_VARIABLES = metaConstVariables
-				meta.__index = function (table, key)
-					local cv = metaConstVariables[key]
-					if type(cv) == 'function' then
-						return (cv(table, key))
-					else
-						return cv
-					end
-				end
-
-				meta.__newindex = function (table, key, v)
-					if table == target and metaConstVariables[key] ~= nil then
-						error('Cannot assign to read only field "' .. key .. '"')
-					end
-					rawset(table, key, v)
-				end
+				rawset(meta, ConstVariablesFieldName, metaConstVariables)
+				meta.__index = ConstIndexHandler
+				meta.__newindex = ConstNewIndexHandler
 			end
 
-			metaConstVariables[name] = value
+			rawset(metaConstVariables, name, value)
 
 			if not curMeta then
 				setmetatable(target, meta)
@@ -119,7 +137,7 @@ return (function ()
 
 	local messageCallbackMap = {}
 
-	local fakeModule, Vector2, Color, vci
+	local fakeModule, Vector2, Vector3, Color, vci
 
 	local Vector2IndexMap = {'x', 'y'}
 
@@ -171,7 +189,60 @@ return (function ()
 				vec.Normalize()
 				return vec
 			elseif key == 'sqrMagnitude' then
-				return math.pow(table.x, 2) + math.pow(table.y, 2)
+				return table.SqrMagnitude()
+			else
+				error('Cannot access field "' .. key .. '"')
+			end
+		end,
+
+		__newindex = function (table, key, v)
+			error('Cannot assign to field "' .. key .. '"')
+		end,
+
+		__tostring = function (value)
+			return value.ToString()
+		end
+	}
+
+	local Vector3IndexMap = {'x', 'y', 'z'}
+
+	local Vector3Metatable
+	Vector3Metatable = {
+		__add = function (op1, op2)
+			return Vector3.__new(op1.x + op2.x, op1.y + op2.y, op1.z + op2.z)
+		end,
+
+		__sub = function (op1, op2)
+			return Vector3.__new(op1.x - op2.x, op1.y - op2.y, op1.z - op2.z)
+		end,
+
+		__mul = function (op1, op2)
+			local vec, m
+			if type(op1) == 'number'then
+				vec = op2
+				m = op1
+			else
+				vec = op1
+				m = op2
+			end
+			return Vector3.__new(vec.x * m, vec.y * m, vec.z * m)
+		end,
+
+		__div = function (op1, op2)
+			return Vector3.__new(op1.x / op2, op1.y / op2, op1.z / op2)
+		end,
+
+		__eq = function (op1, op2)
+			return op1.x == op2.x and op1.y == op2.y and op1.z == op2.z
+		end,
+
+		__index = function (table, key)
+			if key == 'magnitude' then
+				return Vector3.Magnitude(table)
+			elseif key == 'normalized' then
+				return Vector3.Normalize(table)
+			elseif key == 'sqrMagnitude' then
+				return Vector3.SqrMagnitude(table)
 			else
 				error('Cannot access field "' .. key .. '"')
 			end
@@ -315,10 +386,11 @@ return (function ()
 
 		Vector2 = {
 			__new = function (x, y)
+				local argsSpecified = x and y
 				local self
 				self = {
-					x = x or 0.0,
-					y = y or 0.0,
+					x = argsSpecified and x or 0.0,
+					y = argsSpecified and y or 0.0,
 
 					set_Item = function (index, value)
 						local key = Vector2IndexMap[index + 1]
@@ -330,8 +402,8 @@ return (function ()
 					end,
 
 					Set = function (newX, newY)
-						self.x = newX
-						self.y = newY
+						self.x = newX or 0.0
+						self.y = newY or 0.0
 					end,
 
 					Normalize = function ()
@@ -354,11 +426,11 @@ return (function ()
 						return NumberHashCode(self.x, NumberHashCode(self.y))
 					end,
 
-					-- 正しくは static 関数として実装すべきものだと考えられる。
+					-- static 関数として実装すべきところが、非 static 関数として実装されている可能性がある。
 					-- Vector3, Vector4 の SqrMagnitude は、static として実装されている。
 					-- sqrMagnitude フィールドと機能が重複している。
 					SqrMagnitude = function ()
-						return self.sqrMagnitude
+						return math.pow(self.x, 2) + math.pow(self.y, 2)
 					end
 				}
 				setmetatable(self, Vector2Metatable)
@@ -380,7 +452,7 @@ return (function ()
 			end,
 
 			Scale = function (a, b)
-				return a * b
+				return b and Vector2.__new(a.x * b.x, a.y * b.y) or Vector2.__new(math.pow(a.x, 2), math.pow(a.y, 2))
 			end,
 
 			Dot = function (lhs, rhs)
@@ -388,9 +460,12 @@ return (function ()
 			end,
 
 			Angle = function (from, to)
-				local dot = Vector2.Dot(from, to)
+				local ip = Vector2.Dot(from, to)
 				local scale = from.magnitude * to.magnitude
-				return math.acos(dot / scale) * 180 / math.pi
+				if scale <= Vector3.kEpsilon then
+					return 0
+				end
+				return math.deg(math.acos(ip / scale))
 			end,
 
 			Distance = function (a, b)
@@ -398,11 +473,224 @@ return (function ()
 			end,
 
 			__toVector2 = function (vec3)
-				error('!!NOT IMPLEMENTED!!')
+				return Vector2.__new(vec3.x, vec3.y)
 			end,
 
 			__toVector3 = function (vec2)
+				return Vector3.__new(vec2.x, vec2.y, 0.0)
+			end
+		},
+
+		Vector3 = {
+			__new = function (x, y, z)
+				local argsSpecified = x and y
+				local self
+				self = {
+					x = argsSpecified and x or 0.0,
+					y = argsSpecified and y or 0.0,
+					z = z or 0.0,
+
+					set_Item = function (index, value)
+						local key = Vector3IndexMap[index + 1]
+						if key then
+							self[key] = value
+						else
+							error('Invalid index: ' .. tostring(index))
+						end
+					end,
+
+					Set = function (newX, newY, newZ)
+						self.x = newX or 0.0
+						self.y = newY or 0.0
+						self.z = newZ or 0.0
+					end,
+
+					ToString = function (format)
+						-- format argument is not implemented
+						return string.format('(%.1f, %.1f, %.1f)', self.x, self.y, self.z)
+					end,
+
+					GetHashCode = function ()
+						return NumberHashCode(self.x, NumberHashCode(self.y, NumberHashCode(self.z)))
+					end,
+
+					Normalize = function ()
+						local m = Vector3.Magnitude(self)
+						if math.abs(m) <= Vector3.kEpsilon then
+							self.x = 0.0
+							self.y = 0.0
+							self.z = 0.0
+						else
+							self.x = self.x / m
+							self.y = self.y / m
+							self.z = self.z / m
+						end
+					end
+				}
+				setmetatable(self, Vector3Metatable)
+				return self
+			end,
+
+			Slerp = function (a, b, t)
+				return Vector3.SlerpUnclamped(a, b, math.max(0.0, math.min(t, 1.0)))
+			end,
+
+			SlerpUnclamped = function (a, b, t)
+				if t == 0.0 then
+					return a
+				elseif t == 1.0 or a == b then
+					return b
+				end
+
+				local s = Vector3.Normalize(a)
+				local e = Vector3.Normalize(b)
+				local angle = math.acos(Vector3.Dot(s, e))
+				local absAngle = math.abs(angle)
+				if absAngle <= Vector3.kEpsilon then
+					return Vector3.LerpUnclamped(a, b, t)
+				end
+
+				if math.pi - absAngle <= Vector3.kEpsilon then
+					-- @todo 180度の処理を実装する
+					return Vector3.LerpUnclamped(a, b, t)
+				end
+
+				local mst = cytanb.LerpUnclamped(a.magnitude, b.magnitude, t) / math.sin(angle)
+				return math.sin((1 - t) * angle) * mst * a.normalized + math.sin(t * angle) * mst * b.normalized
+			end,
+
+			OrthoNormalize = function (normal, tangent)
+				normal.Normalize()
+				if normal.x == 0.0 and normal.y == 0.0 and normal.z == 0.0 then
+					normal.x = 1.0
+				end
+
+				local ip = Vector3.Dot(normal, tangent)
+				local scale = tangent.magnitude
+				local a2, ip2
+				if scale <= Vector3.kEpsilon or 1 - math.abs(ip / scale) <= Vector3.kEpsilon then
+					-- @todo 左手系座標系の処理
+					a2 = Vector3.__new(- normal.z, normal.x, - normal.y)
+					ip2 = Vector3.Dot(normal, a2)
+				else
+					a2 = tangent
+					ip2 = ip
+				end
+
+				local v2 = a2 - ip2 * normal
+				tangent.x = v2.x
+				tangent.y = v2.y
+				tangent.z = v2.z
+				tangent.Normalize()
+			end,
+
+			RotateTowards = function (current, target, maxRadiansDelta, maxMagnitudeDelta)
 				error('!!NOT IMPLEMENTED!!')
+			end,
+
+			Lerp = function (a, b, t)
+				return Vector3.__new(
+					cytanb.Lerp(a.x, b.x, t),
+					cytanb.Lerp(a.y, b.y, t),
+					cytanb.Lerp(a.z, b.z, t)
+				)
+			end,
+
+			LerpUnclamped = function (a, b, t)
+				return Vector3.__new(
+					cytanb.LerpUnclamped(a.x, b.x, t),
+					cytanb.LerpUnclamped(a.y, b.y, t),
+					cytanb.LerpUnclamped(a.z, b.z, t)
+				)
+			end,
+
+			-- 1.6.3b で削除された。
+			MoveTowards = function (current, target, maxDistanceDelta)
+				if maxDistanceDelta == 0 then
+					return current
+				end
+
+				local c = target - current
+				if maxDistanceDelta >= c.magnitude then
+					return target
+				else
+					return current + c.normalized * maxDistanceDelta
+				end
+			end,
+
+			SmoothDamp = function (current, target, currentVelocity, smoothTime)
+				error('!!NOT IMPLEMENTED!!')
+			end,
+
+			Scale = function (a, b)
+				return b and Vector3.__new(a.x * b.x, a.y * b.y, a.z * b.z) or Vector3.__new(math.pow(a.x, 2), math.pow(a.y, 2), math.pow(a.z, 2))
+			end,
+
+			Cross = function (lhs, rhs)
+				return Vector3.__new(lhs.y * rhs.z - lhs.z * rhs.y, lhs.z * rhs.x - lhs.x * rhs.z, lhs.x * rhs.y - lhs.y * rhs.x)
+			end,
+
+			Normalize = function (value)
+				local vec = Vector3.__new(value.x, value.y, value.z)
+				vec.Normalize()
+				return vec
+			end,
+
+			Dot = function (lhs, rhs)
+				return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z
+			end,
+
+			Project = function (vector, onNormal)
+				local wn = Vector3.Normalize(onNormal)
+				if wn.x == 0 and wn.y == 0 and wn.z == 0 then
+					return wn
+				else
+					return Vector3.Dot(vector, wn) * wn
+				end
+			end,
+
+			ProjectOnPlane = function (vector, planeNormal)
+				return vector - Vector3.Project(vector, planeNormal)
+			end,
+
+			Angle = function (from, to)
+				local ip = Vector3.Dot(from, to)
+				local scale = from.magnitude * to.magnitude
+				if scale <= Vector3.kEpsilon then
+					return 0
+				end
+				return math.deg(math.acos(ip / scale))
+			end,
+
+			Distance = function (a, b)
+				return (a - b).magnitude
+			end,
+
+			ClampMagnitude = function (vector, maxLength)
+				local len = vector.magnitude
+				if len <= maxLength then
+					return vector
+				elseif math.abs(maxLength) <= Vector3.kEpsilon then
+					return Vector3.zero
+				else
+					return vector * (maxLength / len)
+				end
+			end,
+
+			Magnitude = function (vector)
+				return math.sqrt(Vector3.SqrMagnitude(vector))
+			end,
+
+			SqrMagnitude = function (vector)
+				return math.pow(vector.x, 2) + math.pow(vector.y, 2) + math.pow(vector.z, 2)
+			end,
+
+			Min = function (lhs, rhs)
+				return Vector3.__new(math.min(lhs.x, rhs.x), math.min(lhs.y, rhs.y), math.min(lhs.z, rhs.z))
+			end,
+
+			Max = function (lhs, rhs)
+				return Vector3.__new(math.max(lhs.x, rhs.x), math.max(lhs.y, rhs.y), math.max(lhs.z, rhs.z))
 			end
 		},
 
@@ -667,6 +955,14 @@ return (function ()
 					)
 				end,
 
+				RoundVector3 = function (vec, decimalPlaces)
+					return Vector3.__new(
+						vci.fake.Round(vec.x, decimalPlaces),
+						vci.fake.Round(vec.y, decimalPlaces),
+						vci.fake.Round(vec.z, decimalPlaces)
+					)
+				end,
+
 				RoundColor = function (color, decimalPlaces)
 					return Color.__new(
 						vci.fake.Round(color.r, decimalPlaces),
@@ -737,29 +1033,43 @@ return (function ()
 
 	Vector2 = fakeModule.Vector2
 	cytanb.SetConstEach(Vector2, {
+		zero = function() return Vector2.__new(0, 0) end,
+		one = function() return Vector2.__new(1, 1) end,
+		up = function() return Vector2.__new(0, 1) end,
 		down = function() return Vector2.__new(0, -1) end,
 		left = function() return Vector2.__new(-1, 0) end,
-		one = function() return Vector2.__new(1, 1) end,
 		right = function() return Vector2.__new(1, 0) end,
-		up = function() return Vector2.__new(0, 1) end,
-		zero = function() return Vector2.__new(0, 0) end,
 		kEpsilon = 9.99999974737875E-06,
 		kEpsilonNormalSqrt = 1.00000000362749E-15
 	})
 
+	Vector3 = fakeModule.Vector3
+	cytanb.SetConstEach(Vector3, {
+		zero = function() return Vector3.__new(0, 0, 0) end,
+		one = function() return Vector3.__new(1, 1, 1) end,
+		forward = function() return Vector3.__new(0, 0, 1) end,
+		back = function() return Vector3.__new(0, 0, -1) end,
+		up = function() return Vector3.__new(0, 1, 0) end,
+		down = function() return Vector3.__new(0, -1, 0) end,
+		left = function() return Vector3.__new(-1, 0, 0) end,
+		right = function() return Vector3.__new(1, 0, 0) end,
+		kEpsilon = Vector2.kEpsilon,
+		kEpsilonNormalSqrt = Vector2.kEpsilonNormalSqrt
+	})
+
 	Color = fakeModule.Color
 	cytanb.SetConstEach(Color, {
-		black = function() return Color.__new(0, 0, 0, 1) end,
-		blue = function() return Color.__new(0, 0, 1, 1) end,
-		clear = function() return Color.__new(0, 0, 0, 0) end,
-		cyan = function() return Color.__new(0, 1, 1, 1) end,
-		gray = function() return Color.__new(0.5, 0.5, 0.5, 1) end,
-		green = function() return Color.__new(0, 1, 0, 1) end,
-		grey = function() return Color.__new(0.5, 0.5, 0.5, 1) end,
-		magenta = function() return Color.__new(1, 0, 1, 1) end,
 		red = function() return Color.__new(1, 0, 0, 1) end,
+		green = function() return Color.__new(0, 1, 0, 1) end,
+		blue = function() return Color.__new(0, 0, 1, 1) end,
 		white = function() return Color.__new(1, 1, 1, 1) end,
-		yellow = function() return Color.__new(1, 235 / 255, 4 / 255, 1) end
+		black = function() return Color.__new(0, 0, 0, 1) end,
+		yellow = function() return Color.__new(1, 235 / 255, 4 / 255, 1) end,
+		cyan = function() return Color.__new(0, 1, 1, 1) end,
+		magenta = function() return Color.__new(1, 0, 1, 1) end,
+		gray = function() return Color.__new(0.5, 0.5, 0.5, 1) end,
+		grey = function() return Color.__new(0.5, 0.5, 0.5, 1) end,
+		clear = function() return Color.__new(0, 0, 0, 0) end
 	})
 
 	vci = fakeModule.vci

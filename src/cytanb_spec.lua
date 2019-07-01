@@ -153,6 +153,7 @@ describe('Test cytanb owner user', function ()
 	end)
 
 	it('LogLevel', function ()
+		assert.are.same(cytanb.LogLevelInfo, cytanb.GetLogLevel())
 		assert.is_true(cytanb.LogLevelFatal > 0)
 		assert.is_true(cytanb.LogLevelError > cytanb.LogLevelFatal)
 		assert.is_true(cytanb.LogLevelWarn > cytanb.LogLevelError)

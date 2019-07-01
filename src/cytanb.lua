@@ -11,7 +11,7 @@ local cytanb = (function ()
 	local InstanceIDStateName = '__CYTANB_INSTANCE_ID'
 
 	--- 出力するログレベル。
-	local logLevel = 400
+	local logLevel
 
 	--- インスタンス ID の文字列。
 	local instanceID
@@ -68,6 +68,37 @@ local cytanb = (function ()
 		end
 	}
 
+	local ConstVariablesFieldName = '__CYTANB_CONST_VARIABLES'
+
+	local ConstIndexHandler = function (table, key)
+		local meta = getmetatable(table)
+		if meta then
+			local mc = rawget(meta, ConstVariablesFieldName)
+			if mc then
+				local h = rawget(mc, key)
+				if type(h) == 'function' then
+					return (h(table, key))
+				else
+					return h
+				end
+			end
+		end
+		return nil
+	end
+
+	local ConstNewIndexHandler = function (table, key, v)
+		local meta = getmetatable(table)
+		if meta then
+			local mc = rawget(meta, ConstVariablesFieldName)
+			if mc then
+				if rawget(mc, key) ~= nil then
+					error('Cannot assign to read only field "' .. key .. '"')
+				end
+			end
+		end
+		rawset(table, key, v)
+	end
+
 	cytanb = {
 		InstanceID = function ()
 			if instanceID == '' then
@@ -83,32 +114,19 @@ local cytanb = (function ()
 
 			local curMeta = getmetatable(target)
 			local meta = curMeta or {}
-			local metaConstVariables = meta.__CYTANB_CONST_VARIABLES
-			if target[name] ~= nil and (not metaConstVariables or metaConstVariables[name] == nil) then
+			local metaConstVariables = rawget(meta, ConstVariablesFieldName)
+			if rawget(target, name) ~= nil then
 				error('Non-const field "' .. name .. '" already exists')
 			end
 
 			if not metaConstVariables then
 				metaConstVariables = {}
-				meta.__CYTANB_CONST_VARIABLES = metaConstVariables
-				meta.__index = function (table, key)
-					local cv = metaConstVariables[key]
-					if type(cv) == 'function' then
-						return (cv(table, key))
-					else
-						return cv
-					end
-				end
-
-				meta.__newindex = function (table, key, v)
-					if table == target and metaConstVariables[key] ~= nil then
-						error('Cannot assign to read only field "' .. key .. '"')
-					end
-					rawset(table, key, v)
-				end
+				rawset(meta, ConstVariablesFieldName, metaConstVariables)
+				meta.__index = ConstIndexHandler
+				meta.__newindex = ConstNewIndexHandler
 			end
 
-			metaConstVariables[name] = value
+			rawset(metaConstVariables, name, value)
 
 			if not curMeta then
 				setmetatable(target, meta)
@@ -325,7 +343,7 @@ local cytanb = (function ()
 		end,
 
 		Random32 = function ()
-			-- MoonSharp は 32bit int 型で実装されていて、2147483646 が渡すことのできる最大値。
+			-- MoonSharp では整数値の場合 32bit int 型にキャストされ、2147483646 が渡すことのできる最大値。
 			return bit32.band(math.random(-2147483648, 2147483646), 0xFFFFFFFF)
 		end,
 
@@ -607,6 +625,8 @@ local cytanb = (function ()
 		DebugLogLevel = cytanb.LogLevelDebug,    -- @deprecated
 		TraceLogLevel = cytanb.LogLevelTrace     -- @deprecated
 	})
+
+	logLevel = cytanb.LogLevelInfo
 
 	package.loaded['cytanb'] = cytanb
 
