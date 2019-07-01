@@ -18,28 +18,28 @@ local cytanb = (function ()
 
 	local cytanb
 
+	local UUIDCompare = function (op1, op2)
+		for i = 1, 4 do
+			local diff = op1[i] - op2[i]
+			if diff ~= 0 then
+				return diff
+			end
+		end
+		return 0
+	end
+
 	local UUIDMetatable
 	UUIDMetatable = {
 		__eq = function (op1, op2)
 			return op1[1] == op2[1] and op1[2] == op2[2] and op1[3] == op2[3] and op1[4] == op2[4]
 		end,
 
-		Compare = function (op1, op2)
-			for i = 1, 4 do
-				local diff = op1[i] - op2[i]
-				if diff ~= 0 then
-					return diff
-				end
-			end
-			return 0
-		end,
-
 		__lt = function (op1, op2)
-			return UUIDMetatable.Compare(op1, op2) < 0
+			return UUIDCompare(op1, op2) < 0
 		end,
 
 		__le = function (op1, op2)
-			return UUIDMetatable.Compare(op1, op2) <= 0
+			return UUIDCompare(op1, op2) <= 0
 		end,
 
 		__tostring = function (value)
@@ -83,25 +83,32 @@ local cytanb = (function ()
 
 			local curMeta = getmetatable(target)
 			local meta = curMeta or {}
-			local hasMetaIndex = type(meta.__index) == 'table'
-			if target[name] ~= nil and (not hasMetaIndex or meta.__index[name] == nil) then
+			local metaConstVariables = meta.__CYTANB_CONST_VARIABLES
+			if target[name] ~= nil and (not metaConstVariables or metaConstVariables[name] == nil) then
 				error('Non-const field "' .. name .. '" already exists')
 			end
 
-			if not hasMetaIndex then
-				meta.__index = {}
-			end
-			local metaIndex = meta.__index
-			metaIndex[name] = value
+			if not metaConstVariables then
+				metaConstVariables = {}
+				meta.__CYTANB_CONST_VARIABLES = metaConstVariables
+				meta.__index = function (table, key)
+					local cv = metaConstVariables[key]
+					if type(cv) == 'function' then
+						return (cv(table, key))
+					else
+						return cv
+					end
+				end
 
-			if not hasMetaIndex or type(meta.__newindex) ~= 'function' then
 				meta.__newindex = function (table, key, v)
-					if table == target and metaIndex[key] ~= nil then
+					if table == target and metaConstVariables[key] ~= nil then
 						error('Cannot assign to read only field "' .. key .. '"')
 					end
 					rawset(table, key, v)
 				end
 			end
+
+			metaConstVariables[name] = value
 
 			if not curMeta then
 				setmetatable(target, meta)

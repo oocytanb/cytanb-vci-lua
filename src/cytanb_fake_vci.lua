@@ -21,25 +21,32 @@ return (function ()
 
 			local curMeta = getmetatable(target)
 			local meta = curMeta or {}
-			local hasMetaIndex = type(meta.__index) == 'table'
-			if target[name] ~= nil and (not hasMetaIndex or meta.__index[name] == nil) then
+			local metaConstVariables = meta.__CYTANB_CONST_VARIABLES
+			if target[name] ~= nil and (not metaConstVariables or metaConstVariables[name] == nil) then
 				error('Non-const field "' .. name .. '" already exists')
 			end
 
-			if not hasMetaIndex then
-				meta.__index = {}
-			end
-			local metaIndex = meta.__index
-			metaIndex[name] = value
+			if not metaConstVariables then
+				metaConstVariables = {}
+				meta.__CYTANB_CONST_VARIABLES = metaConstVariables
+				meta.__index = function (table, key)
+					local cv = metaConstVariables[key]
+					if type(cv) == 'function' then
+						return (cv(table, key))
+					else
+						return cv
+					end
+				end
 
-			if not hasMetaIndex or type(meta.__newindex) ~= 'function' then
 				meta.__newindex = function (table, key, v)
-					if table == target and metaIndex[key] ~= nil then
+					if table == target and metaConstVariables[key] ~= nil then
 						error('Cannot assign to read only field "' .. key .. '"')
 					end
 					rawset(table, key, v)
 				end
 			end
+
+			metaConstVariables[name] = value
 
 			if not curMeta then
 				setmetatable(target, meta)
@@ -730,29 +737,29 @@ return (function ()
 
 	Vector2 = fakeModule.Vector2
 	cytanb.SetConstEach(Vector2, {
-		down = Vector2.__new(0, -1),
-		left = Vector2.__new(-1, 0),
-		one = Vector2.__new(1, 1),
-		right = Vector2.__new(1, 0),
-		up = Vector2.__new(0, 1),
-		zero = Vector2.__new(0, 0),
+		down = function() return Vector2.__new(0, -1) end,
+		left = function() return Vector2.__new(-1, 0) end,
+		one = function() return Vector2.__new(1, 1) end,
+		right = function() return Vector2.__new(1, 0) end,
+		up = function() return Vector2.__new(0, 1) end,
+		zero = function() return Vector2.__new(0, 0) end,
 		kEpsilon = 9.99999974737875E-06,
 		kEpsilonNormalSqrt = 1.00000000362749E-15
 	})
 
 	Color = fakeModule.Color
 	cytanb.SetConstEach(Color, {
-		black = Color.__new(0, 0, 0, 1),
-		blue = Color.__new(0, 0, 1, 1),
-		clear = Color.__new(0, 0, 0, 0),
-		cyan = Color.__new(0, 1, 1, 1),
-		gray = Color.__new(0.5, 0.5, 0.5, 1),
-		green = Color.__new(0, 1, 0, 1),
-		grey = Color.__new(0.5, 0.5, 0.5, 1),
-		magenta = Color.__new(1, 0, 1, 1),
-		red = Color.__new(1, 0, 0, 1),
-		white = Color.__new(1, 1, 1, 1),
-		yellow = Color.__new(1, 235 / 255, 4 / 255, 1)
+		black = function() return Color.__new(0, 0, 0, 1) end,
+		blue = function() return Color.__new(0, 0, 1, 1) end,
+		clear = function() return Color.__new(0, 0, 0, 0) end,
+		cyan = function() return Color.__new(0, 1, 1, 1) end,
+		gray = function() return Color.__new(0.5, 0.5, 0.5, 1) end,
+		green = function() return Color.__new(0, 1, 0, 1) end,
+		grey = function() return Color.__new(0.5, 0.5, 0.5, 1) end,
+		magenta = function() return Color.__new(1, 0, 1, 1) end,
+		red = function() return Color.__new(1, 0, 0, 1) end,
+		white = function() return Color.__new(1, 1, 1, 1) end,
+		yellow = function() return Color.__new(1, 235 / 255, 4 / 255, 1) end
 	})
 
 	vci = fakeModule.vci
