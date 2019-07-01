@@ -65,16 +65,13 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.same(table4, json.parse(jstr4))
 	end)
 
-	it('Vector2 getter', function()
-		pending('Vector2 getter')
+	it('Vector2', function ()
 		local vOne = Vector2.one
 		vOne.x = 0.5
 		vOne.y = 0.75
-		assert.are.equal(vOne.__new(0.5, 0.75), vOne)
+		assert.are.equal(Vector2.__new(0.5, 0.75), vOne)
 		assert.are.equal(Vector2.__new(1, 1), Vector2.one)
-	end)
 
-	it('Vector2', function ()
 		assert.are_not.equal(0, 0 + Vector2.kEpsilon)
 		assert.are_not.equal(0, 0 - Vector2.kEpsilon)
 		assert.are.equal(0, math.floor(Vector2.kEpsilon * 100000) / 100000)
@@ -121,7 +118,7 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.equal(Vector2.__new(-5.0, -10.0), -5 * Vector2.__new(1, 2))
 		assert.are.equal(Vector2.__new(0.5, 0.66667), vci.fake.RoundVector2(Vector2.__new(1, 2) / Vector2.__new(2, 3), 5))
 		assert.are.equal(Vector2.__new(0.2, 0.4), Vector2.__new(1, 2) / 5)
-		
+
 		assert.are.equal(2.82843, vci.fake.Round(Vector2.Distance(Vector2.__new(1, 2), Vector2.__new(3, 4)), 5))
 		assert.are.equal(11, Vector2.Dot(Vector2.__new(1, 2), Vector2.__new(3, 4)))
 
@@ -167,17 +164,13 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.equal(0, angleConflictCount)
 	end)
 
-	it('Color getter', function ()
-		pending('pending')
-
+	it('Color', function ()
 		local cCyan = Color.cyan
 		cCyan.r = 0.5
 		cCyan.a = 0.75
 		assert.are.equal(Color.__new(0.5, 1, 1, 0.75), cCyan)
 		assert.are.equal(Color.__new(0, 1, 1, 1), Color.cyan)
-	end)
 
-	it('Color', function ()
 		assert.are.equal('RGBA(1.000, 0.000, 1.000, 1.000)', tostring(Color.magenta))
 		assert.are.equal(Color.__new(1, 0, 1), Color.magenta)
 		assert.are_not.equal(Color.__new(1, 0, 1, 0.5), Color.magenta)
