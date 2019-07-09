@@ -321,7 +321,7 @@ local cytanb = (function ()
 
 		Round = function (num, decimalPlaces)
 			if decimalPlaces then
-				local m = math.pow(10, decimalPlaces)
+				local m = 10 ^ decimalPlaces
 				return math.floor(num * m + 0.5) / m
 			else
 				return math.floor(num + 0.5)

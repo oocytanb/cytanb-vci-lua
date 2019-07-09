@@ -6,7 +6,7 @@
 -- [VCI](https://github.com/virtual-cast/VCI) 環境の簡易 Fake モジュール。
 -- Unit test を行うための、補助モジュールとしての利用を目的としている。
 -- 実環境を忠実にエミュレートするものではなく、挙動が異なる部分が多分にあるため、その点に留意して利用する必要がある。
--- (例えば、3D オブジェクトの物理演算は行われない、ネットワーク通信は行われずローカルのインメモリーで処理される、など)
+-- (例えば、3D オブジェクトの物理演算は行われない、ネットワーク通信は行われずローカルのインメモリーで処理される、未実装機能など)
 -- **EXPERIMENTAL: 実験的なモジュールであるため、多くの変更が加えられる可能性がある。**
 
 return (function ()
@@ -137,7 +137,7 @@ return (function ()
 
 	local messageCallbackMap = {}
 
-	local fakeModule, Vector2, Vector3, Color, vci
+	local fakeModule, Vector2, Vector3, Vector4, Color, vci
 
 	local Vector2IndexMap = {'x', 'y'}
 
@@ -149,6 +149,10 @@ return (function ()
 
 		__sub = function (op1, op2)
 			return Vector2.__new(op1.x - op2.x, op1.y - op2.y)
+		end,
+
+		__unm = function (op)
+			return Vector2.__new(- op.x, - op.y)
 		end,
 
 		__mul = function (op1, op2)
@@ -183,7 +187,7 @@ return (function ()
 
 		__index = function (table, key)
 			if key == 'magnitude' then
-				return math.sqrt(table.sqrMagnitude)
+				return math.sqrt(table.SqrMagnitude())
 			elseif key == 'normalized' then
 				local vec = Vector2.__new(table.x, table.y)
 				vec.Normalize()
@@ -216,6 +220,10 @@ return (function ()
 			return Vector3.__new(op1.x - op2.x, op1.y - op2.y, op1.z - op2.z)
 		end,
 
+		__unm = function (op)
+			return Vector3.__new(- op.x, - op.y, - op.z)
+		end,
+
 		__mul = function (op1, op2)
 			local vec, m
 			if type(op1) == 'number'then
@@ -243,6 +251,64 @@ return (function ()
 				return Vector3.Normalize(table)
 			elseif key == 'sqrMagnitude' then
 				return Vector3.SqrMagnitude(table)
+			else
+				error('Cannot access field "' .. key .. '"')
+			end
+		end,
+
+		__newindex = function (table, key, v)
+			error('Cannot assign to field "' .. key .. '"')
+		end,
+
+		__tostring = function (value)
+			return value.ToString()
+		end
+	}
+
+	local Vector4IndexMap = {'x', 'y', 'z', 'w'}
+
+	local Vector4Metatable
+	Vector4Metatable = {
+		__add = function (op1, op2)
+			return Vector4.__new(op1.x + op2.x, op1.y + op2.y, op1.z + op2.z, op1.w + op2.w)
+		end,
+
+		__sub = function (op1, op2)
+			return Vector4.__new(op1.x - op2.x, op1.y - op2.y, op1.z - op2.z, op1.w - op2.w)
+		end,
+
+		-- VCAS@1.6.3c では非実装
+		__unm = function (op)
+			return Vector4.__new(- op.x, - op.y, - op.z, - op.w)
+		end,
+
+		__mul = function (op1, op2)
+			local vec, m
+			if type(op1) == 'number'then
+				vec = op2
+				m = op1
+			else
+				vec = op1
+				m = op2
+			end
+			return Vector4.__new(vec.x * m, vec.y * m, vec.z * m, vec.w * m)
+		end,
+
+		__div = function (op1, op2)
+			return Vector4.__new(op1.x / op2, op1.y / op2, op1.z / op2, op1.w / op2)
+		end,
+
+		__eq = function (op1, op2)
+			return op1.x == op2.x and op1.y == op2.y and op1.z == op2.z and op1.w == op2.w
+		end,
+
+		__index = function (table, key)
+			if key == 'magnitude' then
+				return Vector4.Magnitude(table)
+			elseif key == 'normalized' then
+				return Vector4.Normalize(table)
+			elseif key == 'sqrMagnitude' then
+				return Vector4.SqrMagnitude(table)
 			else
 				error('Cannot access field "' .. key .. '"')
 			end
@@ -427,10 +493,9 @@ return (function ()
 					end,
 
 					-- static 関数として実装すべきところが、非 static 関数として実装されている可能性がある。
-					-- Vector3, Vector4 の SqrMagnitude は、static として実装されている。
 					-- sqrMagnitude フィールドと機能が重複している。
 					SqrMagnitude = function ()
-						return math.pow(self.x, 2) + math.pow(self.y, 2)
+						return self.x ^ 2 + self.y ^ 2
 					end
 				}
 				setmetatable(self, Vector2Metatable)
@@ -452,7 +517,7 @@ return (function ()
 			end,
 
 			Scale = function (a, b)
-				return b and Vector2.__new(a.x * b.x, a.y * b.y) or Vector2.__new(math.pow(a.x, 2), math.pow(a.y, 2))
+				return b and Vector2.__new(a.x * b.x, a.y * b.y) or Vector2.__new(a.x ^ 2, a.y ^ 2)
 			end,
 
 			Dot = function (lhs, rhs)
@@ -472,12 +537,12 @@ return (function ()
 				return (a - b).magnitude
 			end,
 
-			__toVector2 = function (vec3)
-				return Vector2.__new(vec3.x, vec3.y)
+			__toVector2 = function (vector)
+				return Vector2.__new(vector.x, vector.y)
 			end,
 
-			__toVector3 = function (vec2)
-				return Vector3.__new(vec2.x, vec2.y, 0.0)
+			__toVector3 = function (vector)
+				return Vector3.__new(vector.x, vector.y, 0.0)
 			end
 		},
 
@@ -604,7 +669,7 @@ return (function ()
 				)
 			end,
 
-			-- 1.6.3b で削除された。
+			-- VCAS@1.6.3b で削除された。
 			MoveTowards = function (current, target, maxDistanceDelta)
 				if maxDistanceDelta == 0 then
 					return current
@@ -623,7 +688,7 @@ return (function ()
 			end,
 
 			Scale = function (a, b)
-				return b and Vector3.__new(a.x * b.x, a.y * b.y, a.z * b.z) or Vector3.__new(math.pow(a.x, 2), math.pow(a.y, 2), math.pow(a.z, 2))
+				return b and Vector3.__new(a.x * b.x, a.y * b.y, a.z * b.z) or Vector3.__new(a.x ^ 2, a.y ^ 2, a.z ^ 2)
 			end,
 
 			Cross = function (lhs, rhs)
@@ -682,7 +747,7 @@ return (function ()
 			end,
 
 			SqrMagnitude = function (vector)
-				return math.pow(vector.x, 2) + math.pow(vector.y, 2) + math.pow(vector.z, 2)
+				return vector.x ^ 2 + vector.y ^ 2 + vector.z ^ 2
 			end,
 
 			Min = function (lhs, rhs)
@@ -691,6 +756,105 @@ return (function ()
 
 			Max = function (lhs, rhs)
 				return Vector3.__new(math.max(lhs.x, rhs.x), math.max(lhs.y, rhs.y), math.max(lhs.z, rhs.z))
+			end
+		},
+
+		Vector4 = {
+			__new = function (x, y, z, w)
+				local argsSpecified = x and y and z
+				local self
+				self = {
+					x = argsSpecified and x or 0.0,
+					y = argsSpecified and y or 0.0,
+					z = argsSpecified and z or 0.0,
+					w = w or 0.0,
+
+					set_Item = function (index, value)
+						local key = Vector4IndexMap[index + 1]
+						if key then
+							self[key] = value
+						else
+							error('Invalid index: ' .. tostring(index))
+						end
+					end,
+
+					ToString = function (format)
+						-- format argument is not implemented
+						return string.format('(%.1f, %.1f, %.1f, %.1f)', self.x, self.y, self.z, self.w)
+					end,
+
+					GetHashCode = function ()
+						return NumberHashCode(self.x, NumberHashCode(self.y, NumberHashCode(self.z, NumberHashCode(self.w))))
+					end,
+
+					Normalize = function ()
+						local m = Vector4.Magnitude(self)
+						if math.abs(m) <= Vector4.kEpsilon then
+							self.x = 0.0
+							self.y = 0.0
+							self.z = 0.0
+							self.w = 0.0
+						else
+							self.x = self.x / m
+							self.y = self.y / m
+							self.z = self.z / m
+							self.w = self.w / m
+						end
+					end,
+
+					-- 同名の関数が static 関数として実装されている。
+					-- sqrMagnitude フィールドと機能が重複している。
+					SqrMagnitude = function ()
+						return Vector4.SqrMagnitude(self)
+					end
+				}
+				setmetatable(self, Vector4Metatable)
+				return self
+			end,
+
+			LerpUnclamped = function (a, b, t)
+				return Vector4.__new(
+					cytanb.LerpUnclamped(a.x, b.x, t),
+					cytanb.LerpUnclamped(a.y, b.y, t),
+					cytanb.LerpUnclamped(a.z, b.z, t),
+					cytanb.LerpUnclamped(a.w, b.w, t)
+				)
+			end,
+
+			Normalize = function (value)
+				local vec = Vector4.__new(value.x, value.y, value.z, value.w)
+				vec.Normalize()
+				return vec
+			end,
+
+			Dot = function (lhs, rhs)
+				return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z + lhs.w * rhs.w
+			end,
+
+			Magnitude = function (vector)
+				return math.sqrt(Vector4.SqrMagnitude(vector))
+			end,
+
+			__toVector4 = function (vector)
+				local z = rawget(vector, 'z')
+				return Vector4.__new(vector.x, vector.y, z and z or 0.0, 0.0)
+			end,
+
+			__toVector3 = function (vector)
+				return Vector3.__new(vector.x, vector.y, vector.z)
+			end,
+
+			__toVector2 = function (vector)
+				return Vector2.__new(vector.x, vector.y)
+			end,
+
+			SqrMagnitude = function (vector)
+				return vector.x ^ 2 + vector.y ^ 2 + vector.z ^ 2 + vector.w ^ 2
+			end,
+
+			-- VCAS@1.6.3c では非実装
+			Scale = function (a, b)
+				return b and Vector4.__new(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w) or Vector4.__new(a.x ^ 2, a.y ^ 2, a.z ^ 2, a.w ^ 2)
 			end
 		},
 
@@ -772,11 +936,11 @@ return (function ()
 			end,
 
 			__toVector4 = function (color)
-				error('!!NOT IMPLEMENTED!!')
+				return Vector4.__new(color.r, color.g, color.b, color.a)
 			end,
 
-			__toColor = function (vec4)
-				error('!!NOT IMPLEMENTED!!')
+			__toColor = function (vector)
+				return Color.__new(vector.x, vector.y, vector.z, vector.w)
 			end
 		},
 
@@ -941,7 +1105,7 @@ return (function ()
 
 				Round = function (num, decimalPlaces)
 					if decimalPlaces then
-						local m = math.pow(10, decimalPlaces)
+						local m = 10 ^ decimalPlaces
 						return math.floor(num * m + 0.5) / m
 					else
 						return math.floor(num + 0.5)
@@ -960,6 +1124,15 @@ return (function ()
 						vci.fake.Round(vec.x, decimalPlaces),
 						vci.fake.Round(vec.y, decimalPlaces),
 						vci.fake.Round(vec.z, decimalPlaces)
+					)
+				end,
+
+				RoundVector4 = function (vec, decimalPlaces)
+					return Vector4.__new(
+						vci.fake.Round(vec.x, decimalPlaces),
+						vci.fake.Round(vec.y, decimalPlaces),
+						vci.fake.Round(vec.z, decimalPlaces),
+						vci.fake.Round(vec.w, decimalPlaces)
 					)
 				end,
 
@@ -1055,6 +1228,13 @@ return (function ()
 		right = function() return Vector3.__new(1, 0, 0) end,
 		kEpsilon = Vector2.kEpsilon,
 		kEpsilonNormalSqrt = Vector2.kEpsilonNormalSqrt
+	})
+
+	Vector4 = fakeModule.Vector4
+	cytanb.SetConstEach(Vector4, {
+		zero = function() return Vector4.__new(0, 0, 0, 0) end,
+		one = function() return Vector4.__new(1, 1, 1, 1) end,
+		kEpsilon = Vector2.kEpsilon
 	})
 
 	Color = fakeModule.Color
