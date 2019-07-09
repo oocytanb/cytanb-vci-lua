@@ -123,6 +123,7 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.equal(Vector2.__new(-5.0, -10.0), -5 * Vector2.__new(1, 2))
 		assert.are.equal(Vector2.__new(0.5, 0.66667), vci.fake.RoundVector2(Vector2.__new(1, 2) / Vector2.__new(2, 3), 5))
 		assert.are.equal(Vector2.__new(0.2, 0.4), Vector2.__new(1, 2) / 5)
+		assert.are.equal(Vector2.__new(-3, 5), - Vector2.__new(3, -5))
 
 		assert.are.equal(2.82843, vci.fake.Round(Vector2.Distance(Vector2.__new(1, 2), Vector2.__new(3, 4)), 5))
 		assert.are.equal(11, Vector2.Dot(Vector2.__new(1, 2), Vector2.__new(3, 4)))
@@ -226,6 +227,7 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.equal(Vector3.__new(15.0, 20.0, 25.0), Vector3.__new(3, 4, 5) * 5)
 		assert.are.equal(Vector3.__new(-15.0, -20.0, -25.0), -5 * Vector3.__new(3, 4, 5))
 		assert.are.equal(Vector3.__new(0.6, 0.8, 1.0), Vector3.__new(3, 4, 5) / 5)
+		assert.are.equal(Vector3.__new(-3, 0, 5), - Vector3.__new(3, 0, -5))
 
 		assert.are.equal(17.02939, vci.fake.Round(Vector3.Distance(Vector3.__new(3, 4, 5), Vector3.__new(8, 15, 17)), 5))
 
@@ -431,12 +433,110 @@ describe('Test cytanb_fake_vci', function ()
 		assert.are.equal(0, angleConflictCount)
 	end)
 
+	it('Vector4', function ()
+		local vOne = Vector4.one
+		vOne.x = 0.5
+		vOne.y = 0.75
+		vOne.z = -0.25
+		vOne.w = -0.125
+		assert.are.equal(Vector4.__new(0.5, 0.75, -0.25, -0.125), vOne)
+		assert.are.equal(Vector4.__new(1, 1, 1, 1), Vector4.one)
+		assert.are.equal('(3.0, -2.0, 1.3, -0.5)', tostring(Vector4.__new(3, -2, 1.25, -0.5)))
+
+		assert.are.equal(Vector2.kEpsilon, Vector4.kEpsilon)
+
+		assert.are.equal(Vector4.__new(100, 200, 300, 0), Vector4.__toVector4(Vector3.__new(100, 200, 300)))
+		assert.are.equal(Vector4.__new(100, 200, 0, 0), Vector4.__toVector4(Vector2.__new(100, 200)))
+
+		assert.are.equal(Vector3.__new(100, 200, 300), Vector4.__toVector3(Vector4.__new(100, 200, 300, 400)))
+		assert.are.equal(Vector2.__new(100, 200), Vector4.__toVector2(Vector4.__new(100, 200, 300, 400)))
+
+		assert.are.equal(Vector4.zero, Vector4.__new())
+		assert.are.equal(Vector4.zero, Vector4.__new(500))
+		assert.are.equal(Vector4.zero, Vector4.__new(500, 600))
+		assert.are.equal(Vector4.__new(500, 600, 700, 0), Vector4.__new(500, 600, 700))
+
+		local v19 = Vector4.__new(10, 200, 3000, 40000)
+		v19.set_Item(0, -0.5)
+		v19.set_Item(1, 987)
+		v19.set_Item(2, 6.5)
+		v19.set_Item(3, 33)
+		assert.are.equal(Vector4.__new(-0.5, 987, 6.5, 33), v19)
+
+		local v20 = Vector4.__new(3, 4, 5, 6)
+		assert.are.equal(9.27362, vci.fake.Round(v20.magnitude, 5))
+		assert.are.equal(86, v20.sqrMagnitude)
+		assert.are.equal(9.27362, vci.fake.Round(Vector4.Magnitude(v20), 5))
+		assert.are.equal(86, v20.SqrMagnitude())
+		assert.are.equal(86, Vector4.SqrMagnitude(v20))
+		assert.are.equal(0, Vector4.zero.magnitude)
+
+		local v21 = v20.normalized
+		assert.are.equal(Vector4.__new(0.32350, 0.43133, 0.53916, 0.64700), vci.fake.RoundVector4(v21, 5))
+		local v22 = Vector4.__new(5, 12, 13, 17)
+		v22.Normalize()
+		assert.are.equal(Vector4.__new(0.19968, 0.47923, 0.51917, 0.67891), vci.fake.RoundVector4(v22, 5))
+		assert.are.equal(Vector4.__new(-0.19968, -0.47923, -0.51917, 0.67891), vci.fake.RoundVector4(Vector4.Normalize(Vector4.__new(-5, -12, -13, 17)), 5))
+		assert.are.equal(Vector4.__new(0.70711, 0, 0, -0.70711), vci.fake.RoundVector4(Vector4.__new(Vector4.kEpsilon, 0, 0, -Vector4.kEpsilon).normalized, 5))
+		assert.are.equal(Vector4.__new(0, 0, 0, 0), Vector4.zero.normalized)
+
+		assert.are.equal(-6, Vector4.Dot(Vector4.__new(1, 0, -3, -4), Vector4.__new(2, -3, -4, 5)))
+		assert.are.equal(-2, Vector4.Dot(Vector4.__new(1, 0, -1, 0), Vector4.__new(-1, 0, 1, 0)))
+		assert.are.equal(0, Vector4.Dot(Vector4.zero, Vector4.__new(2, -3, -4, 5)))
+		assert.are.equal(0, Vector4.Dot(Vector4.__new(1, 0, -3, -4), Vector4.zero))
+
+		assert.are.equal(Vector4.__new(0.5, 0, 1, -3.5), Vector4.LerpUnclamped(Vector4.__new(3, 0, -5, 4), Vector4.__new(8, 0, -17, 19), -0.5))
+		assert.are.equal(Vector4.__new(3, 0, -5, 4), Vector4.LerpUnclamped(Vector4.__new(3, 0, -5, 4), Vector4.__new(8, 0, -17, 19), 0))
+		assert.are.equal(Vector4.__new(4.25, 0, -8, 7.75), Vector4.LerpUnclamped(Vector4.__new(3, 0, -5, 4), Vector4.__new(8, 0, -17, 19), 0.25))
+		assert.are.equal(Vector4.__new(6.75, 0, -14, 15.25), Vector4.LerpUnclamped(Vector4.__new(3, 0, -5, 4), Vector4.__new(8, 0, -17, 19), 0.75))
+		assert.are.equal(Vector4.__new(8, 0, -17, 19), Vector4.LerpUnclamped(Vector4.__new(3, 0, -5, 4), Vector4.__new(8, 0, -17, 19), 1))
+		assert.are.equal(Vector4.__new(10.5, 0, -23, 26.5), Vector4.LerpUnclamped(Vector4.__new(3, 0, -5, 4), Vector4.__new(8, 0, -17, 19), 1.5))
+
+		assert.are.equal(Vector4.__new(-4, 0, 8.5, -9.5), Vector4.LerpUnclamped(Vector4.zero, Vector4.__new(8, 0, -17, 19), -0.5))
+		assert.are.equal(Vector4.__new(2, 0, -4.25, 4.75), Vector4.LerpUnclamped(Vector4.zero, Vector4.__new(8, 0, -17, 19), 0.25))
+		assert.are.equal(Vector4.__new(8, 0, -17, 19), Vector4.LerpUnclamped(Vector4.zero, Vector4.__new(8, 0, -17, 19), 1))
+		assert.are.equal(Vector4.__new(4.5, 0, -7.5, 6), Vector4.LerpUnclamped(Vector4.__new(3, 0, -5, 4), Vector4.zero, -0.5))
+		assert.are.equal(Vector4.__new(3, 0, -5, 4), Vector4.LerpUnclamped(Vector4.__new(3, 0, -5, 4), Vector4.zero, 0))
+		assert.are.equal(Vector4.__new(2.25, 0, -3.75, 3), Vector4.LerpUnclamped(Vector4.__new(3, 0, -5, 4), Vector4.zero, 0.25))
+
+		assert.are.equal(Vector4.__new(2, -6, 12, -20), Vector4.Scale(Vector4.__new(1, 2, -3, -4), Vector4.__new(2, -3, -4, 5)))
+
+		local hashMap = {}
+		local hashTargets = {
+			{2, 0, 0, 0},
+			{0, 2, 0, 0},
+			{0, 0, 2, 0},
+			{0, 0, 0, 2},
+			{-2, 0, 0, 0},
+			{0, -2, 0, 0},
+			{0.5, -0.25, -0.125, 0.75},
+			{0.5, 0.25, 0.125, 0.75},
+			{-0.25, 0.5, -0.125, 0.75},
+			{-0.25, 0.5, 0.75, -0.125}
+		}
+		local hashConflictCount = 0
+
+		for i, iv in pairs(hashTargets) do
+			local vec = Vector4.__new(iv[1], iv[2], iv[3], iv[4])
+			local hashCode = vec.GetHashCode()
+			if hashMap[hashCode] then
+				hashConflictCount = hashConflictCount + 1
+			else
+				hashMap[hashCode] = vec
+			end
+		end
+		assert.are.equal(0, hashConflictCount)
+	end)
+
 	it('Color', function ()
 		local cCyan = Color.cyan
 		cCyan.r = 0.5
 		cCyan.a = 0.75
 		assert.are.equal(Color.__new(0.5, 1, 1, 0.75), cCyan)
 		assert.are.equal(Color.__new(0, 1, 1, 1), Color.cyan)
+
+		assert.are.equal(Vector4.__new(0.5, 0.25, 1.0, 0.75), Color.__toVector4(Color.__new(0.5, 0.25, 1, 0.75)))
+		assert.are.equal(Color.__new(-0.5, -0.25, -1.0, -0.75), Color.__toColor(Vector4.__new(-0.5, -0.25, -1, -0.75)))
 
 		assert.are.equal('RGBA(1.000, 0.000, 1.000, 1.000)', tostring(Color.magenta))
 		assert.are.equal(Color.__new(1, 0, 1), Color.magenta)
