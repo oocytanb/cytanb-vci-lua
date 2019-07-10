@@ -4,53 +4,53 @@
 ----------------------------------------------------------------
 
 describe('Test cytanb_min', function ()
-	local min, full
+    local min, full
 
-	setup(function ()
-		require('cytanb_fake_vci').vci.fake.Setup(_G)
+    setup(function ()
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
 
-		min = require('cytanb_min') and package.loaded['cytanb']
-		package.loaded['cytanb'] = nil
-		package.loaded['cytanb_min'] = nil
-		full = require('cytanb')
-	end)
+        min = require('cytanb_min') and package.loaded['cytanb']
+        package.loaded['cytanb'] = nil
+        package.loaded['cytanb_min'] = nil
+        full = require('cytanb')
+    end)
 
-	teardown(function ()
-		package.loaded['cytanb'] = nil
-		package.loaded['cytanb_min'] = nil
-		vci.fake.Teardown(_G)
-	end)
+    teardown(function ()
+        package.loaded['cytanb'] = nil
+        package.loaded['cytanb_min'] = nil
+        vci.fake.Teardown(_G)
+    end)
 
-	it('check identifier', function ()
-		local sourceInfo = debug.getinfo(min.Vars, 'S').source or ''
-		local infoLen = #sourceInfo
-		if infoLen >= 2 and string.sub(sourceInfo, 1, 1) == '@' then
-			local minPath = string.sub(sourceInfo, 2)
-			local file = io.open(minPath, 'r')
-			assert.truthy(file)
-			local text = file:read(1024)
-			io.close(file)
-			assert.truthy(text)
-			assert.truthy(string.find(text, '%s+local%s+cytanb%s*='))
-		end
-	end)
+    it('check identifier', function ()
+        local sourceInfo = debug.getinfo(min.Vars, 'S').source or ''
+        local infoLen = #sourceInfo
+        if infoLen >= 2 and string.sub(sourceInfo, 1, 1) == '@' then
+            local minPath = string.sub(sourceInfo, 2)
+            local file = io.open(minPath, 'r')
+            assert.truthy(file)
+            local text = file:read(1024)
+            io.close(file)
+            assert.truthy(text)
+            assert.truthy(string.find(text, '%s+local%s+cytanb%s*='))
+        end
+    end)
 
-	it('check fields', function ()
-		assert.are.same('table', type(min))
-		assert.are.same('table', type(full))
+    it('check fields', function ()
+        assert.are.same('table', type(min))
+        assert.are.same('table', type(full))
 
-		local fieldCount = 0
-		for key, fullValue in pairs(full) do
-			local minValue = min[key]
-			assert.are.same(type(fullValue), type(minValue))
+        local fieldCount = 0
+        for key, fullValue in pairs(full) do
+            local minValue = min[key]
+            assert.are.same(type(fullValue), type(minValue))
 
-			local valueType = type(fullValue)
-			if valueType == 'number' or valueType == 'string' or valueType == 'boolean' then
-				assert.are.same(fullValue, minValue)
-			end
+            local valueType = type(fullValue)
+            if valueType == 'number' or valueType == 'string' or valueType == 'boolean' then
+                assert.are.same(fullValue, minValue)
+            end
 
-			fieldCount = fieldCount + 1
-		end
-		assert.is_true(fieldCount > 10)
-	end)
+            fieldCount = fieldCount + 1
+        end
+        assert.is_true(fieldCount > 10)
+    end)
 end)
