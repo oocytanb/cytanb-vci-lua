@@ -328,6 +328,10 @@ local cytanb = (function ()
             end
         end,
 
+        Clamp = function (value, min, max)
+            return math.max(min, math.min(value, max))
+        end,
+
         Lerp = function (a, b, t)
             if t <= 0.0 then
                 return a
@@ -339,7 +343,13 @@ local cytanb = (function ()
         end,
 
         LerpUnclamped = function (a, b, t)
-            return a + (b - a) * t
+            if t == 0.0 then
+                return a
+            elseif t == 1.0 then
+                return b
+            else
+                return a + (b - a) * t
+            end
         end,
 
         Random32 = function ()
@@ -457,7 +467,7 @@ local cytanb = (function ()
             local toneN = omitScale and hueN or (hueN - 1)
             local saturationN = math.max(math.floor(saturationSamples or cytanb.ColorSaturationSamples), 1)
             local valueN = math.max(math.floor(brightnessSamples or cytanb.ColorBrightnessSamples), 1)
-            local index = math.max(math.min(math.floor(colorIndex or 0), hueN * saturationN * valueN - 1), 0)
+            local index = cytanb.Clamp(math.floor(colorIndex or 0), 0, hueN * saturationN * valueN - 1)
 
             local x = index % hueN
             local y = math.floor(index / hueN)

@@ -228,6 +228,17 @@ describe('Test cytanb owner user', function ()
         assert.are.same(-123.46, cytanb.Round(-123.456, 2))
     end)
 
+    it('Clamp', function ()
+        assert.are.same(0, cytanb.Clamp(0, 0, 0))
+        assert.are.same(0, cytanb.Clamp(0, -1.5, 1.5))
+        assert.are.same(-1.5, cytanb.Clamp(-2, -1.5, 1.5))
+        assert.are.same(-1.5, cytanb.Clamp(-1.5, -1.5, 1.5))
+        assert.are.same(-0.25, cytanb.Clamp(-0.25, -1.5, 1.5))
+        assert.are.same(1.25, cytanb.Clamp(1.25, -1.5, 1.5))
+        assert.are.same(1.5, cytanb.Clamp(1.5, -1.5, 1.5))
+        assert.are.same(1.5, cytanb.Clamp(5, -1.5, 1.5))
+    end)
+
     it('Lerp', function ()
         assert.are.same(1, cytanb.Lerp(1, 2, -1))
         assert.are.same(1, cytanb.Lerp(1, 2, 0))
@@ -369,7 +380,8 @@ describe('Test cytanb owner user', function ()
             local c32 = cytanb.ColorFromARGB32(rgb32)
             local cidx = cytanb.ColorFromIndex(index)
             local diff = cidx - c32
-            assert.are.equal(Color.clear, vci.fake.RoundColor(diff, 2))
+            local rdiff = Color.__new(cytanb.Round(diff.r, 2), cytanb.Round(diff.g, 2), cytanb.Round(diff.b, 2), cytanb.Round(diff.a, 2))
+            assert.are.equal(Color.clear, rdiff)
             assert.are.equal(rgb32, cytanb.ColorToARGB32(c32))
         end
 
@@ -379,7 +391,16 @@ describe('Test cytanb owner user', function ()
             local cidx = cytanb.ColorFromIndex(i - 1)
             local hashCode = cidx.GetHashCode()
             local ce = colorMap[hashCode]
-            if ce and vci.fake.RoundColor(cidx - ce, 5) ~= Color.clear then
+            local conflict
+            if ce then
+                local diff = cidx - ce
+                local rdiff = Color.__new(cytanb.Round(diff.r, 5), cytanb.Round(diff.g, 5), cytanb.Round(diff.b, 5), cytanb.Round(diff.a, 5))
+                conflict = rdiff ~= Color.clear
+            else
+                conflict = false
+            end
+
+            if conflict then
                 conflictCount = conflictCount + 1
             else
                 colorMap[hashCode] = cidx
