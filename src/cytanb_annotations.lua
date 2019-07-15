@@ -53,6 +53,7 @@
 ---@field Clamp fun (value: number, min: number, max: number): number @`min` 以上 `max` 以下の範囲に制限された `value` を返す。
 ---@field Lerp fun (a: number, b: number, t: number): number @`a` と `b` の間を `t` で線形補間する。`t` は 0 から 1 の範囲に制限される。
 ---@field LerpUnclamped fun (a: number, b: number, t: number): number @`a` と `b` の間を `t` で線形補間する。`t` の範囲に制限はない。
+---@field PingPong fun (t: number, length: number): number @`t` が `0` と `length` の間を行き来する値を返す。
 ---@field Random32 fun (): number @32 bit 整数値の範囲の疑似乱数を生成する。
 ---@field RandomUUID fun (): cytanb_uuid_t @乱数に基づく UUID version 4 を生成し、UUID オブジェクトを返す。
 ---@field UUIDFromNumbers fun (...): cytanb_uuid_t @指定した数値で、UUID オブジェクトを生成する。数値引数リストの1番目が最上位 32 bit で、4番目が最下位 32 bit となる。数値引数リストの替わりに数値配列を指定することも可能。

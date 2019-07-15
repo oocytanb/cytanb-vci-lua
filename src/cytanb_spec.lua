@@ -267,6 +267,32 @@ describe('Test cytanb owner user', function ()
         assert.are.same(-3, cytanb.LerpUnclamped(-1, -2, 2))
     end)
 
+    it('PingPong', function ()
+        assert.are.same(7, cytanb.PingPong(-33, 10))
+        assert.are.same(2, cytanb.PingPong(-22, 10))
+        assert.are.same(9, cytanb.PingPong(-11, 10))
+        assert.are.same(10, cytanb.PingPong(-10, 10))
+        assert.are.same(8, cytanb.PingPong(-8, 10))
+        assert.are.same(0, cytanb.PingPong(0, 10))
+        assert.are.same(8, cytanb.PingPong(8, 10))
+        assert.are.same(10, cytanb.PingPong(10, 10))
+        assert.are.same(9, cytanb.PingPong(11, 10))
+        assert.are.same(2, cytanb.PingPong(22, 10))
+        assert.are.same(7, cytanb.PingPong(33, 10))
+
+        -- assert.are.same(-20, cytanb.PingPong(-33, -10)) -- -7
+        -- assert.are.same(-20, cytanb.PingPong(-22, -10))  -- -2
+        -- assert.are.same(-20, cytanb.PingPong(-11, -10)) -- -9
+        -- assert.are.same(-20, cytanb.PingPong(-10, -10)) -- -10
+        -- assert.are.same(-20, cytanb.PingPong(-8, -10))  -- -8
+        -- assert.are.same(-20, cytanb.PingPong(0, -10))   -- 0
+        -- assert.are.same(-20, cytanb.PingPong(8, -10))   -- -8
+        -- assert.are.same(-20, cytanb.PingPong(10, -10))  -- -10
+        -- assert.are.same(-20, cytanb.PingPong(11, -10))  -- -9
+        -- assert.are.same(-20, cytanb.PingPong(22, -10))  -- -2
+        -- assert.are.same(-20, cytanb.PingPong(33, -10))  -- -7
+    end)
+
     it('UUID', function ()
         local us_empty = '00000000-0000-0000-0000-000000000000'
         local uuid_empty = cytanb.UUIDFromNumbers(0, 0, 0, 0)

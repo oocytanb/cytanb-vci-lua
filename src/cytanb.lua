@@ -352,6 +352,28 @@ local cytanb = (function ()
             end
         end,
 
+        PingPong = function (t, length)
+            if length == 0 then
+                return 0
+            end
+
+            local q = math.floor(t / length)
+            local r = t - q * length
+            if q < 0 then
+                if (q + 1) % 2 == 0 then
+                    return length - r
+                else
+                    return r
+                end
+            else
+                if q % 2 == 0 then
+                    return r
+                else
+                    return length - r
+                end
+            end
+        end,
+
         Random32 = function ()
             -- MoonSharp では整数値の場合 32bit int 型にキャストされ、2147483646 が渡すことのできる最大値。
             return bit32.band(math.random(-2147483648, 2147483646), 0xFFFFFFFF)
