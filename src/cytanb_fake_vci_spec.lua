@@ -926,7 +926,7 @@ describe('Test cytanb_fake_vci', function ()
         assert.stub(cbMap.cb3).was.called(1)
         assert.stub(cbMap.cbComment).was.called_with({type = 'comment', name = 'TestUser'}, 'comment', 'Hello, World!')
 
-        vci.fake.ClearMessage()
+        vci.fake.ClearMessageCallbacks()
 
         vci.message.Emit('bar', 404)
         assert.stub(cbMap.cb3).was.called(1)
