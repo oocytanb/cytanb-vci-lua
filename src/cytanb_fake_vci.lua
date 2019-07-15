@@ -173,7 +173,7 @@ return (function ()
 
     local messageCallbackMap = {}
 
-    local fakeModule, Vector2, Vector3, Vector4, Quaternion, Color, vci
+    local fakeModule, Vector2, Vector3, Vector4, Quaternion, Matrix4x4, Color, vci
 
     local Vector2IndexMap = {'x', 'y'}
 
@@ -406,6 +406,20 @@ return (function ()
             error('Cannot assign to field "' .. key .. '"')
         end,
 
+        __tostring = function (value)
+            return value.ToString()
+        end
+    }
+
+    local Matrix4x4IndexMap = {
+        {'m00', 'm01', 'm02', 'm03'},
+        {'m10', 'm11', 'm12', 'm13'},
+        {'m20', 'm21', 'm22', 'm23'},
+        {'m30', 'm31', 'm32', 'm33'}
+    }
+
+    local Matrix4x4Metatable
+    Matrix4x4Metatable = {
         __tostring = function (value)
             return value.ToString()
         end
@@ -1095,23 +1109,11 @@ return (function ()
                     return Quaternion.identity
                 end
 
-                local upchk
-                if upwards then
-                    if upwards.sqrMagnitude <= Vector3.kEpsilonNormalSqrt then
-                        return Quaternion.identity
-                    end
-                    upchk = upwards
-                else
-                    upchk = Vector3.up
-                end
-
-                local dot = Vector3.Dot(fw, upchk)
-                if math.abs(1 - dot) <= Vector3.kEpsilon then
+                local up = Vector3.Cross(upwards and upwards or Vector3.up, fw)
+                up.Normalize()
+                if up.x == 0 and up.y == 0 and up.z == 0 then
                     return Quaternion.identity
                 end
-
-                local up = Vector3.Cross(upchk, fw)
-                up.Normalize()
 
                 local rt = Vector3.Cross(fw, up)
 
@@ -1229,6 +1231,26 @@ return (function ()
                 local quat = Quaternion.__new(value.x, value.y, value.z, value.w)
                 quat.Normalize()
                 return quat
+            end
+        },
+
+        Matrix4x4 = {
+            __new = function (column0, column1, column2, column3)
+                -- local argsSpecified = column0 and column1 and column2 and column3
+                local self
+                self = {
+                    set_Item = function (row, column, value)
+                        local rowMap = Matrix4x4IndexMap[row + 1]
+                        local key = rowMap and rowMap[column + 1] or nil
+                        if key then
+                            self[key] = value
+                        else
+                            error('Invalid index: ' .. tostring(row) .. ', ' .. tostring(column))
+                        end
+                    end
+                }
+                setmetatable(self, Matrix4x4Metatable)
+                return self
             end
         },
 
@@ -1591,6 +1613,8 @@ return (function ()
         identity = function() return Quaternion.__new(0, 0, 0, 1) end,
         kEpsilon = 9.99999997475243E-07
     })
+
+    Matrix4x4 = fakeModule.Matrix4x4
 
     Color = fakeModule.Color
     cytanb.SetConstEach(Color, {
