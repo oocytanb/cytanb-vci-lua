@@ -607,6 +607,17 @@ local cytanb = (function ()
                     end
                 end
             }
+        end,
+
+        OnInstanceMessage = function (name, callback)
+            local f = function (sender, messageName, parameterMap)
+                local id = cytanb.InstanceID()
+                if id ~= '' and id == parameterMap[cytanb.InstanceIDParameterName] then
+                    callback(sender, messageName, parameterMap)
+                end
+            end
+
+            return cytanb.OnMessage(name, f)
         end
     }
 

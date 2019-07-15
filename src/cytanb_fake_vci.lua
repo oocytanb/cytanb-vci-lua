@@ -1546,7 +1546,7 @@ return (function ()
                     end
                 end,
 
-                ClearMessage = function ()
+                ClearMessageCallbacks = function ()
                     messageCallbackMap = {}
                 end
             }

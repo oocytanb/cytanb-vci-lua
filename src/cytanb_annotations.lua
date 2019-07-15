@@ -65,3 +65,4 @@
 ---@field TableFromSerializable fun (serData: table): table @TableToSerializable で変換したテーブルを復元する。
 ---@field EmitMessage fun (name: string, parameterMap: table<string, any>) @パラメーターを JSON シリアライズして `vci.message.Emit` する。`name` はメッセージ名を指定する。`parameterMap` は送信するパラメーターのテーブルを指定する(省略可能)。また、`InstanceID` がパラメーターフィールド `__CYTANB_INSTANCE_ID` として付加されて送信される。
 ---@field OnMessage fun (name: string, callback: fun(sender: table, name: string, parameterMap: table)) @`EmitMessage` したメッセージを受信するコールバック関数を登録する。`name` はメッセージ名を指定する。`callback` 関数に渡される `parameterMap` は JSON データをデシリアライズしたテーブル。また、パラメーターフィールド `__CYTANB_INSTANCE_ID` を利用してメッセージ送信元のインスタンスを識別可能。もしデシリアライズできないデータであった場合は、パラメーターフィールド `__CYTANB_MESSAGE_VALUE` に値がセットされる。
+---@field OnInstanceMessage fun (name: string, callback: fun(sender: table, name: string, parameterMap: table)) @自身のインスタンスから送信されたメッセージを受信するコールバック関数を登録する。パラメーターフィールド `__CYTANB_INSTANCE_ID` を利用してインスタンスの判定を行う。その他の事項については `OnMessage` を参照。

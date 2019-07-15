@@ -488,10 +488,50 @@ describe('Test cytanb owner user', function ()
         assert.stub(cbMap.cbComment).was.called(1)
         assert.stub(cbMap.cbComment).was.called_with({type = 'comment', name = 'TestUser'}, 'comment', {[cytanb.MessageValueParameterName] = 'Hello, World!'})
 
+        vci.fake.ClearMessageCallbacks()
+
         cbMap.cb1:revert()
         cbMap.cb2:revert()
         cbMap.cb3:revert()
         cbMap.cbComment:revert()
+
+        vci.fake.SetVciName(lastVciName)
+    end)
+
+    it('Instance message', function ()
+        local lastVciName = vci.fake.GetVciName()
+        vci.fake.SetVciName('test-instance-module')
+
+        local cbMap = {
+            cb1 = function (sender ,name, parameterMap) end,
+            cb2 = function (sender ,name, parameterMap) end
+        }
+
+        stub(cbMap, 'cb1')
+        stub(cbMap, 'cb2')
+
+        cytanb.OnInstanceMessage('foo', cbMap.cb1)
+        cytanb.OnMessage('foo', cbMap.cb2)
+
+        cytanb.EmitMessage('foo')
+        assert.stub(cbMap.cb1).was.called(1)
+        assert.stub(cbMap.cb1).was.called_with({type = 'vci', name = 'test-instance-module'}, 'foo', {[cytanb.InstanceIDParameterName] = cytanb.InstanceID()})
+        assert.stub(cbMap.cb2).was.called(1)
+
+        cytanb.EmitMessage('foo', {hoge = 123.45, piyo = 'abc', fuga = true, hogera = {hogehoge = -9876.5, piyopiyo = false}})
+        assert.stub(cbMap.cb1).was.called(2)
+        assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-instance-module'}, 'foo', {[cytanb.InstanceIDParameterName] = cytanb.InstanceID(), hoge = 123.45, piyo = 'abc', fuga = true, hogera = {hogehoge = -9876.5, piyopiyo = false}})
+        assert.stub(cbMap.cb2).was.called(2)
+
+        vci.fake.EmitVciMessage('test-instance-module', 'foo', '{"__CYTANB_INSTANCE_ID":"12345678-1234-1234-1234-123456789abc","num":256}')
+        assert.stub(cbMap.cb1).was.called(2)
+        assert.stub(cbMap.cb2).was.called(3)
+        assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-instance-module'}, 'foo', {[cytanb.InstanceIDParameterName] = '12345678-1234-1234-1234-123456789abc', num = 256})
+
+        vci.fake.ClearMessageCallbacks()
+
+        cbMap.cb1:revert()
+        cbMap.cb2:revert()
 
         vci.fake.SetVciName(lastVciName)
     end)
