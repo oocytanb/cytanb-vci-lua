@@ -673,11 +673,11 @@ local cytanb = (function ()
 
     package.loaded['cytanb'] = cytanb
 
-    if vci.assets.IsMine then
+    instanceID = vci.state.Get(InstanceIDStateName) or ''
+    if instanceID == '' and vci.assets.IsMine then
+        -- vci.state に ID が設定されていない場合は生成する。
         instanceID = tostring(cytanb.RandomUUID())
         vci.state.Set(InstanceIDStateName, instanceID)
-    else
-        instanceID = ''
     end
 
     return cytanb
