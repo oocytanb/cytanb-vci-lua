@@ -374,6 +374,20 @@ local cytanb = (function ()
             end
         end,
 
+        ApplyQuaternionToVector3 = function (quat, vec3)
+            -- (quat * Quaternion.__new(vec3.x, vec3.y, vec3.z, 0)) * Quaternion.Inverse(quat)
+            local qpx = quat.w * vec3.x + quat.y * vec3.z - quat.z * vec3.y
+            local qpy = quat.w * vec3.y - quat.x * vec3.z + quat.z * vec3.x
+            local qpz = quat.w * vec3.z + quat.x * vec3.y - quat.y * vec3.x
+            local qpw = - quat.x * vec3.x - quat.y * vec3.y - quat.z * vec3.z
+
+            return Vector3.__new(
+                qpw * - quat.x + qpx * quat.w + qpy * - quat.z - qpz * - quat.y,
+                qpw * - quat.y - qpx * - quat.z + qpy * quat.w + qpz * - quat.x,
+                qpw * - quat.z + qpx * - quat.y - qpy * - quat.x + qpz * quat.w
+            )
+        end,
+
         Random32 = function ()
             -- MoonSharp では整数値の場合 32bit int 型にキャストされ、2147483646 が渡すことのできる最大値。
             return bit32.band(math.random(-2147483648, 2147483646), 0xFFFFFFFF)

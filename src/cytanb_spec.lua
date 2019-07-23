@@ -268,29 +268,36 @@ describe('Test cytanb owner user', function ()
     end)
 
     it('PingPong', function ()
+        assert.are.same(0, cytanb.PingPong(-33, 0))
+
         assert.are.same(7, cytanb.PingPong(-33, 10))
         assert.are.same(2, cytanb.PingPong(-22, 10))
         assert.are.same(9, cytanb.PingPong(-11, 10))
         assert.are.same(10, cytanb.PingPong(-10, 10))
         assert.are.same(8, cytanb.PingPong(-8, 10))
         assert.are.same(0, cytanb.PingPong(0, 10))
-        assert.are.same(8, cytanb.PingPong(8, 10))
+        assert.are.same(8.25, cytanb.PingPong(8.25, 10))
         assert.are.same(10, cytanb.PingPong(10, 10))
         assert.are.same(9, cytanb.PingPong(11, 10))
         assert.are.same(2, cytanb.PingPong(22, 10))
         assert.are.same(7, cytanb.PingPong(33, 10))
 
-        -- assert.are.same(-20, cytanb.PingPong(-33, -10)) -- -7
-        -- assert.are.same(-20, cytanb.PingPong(-22, -10))  -- -2
-        -- assert.are.same(-20, cytanb.PingPong(-11, -10)) -- -9
-        -- assert.are.same(-20, cytanb.PingPong(-10, -10)) -- -10
-        -- assert.are.same(-20, cytanb.PingPong(-8, -10))  -- -8
-        -- assert.are.same(-20, cytanb.PingPong(0, -10))   -- 0
-        -- assert.are.same(-20, cytanb.PingPong(8, -10))   -- -8
-        -- assert.are.same(-20, cytanb.PingPong(10, -10))  -- -10
-        -- assert.are.same(-20, cytanb.PingPong(11, -10))  -- -9
-        -- assert.are.same(-20, cytanb.PingPong(22, -10))  -- -2
-        -- assert.are.same(-20, cytanb.PingPong(33, -10))  -- -7
+        assert.are.same(-7, cytanb.PingPong(-33, -10))
+        assert.are.same(-2, cytanb.PingPong(-22, -10))
+        assert.are.same(-9, cytanb.PingPong(-11, -10))
+        assert.are.same(-10, cytanb.PingPong(-10, -10))
+        assert.are.same(-8, cytanb.PingPong(-8, -10))
+        assert.are.same(0, cytanb.PingPong(0, -10))
+        assert.are.same(-8.25, cytanb.PingPong(8.25, -10))
+        assert.are.same(-10, cytanb.PingPong(10, -10))
+        assert.are.same(-9, cytanb.PingPong(11, -10))
+        assert.are.same(-2, cytanb.PingPong(22, -10))
+        assert.are.same(-7, cytanb.PingPong(33, -10))
+    end)
+
+    it('ApplyQuaternionToVector3', function ()
+        assert.are.equal(Vector3.__new(6.0980760000, -5.0000000000, 4.5621780000), cytanb.ApplyQuaternionToVector3(Quaternion.AngleAxis(30, Vector3.up), Vector3.__new (3, -5, 7)))
+        assert.are.equal(Vector3.__new(2.1036720000, -6.9570910000, 5.4930360000), cytanb.ApplyQuaternionToVector3(Quaternion.Euler(10, 20, -30), Vector3.__new (3, -5, 7)))
     end)
 
     it('UUID', function ()
