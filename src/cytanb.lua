@@ -374,6 +374,21 @@ local cytanb = (function ()
             end
         end,
 
+        QuaternionToAngleAxis = function (quat)
+            local q = quat.normalized
+            local halfTheta = math.acos(q.w)
+            local st = math.sin(halfTheta)
+            local angle = math.deg(halfTheta * 2.0)
+            local vec
+            if math.abs(st) <= Quaternion.kEpsilon then
+                vec = Vector3.right
+            else
+                local si = 1.0 / st
+                vec = Vector3.__new(q.x * si, q.y * si, q.z * si)
+            end
+            return angle, vec
+        end,
+
         ApplyQuaternionToVector3 = function (quat, vec3)
             -- (quat * Quaternion.__new(vec3.x, vec3.y, vec3.z, 0)) * Quaternion.Inverse(quat)
             local qpx = quat.w * vec3.x + quat.y * vec3.z - quat.z * vec3.y

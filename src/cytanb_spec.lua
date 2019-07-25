@@ -300,6 +300,40 @@ describe('Test cytanb owner user', function ()
         assert.are.equal(Vector3.__new(2.1036720000, -6.9570910000, 5.4930360000), cytanb.ApplyQuaternionToVector3(Quaternion.Euler(10, 20, -30), Vector3.__new (3, -5, 7)))
     end)
 
+    it('QuaternionToAngleAxis', function ()
+        local a1, v1 = cytanb.QuaternionToAngleAxis(Quaternion.AngleAxis(0, Vector3.__new(3, -5, 7)))
+        assert.are.equal(0, a1)
+        assert.are.equal(Vector3.__new(1, 0, 0), v1)
+
+        local a2, v2 = cytanb.QuaternionToAngleAxis(Quaternion.AngleAxis(90, Vector3.__new(3, -5, 7)))
+        assert.are.equal(90, a2)
+        assert.are.equal(Vector3.__new(0.3292928000, -0.5488213000, 0.7683498000), v2)
+
+        local a3, v3 = cytanb.QuaternionToAngleAxis(Quaternion.AngleAxis(180, Vector3.__new(3, -5, 7)))
+        assert.are.equal(180, a3)
+        assert.are.equal(Vector3.__new(0.3292928000, -0.5488213000, 0.7683498000), v3)
+
+        local a4, v4 = cytanb.QuaternionToAngleAxis(Quaternion.AngleAxis(360, Vector3.__new(3, -5, 7)))
+        assert.are.equal(360, a4)
+        assert.are.equal(Vector3.__new(1, 0, 0), v4)    -- Vector3.__new(-Infinity, Infinity, -Infinity)
+
+        local a5, v5 = cytanb.QuaternionToAngleAxis(Quaternion.AngleAxis(-90, Vector3.__new(3, -5, 7)))
+        assert.are.equal(90, a5)
+        assert.are.equal(Vector3.__new(-0.3292928000, 0.5488213000, -0.7683498000), v5)
+
+        local a6, v6 = cytanb.QuaternionToAngleAxis(Quaternion.AngleAxis(390, Vector3.__new(3, -5, 7)))
+        assert.are.equal(330, a6)
+        assert.are.equal(Vector3.__new(-0.3292927000, 0.5488213000, -0.7683498000), v6)
+
+        local a40, v40 = cytanb.QuaternionToAngleAxis(Quaternion.__new(10, 20, 30, 40))
+        assert.are.equal(cytanb.Round(86.17744, 4), cytanb.Round(a40, 4))
+        assert.are.equal(Vector3.__new(0.2672612000, 0.5345224000, 0.8017837000), v40)
+
+        local a41, v41 = cytanb.QuaternionToAngleAxis(Quaternion.__new(0.000000000001, 0.000000000002, 0.000000000003, 0.000000000004))
+        assert.are.equal(0, a41)
+        assert.are.equal(Vector3.__new(1, 0, 0), v41)
+    end)
+
     it('UUID', function ()
         local us_empty = '00000000-0000-0000-0000-000000000000'
         local uuid_empty = cytanb.UUIDFromNumbers(0, 0, 0, 0)
