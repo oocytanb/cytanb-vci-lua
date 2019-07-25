@@ -68,6 +68,7 @@
 ---@field LerpUnclamped fun (a: number, b: number, t: number): number @`a` と `b` の間を `t` で線形補間する。`t` の範囲に制限はない。
 ---@field PingPong fun (t: number, length: number): number @`t` が `0` と `length` の間を行き来する値を返す。
 ---@field ApplyQuaternionToVector3 fun (quat: Quaternion, vec3: Vector3): Vector3 @'vec3' に 'quat' の回転を適用し、新しい Vector3 オブジェクトを返す。
+---@field QuaternionToAngleAxis fun (quat: Quaternion): number, Vector3 @`quat` を回転角度と回転軸に変換し、それぞれ1番目と2番目の戻り値として返す。
 ---@field Random32 fun (): number @32 bit 整数値の範囲の疑似乱数を生成する。
 ---@field RandomUUID fun (): cytanb_uuid_t @乱数に基づく UUID version 4 を生成し、UUID オブジェクトを返す。
 ---@field UUIDFromNumbers fun (...): cytanb_uuid_t @指定した数値で、UUID オブジェクトを生成する。数値引数リストの1番目が最上位 32 bit で、4番目が最下位 32 bit となる。数値引数リストの替わりに数値配列を指定することも可能。

@@ -152,16 +152,6 @@ return (function ()
         end
     end
 
-    local NormalizeAngle = function (angle)
-        if angle >= 360 then
-            return angle - 360
-        elseif angle < 0 then
-            return angle + 360
-        else
-            return angle
-        end
-    end
-
     local ModuleName = 'cytanb_fake_vci'
     local StringModuleName = 'string'
     local moonsharpAdditions = {_MOONSHARP = true, json = true}
@@ -396,7 +386,7 @@ return (function ()
                     ry = math.atan2(2 * (quat.x * quat.z + quat.y * quat.w), 1 - 2 * (quat.x ^ 2 + quat.y ^ 2))
                     rz = math.atan2(2 * (quat.x * quat.y + quat.z * quat.w), 1 - 2 * (quat.x ^ 2 + quat.z ^ 2))
                 end
-                return Vector3.__new(NormalizeAngle(math.deg(rx)), NormalizeAngle(math.deg(ry)), NormalizeAngle(math.deg(rz)))
+                return Vector3.__new(math.deg(rx) % 360, math.deg(ry) % 360, math.deg(rz) % 360)
             else
                 error('Cannot access field "' .. key .. '"')
             end
@@ -1000,7 +990,8 @@ return (function ()
 
                     -- Warning message: Use Quaternion.eulerAngles instead. This function was deprecated because it uses radians instead of degrees.
                     ToEulerAngles = function()
-                        error('!!NOT IMPLEMENTED!!')
+                        local v = self.eulerAngles
+                        return Vector3.__new(math.rad(v.x >= 180 and v.x - 360 or v.x), math.rad(v.y >= 180 and v.y - 360 or v.y), math.rad(v.z >= 180 and v.z - 360 or v.z))
                     end
                 }
                 setmetatable(self, QuaternionMetatable)
