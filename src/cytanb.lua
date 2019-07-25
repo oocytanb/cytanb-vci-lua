@@ -479,6 +479,101 @@ local cytanb = (function ()
             return cytanb.UUIDFromString(str)
         end,
 
+        CreateCircularQueue = function (capacity)
+            if not capacity or capacity < 1 then
+                error('Invalid argument: capacity = ' .. capacity)
+            end
+
+            local self
+            local buf = {}
+            local top = 0
+            local bottom = 0
+            local size = 0
+
+            self = {
+                Size = function ()
+                    return size
+                end,
+
+                Clear = function ()
+                    top = 0
+                    bottom = 0
+                    size = 0
+                end,
+
+                IsEmpty = function ()
+                    return size == 0
+                end,
+
+                Offer = function (element)
+                    buf[top + 1] = element
+                    top = (top + 1) % capacity
+                    if size < capacity then
+                        size = size + 1
+                    else
+                        -- バッファーがフルになっているので、古い要素を捨てるために bottom を進める。
+                        bottom = (bottom + 1) % capacity
+                    end
+                    return true
+                end,
+
+                Poll = function ()
+                    if size == 0 then
+                        return nil
+                    else
+                        local element = buf[bottom + 1]
+                        bottom = (bottom + 1) % capacity
+                        size = size - 1
+                        return element
+                    end
+                end,
+
+                PollLast = function ()
+                    if size == 0 then
+                        return nil
+                    else
+                        top = top == 0 and capacity - 1 or top - 1
+                        local element = buf[top + 1]
+                        size = size - 1
+                        return element
+                    end
+                end,
+
+                Peek = function ()
+                    if size == 0 then
+                        return nil
+                    else
+                        return buf[bottom + 1]
+                    end
+                end,
+
+                PeekLast = function ()
+                    if size == 0 then
+                        return nil
+                    else
+                        return buf[top == 0 and capacity or top]
+                    end
+                end,
+
+                Get = function (index)
+                    if index < 1 or index > size then
+                        cytanb.LogError('CreateCircularQueue.Get: index is outside the range: ' .. index)
+                        return nil
+                    end
+                    return buf[(bottom + (index - 1)) % capacity + 1]
+                end,
+
+                IsFull = function ()
+                    return size >= capacity
+                end,
+
+                MaxSize = function ()
+                    return capacity
+                end
+            }
+            return self
+        end,
+
         ColorFromARGB32 = function (argb32)
             local n = (type(argb32) == 'number') and argb32 or 0xFF000000
             return Color.__new(
