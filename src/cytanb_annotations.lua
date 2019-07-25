@@ -7,6 +7,19 @@
 
 ---@class cytanb_uuid_t UUID オブジェクト。`tostring` および比較演算子を使用できる。
 
+---@class cytanb_circular_queue_t 先入れ先出しの循環キュー。キューが満杯になった場合は、古い要素が置き換えられる。
+---@field Size fun (): number @キューの要素数を取得する。
+---@field Clear fun () @キューからすべての要素を削除する。
+---@field IsEmpty fun (): boolean @キューが空かを調べる。
+---@field Offer fun (element: any): boolean @キューに要素を挿入し、成功したかどうかを返す。
+---@field Poll fun (): any @キューの最初の要素を取り除き、それを取得する。キューが空の場合は `nil` を返す。
+---@field PollLast fun (): any @キューの最後の要素を取り除き、それを取得する。キューが空の場合は `nil` を返す。
+---@field Peek fun (): any @キューの最初の要素を取得する。キューの内容は変更されない。キューが空の場合は `nil` を返す。
+---@field PeekLast fun (): any @キューの最後の要素を取得する。キューの内容は変更されない。キューが空の場合は `nil` を返す。
+---@field Get fun (index: number): any @キューの `index` の位置にある要素を取得する。`index` が `1` から `Size` の範囲外の場合は `nil` を返す。
+---@field IsFull fun (): boolean @キューが満杯かを調べる。
+---@field MaxSize fun (): number @キューの最大容量を取得する。
+
 ---@class cytanb_transform_t
 ---@field positionX number
 ---@field positionY number
@@ -59,6 +72,7 @@
 ---@field RandomUUID fun (): cytanb_uuid_t @乱数に基づく UUID version 4 を生成し、UUID オブジェクトを返す。
 ---@field UUIDFromNumbers fun (...): cytanb_uuid_t @指定した数値で、UUID オブジェクトを生成する。数値引数リストの1番目が最上位 32 bit で、4番目が最下位 32 bit となる。数値引数リストの替わりに数値配列を指定することも可能。
 ---@field UUIDFromString fun (str: string): cytanb_uuid_t @UUID の文字列表現から、UUID オブジェクトを生成する。無効な形式であった場合は nil を返す。
+---@field CreateCircularQueue fun (capacity: number): cytanb_circular_queue_t @`capacity` で指定した容量の循環キューを作成する。`capacity` に `1` 未満を指定した場合はエラーとなる。
 ---@field ColorFromARGB32 fun (argb32: number): Color @ARGB 32 bit 値から、Color オブジェクトへ変換する。
 ---@field ColorToARGB32 fun (color: Color): number @Color オブジェクトから ARGB 32 bit 値へ変換する。
 ---@field ColorFromIndex fun (colorIndex: number, hueSamples: number, saturationSamples: number, brightnessSamples: number, omitScale: boolean): Color @カラーインデックスから対応する Color オブジェクトへ変換する。`hueSamples` は色相のサンプル数を指定し、省略した場合の値は　`ColorHueSamples`。`saturationSamples` は彩度のサンプル数を指定し、省略した場合の値は `ColorSaturationSamples`。`brightnessSamples` は明度のサンプル数を指定し、省略した場合の値は `ColorBrightnessSamples`。`omitScale` はグレースケールを省略するかを指定し、省略した場合の値は `false`。
