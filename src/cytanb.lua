@@ -532,6 +532,18 @@ local cytanb = (function ()
                     return true
                 end,
 
+                OfferFirst = function (element)
+                    bottom = (capacity + bottom - 1) % capacity
+                    buf[bottom + 1] = element
+                    if size < capacity then
+                        size = size + 1
+                    else
+                        -- バッファーがフルになっているので、古い要素を捨てるために top を戻す。
+                        top = (capacity + top - 1) % capacity
+                    end
+                    return true
+                end,
+
                 Poll = function ()
                     if size == 0 then
                         return nil
@@ -547,7 +559,7 @@ local cytanb = (function ()
                     if size == 0 then
                         return nil
                     else
-                        top = top == 0 and capacity - 1 or top - 1
+                        top = (capacity + top - 1) % capacity
                         local element = buf[top + 1]
                         size = size - 1
                         return element
@@ -566,7 +578,7 @@ local cytanb = (function ()
                     if size == 0 then
                         return nil
                     else
-                        return buf[top == 0 and capacity or top]
+                        return buf[(capacity + top - 1) % capacity + 1]
                     end
                 end,
 
