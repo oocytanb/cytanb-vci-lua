@@ -7,15 +7,16 @@
 
 ---@class cytanb_uuid_t UUID オブジェクト。`tostring` および比較演算子を使用できる。
 
----@class cytanb_circular_queue_t 先入れ先出しの循環キュー。キューが満杯になった場合は、古い要素が置き換えられる。
+---@class cytanb_circular_queue_t 循環キュー。キューが満杯になった場合は、挿入方向の逆にある要素が置き換えられる。
 ---@field Size fun (): number @キューの要素数を取得する。
 ---@field Clear fun () @キューからすべての要素を削除する。
 ---@field IsEmpty fun (): boolean @キューが空かを調べる。
----@field Offer fun (element: any): boolean @キューに要素を挿入し、成功したかどうかを返す。
----@field Poll fun (): any @キューの最初の要素を取り除き、それを取得する。キューが空の場合は `nil` を返す。
----@field PollLast fun (): any @キューの最後の要素を取り除き、それを取得する。キューが空の場合は `nil` を返す。
----@field Peek fun (): any @キューの最初の要素を取得する。キューの内容は変更されない。キューが空の場合は `nil` を返す。
----@field PeekLast fun (): any @キューの最後の要素を取得する。キューの内容は変更されない。キューが空の場合は `nil` を返す。
+---@field Offer fun (element: any): boolean @キューの末尾に要素を挿入し、成功したかどうかを返す。
+---@field OfferFirst fun (element: any): boolean @キューの先頭に要素を挿入し、成功したかどうかを返す。
+---@field Poll fun (): any @キューの先頭の要素を取り除き、それを取得する。キューが空の場合は `nil` を返す。
+---@field PollLast fun (): any @キューの末尾の要素を取り除き、それを取得する。キューが空の場合は `nil` を返す。
+---@field Peek fun (): any @キューの先頭の要素を取得する。キューの内容は変更されない。キューが空の場合は `nil` を返す。
+---@field PeekLast fun (): any @キューの末尾の要素を取得する。キューの内容は変更されない。キューが空の場合は `nil` を返す。
 ---@field Get fun (index: number): any @キューの `index` の位置にある要素を取得する。`index` が `1` から `Size` の範囲外の場合は `nil` を返す。
 ---@field IsFull fun (): boolean @キューが満杯かを調べる。
 ---@field MaxSize fun (): number @キューの最大容量を取得する。
