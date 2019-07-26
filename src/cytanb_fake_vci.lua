@@ -152,6 +152,24 @@ return (function ()
         end
     end
 
+    -- local CalcRotationAngleAroundAxis = function (quatStart, quatEnd, axis)
+    --     local vax = axis.normalized
+    --     if vax == Vector3.zero then
+    --         vax = Vector3.forward
+    --     end
+
+    --     local vs = cytanb.ApplyQuaternionToVector3(quatStart, vax)
+    --     local ve = cytanb.ApplyQuaternionToVector3(quatEnd, vax)
+    --     local qr = quatEnd * Quaternion.Inverse(quatStart)
+    --     local qfr = Quaternion.FromToRotation(vs, ve)
+
+    --     local qd = qr * Quaternion.Inverse(qfr)
+    --     local da, vdax = cytanb.QuaternionToAngleAxis(qd)
+
+    --     local dot = Vector3.Dot(ve, vdax)
+    --     return (dot >= 0 and da or - da) % 360.0
+    -- end
+
     local ModuleName = 'cytanb_fake_vci'
     local StringModuleName = 'string'
     local moonsharpAdditions = {_MOONSHARP = true, json = true}
@@ -625,6 +643,14 @@ return (function ()
 
             Distance = function (a, b)
                 return (a - b).magnitude
+            end,
+
+            Min = function (lhs, rhs)
+                return Vector2.__new(math.min(lhs.x, rhs.x), math.min(lhs.y, rhs.y))
+            end,
+
+            Max = function (lhs, rhs)
+                return Vector2.__new(math.max(lhs.x, rhs.x), math.max(lhs.y, rhs.y))
             end,
 
             __toVector2 = function (vector)

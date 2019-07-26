@@ -164,6 +164,12 @@ describe('Test cytanb_fake_vci', function ()
         assert.are.equal(Vector2.__new(-1.0, -2.0), Vector2.LerpUnclamped(Vector2.__new(4, 2), Vector2.__new(-1, -2), 1))
         assert.are.equal(Vector2.__new(-3.5, -4.0), Vector2.LerpUnclamped(Vector2.__new(4, 2), Vector2.__new(-1, -2), 1.5))
 
+        assert.are.equal(Vector2.__new(1, 2), Vector2.Min(Vector2.__new(1, 3), Vector2.__new(4, 2)))
+        assert.are.equal(Vector2.__new(-4, -3), Vector2.Min(Vector2.__new(-1, -3), Vector2.__new(-4, 2)))
+
+        assert.are.equal(Vector2.__new(4, 3), Vector2.Max(Vector2.__new(1, 3), Vector2.__new(4, 2)))
+        assert.are.equal(Vector2.__new(-1, 2), Vector2.Max(Vector2.__new(-1, -3), Vector2.__new(-4, 2)))
+
         local angleTargets = {
             [{2, 0}] = 0,
             [{2, 1}] = 26.56505,

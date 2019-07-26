@@ -3,6 +3,8 @@
 --  MIT Licensed
 ----------------------------------------------------------------
 
+-- VCAS@1.7.0a 時点において、`cytanb.lua` は VCI の `require` に対応していません。
+
 ---@type cytanb @See `cytanb_annotations.lua`
 local cytanb = (function ()
     math.randomseed(os.time() - os.clock() * 10000)
