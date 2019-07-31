@@ -497,11 +497,12 @@ local cytanb = (function ()
         end,
 
         CreateCircularQueue = function (capacity)
-            if not capacity or capacity < 1 then
-                error('Invalid argument: capacity = ' .. capacity)
+            if type(capacity) ~= 'number' or capacity < 1 then
+                error('Invalid argument: capacity = ' .. tostring(capacity))
             end
 
             local self
+            local maxSize = math.floor(capacity)
             local buf = {}
             local top = 0
             local bottom = 0
@@ -524,24 +525,24 @@ local cytanb = (function ()
 
                 Offer = function (element)
                     buf[top + 1] = element
-                    top = (top + 1) % capacity
-                    if size < capacity then
+                    top = (top + 1) % maxSize
+                    if size < maxSize then
                         size = size + 1
                     else
                         -- バッファーがフルになっているので、古い要素を捨てるために bottom を進める。
-                        bottom = (bottom + 1) % capacity
+                        bottom = (bottom + 1) % maxSize
                     end
                     return true
                 end,
 
                 OfferFirst = function (element)
-                    bottom = (capacity + bottom - 1) % capacity
+                    bottom = (maxSize + bottom - 1) % maxSize
                     buf[bottom + 1] = element
-                    if size < capacity then
+                    if size < maxSize then
                         size = size + 1
                     else
                         -- バッファーがフルになっているので、古い要素を捨てるために top を戻す。
-                        top = (capacity + top - 1) % capacity
+                        top = (maxSize + top - 1) % maxSize
                     end
                     return true
                 end,
@@ -551,7 +552,7 @@ local cytanb = (function ()
                         return nil
                     else
                         local element = buf[bottom + 1]
-                        bottom = (bottom + 1) % capacity
+                        bottom = (bottom + 1) % maxSize
                         size = size - 1
                         return element
                     end
@@ -561,7 +562,7 @@ local cytanb = (function ()
                     if size == 0 then
                         return nil
                     else
-                        top = (capacity + top - 1) % capacity
+                        top = (maxSize + top - 1) % maxSize
                         local element = buf[top + 1]
                         size = size - 1
                         return element
@@ -580,7 +581,7 @@ local cytanb = (function ()
                     if size == 0 then
                         return nil
                     else
-                        return buf[(capacity + top - 1) % capacity + 1]
+                        return buf[(maxSize + top - 1) % maxSize + 1]
                     end
                 end,
 
@@ -589,15 +590,15 @@ local cytanb = (function ()
                         cytanb.LogError('CreateCircularQueue.Get: index is outside the range: ' .. index)
                         return nil
                     end
-                    return buf[(bottom + (index - 1)) % capacity + 1]
+                    return buf[(bottom + (index - 1)) % maxSize + 1]
                 end,
 
                 IsFull = function ()
-                    return size >= capacity
+                    return size >= maxSize
                 end,
 
                 MaxSize = function ()
-                    return capacity
+                    return maxSize
                 end
             }
             return self

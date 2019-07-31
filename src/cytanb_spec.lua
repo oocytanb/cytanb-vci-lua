@@ -427,6 +427,12 @@ describe('Test cytanb owner user', function ()
     it('CircularQueue', function ()
         stub(cytanb, 'Log')
         assert.has_error(function () cytanb.CreateCircularQueue(0) end)
+        assert.has_error(function () cytanb.CreateCircularQueue(0.9) end)
+        assert.has_error(function () cytanb.CreateCircularQueue(-2) end)
+
+        assert.are.same(1, cytanb.CreateCircularQueue(1).MaxSize())
+        assert.are.same(1, cytanb.CreateCircularQueue(1.8).MaxSize())
+        assert.are.same(2, cytanb.CreateCircularQueue(2.1).MaxSize())
 
         local q1 = cytanb.CreateCircularQueue(4)
         assert.are.same(4, q1.MaxSize())
