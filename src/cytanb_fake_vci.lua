@@ -152,23 +152,25 @@ return (function ()
         end
     end
 
-    -- local CalcRotationAngleAroundAxis = function (quatStart, quatEnd, axis)
-    --     local vax = axis.normalized
-    --     if vax == Vector3.zero then
-    --         vax = Vector3.forward
-    --     end
+    --[[
+    local CalcRotationAngleAroundAxis = function (quatStart, quatEnd, axis)
+        local vax = axis.normalized
+        if vax == Vector3.zero then
+            vax = Vector3.forward
+        end
 
-    --     local vs = cytanb.ApplyQuaternionToVector3(quatStart, vax)
-    --     local ve = cytanb.ApplyQuaternionToVector3(quatEnd, vax)
-    --     local qr = quatEnd * Quaternion.Inverse(quatStart)
-    --     local qfr = Quaternion.FromToRotation(vs, ve)
+        local vs = cytanb.ApplyQuaternionToVector3(quatStart, vax)
+        local ve = cytanb.ApplyQuaternionToVector3(quatEnd, vax)
+        local qr = quatEnd * Quaternion.Inverse(quatStart)
+        local qfr = Quaternion.FromToRotation(vs, ve)
 
-    --     local qd = qr * Quaternion.Inverse(qfr)
-    --     local da, vdax = cytanb.QuaternionToAngleAxis(qd)
+        local qd = qr * Quaternion.Inverse(qfr)
+        local da, vdax = cytanb.QuaternionToAngleAxis(qd)
 
-    --     local dot = Vector3.Dot(ve, vdax)
-    --     return (dot >= 0 and da or - da) % 360.0
-    -- end
+        local dot = Vector3.Dot(ve, vdax)
+        return (dot >= 0 and da or - da) % 360.0
+    end
+    ]]
 
     local ModuleName = 'cytanb_fake_vci'
     local StringModuleName = 'string'
