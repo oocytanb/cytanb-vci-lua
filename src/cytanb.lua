@@ -12,6 +12,12 @@ local cytanb = (function ()
     --- インスタンス ID の状態変数名。
     local InstanceIDStateName = '__CYTANB_INSTANCE_ID'
 
+    --- エスケープシーケンスの置換パターン。
+    local escapeSequenceReplacementPatterns
+
+    -- パラメーター値の置換マップ。
+    local parameterValueReplacementMap
+
     --- 出力するログレベル。
     local logLevel
 
@@ -99,6 +105,60 @@ local cytanb = (function ()
             end
         end
         rawset(table, key, v)
+    end
+
+    local EscapeForSerialization = function (str)
+        -- エスケープタグの文字列を処理したあと、前方スラッシュをエスケープする。
+        return string.gsub(
+            string.gsub(str, cytanb.EscapeSequenceTag, cytanb.EscapeSequenceTag .. cytanb.EscapeSequenceTag),
+            '/', cytanb.SolidusTag
+        )
+    end
+
+    local UnescapeForDeserialization = function (str, replacer)
+        local len = string.len(str)
+        local tagLen = string.len(cytanb.EscapeSequenceTag)
+        if tagLen > len then
+            return str
+        end
+
+        local buf = ''
+        local i = 1
+        while i < len do
+            local ei, ee = string.find(str, cytanb.EscapeSequenceTag, i, true)
+            if not ei then
+                if i == 1 then
+                    -- 初回の検索で見つからなければ、処理する必要がないので、str をそのまま返す
+                    buf = str
+                else
+                    -- 残りの文字列をアペンドする
+                    buf = buf .. string.sub(str, i)
+                end
+                break
+            end
+
+            if ei > i then
+                buf = buf .. string.sub(str, i, ei - 1)
+            end
+
+            local replaced = false
+            for entryIndex, entry in ipairs(escapeSequenceReplacementPatterns) do
+                local ri, re = string.find(str, entry.pattern, ei)
+                if ri then
+                    buf = buf .. (replacer and replacer(entry.tag) or entry.replacement)
+                    i = re + 1
+                    replaced = true
+                    break
+                end
+            end
+
+            if not replaced then
+                -- エスケープタグが開始されたが、未知の形式であるため、そのままアペンドする
+                buf = buf .. cytanb.EscapeSequenceTag
+                i = ee + 1
+            end
+        end
+        return buf
     end
 
     cytanb = {
@@ -680,10 +740,23 @@ local cytanb = (function ()
             refTable[data] = true
             local serData = {}
             for k, v in pairs(data) do
-                -- 数値インデックスであれば、タグを付加する
-                local nk = (type(k) == 'number') and tostring(k) .. cytanb.ArrayNumberTag or k
+                local keyType = type(k)
+                local nk
+                if keyType == 'string' then
+                    -- 文字列であれば、エスケープ処理をする
+                    nk = EscapeForSerialization(k)
+                elseif keyType == 'number' then
+                    -- 数値インデックスであれば、タグを付加する
+                    nk = tostring(k) .. cytanb.ArrayNumberTag
+                else
+                    nk = k
+                end
 
-                if type(v) == 'number' and v < 0 then
+                local valueType = type(v)
+                if valueType == 'string' then
+                    -- 文字列であれば、エスケープ処理をする
+                    serData[nk] = EscapeForSerialization(v)
+                elseif valueType == 'number' and v < 0 then
                     -- 負の数値であれば、タグを付加する
                     serData[tostring(nk) .. cytanb.NegativeNumberTag] = tostring(v)
                 else
@@ -703,26 +776,36 @@ local cytanb = (function ()
             local data = {}
             for k, v in pairs(serData) do
                 local nk
-                local valueIsNegativeNumber
+                local valueIsNegativeNumber = false
                 if type(k) == 'string' then
-                    if string.endsWith(k, cytanb.NegativeNumberTag) then
-                        nk = string.sub(k, 1, -1 - #cytanb.NegativeNumberTag)
-                        valueIsNegativeNumber = true
-                    else
-                        nk = k
-                        valueIsNegativeNumber = false
-                    end
+                    local keyIsArrayNumber = false
+                    nk = UnescapeForDeserialization(k, function (tag)
+                        if tag == cytanb.NegativeNumberTag then
+                            valueIsNegativeNumber = true
+                        elseif tag == cytanb.ArrayNumberTag then
+                            keyIsArrayNumber = true
+                        end
+                        return nil
+                    end)
 
-                    if string.endsWith(nk, cytanb.ArrayNumberTag) then
-                        local strBody = string.sub(nk, 1, -1 - #cytanb.ArrayNumberTag)
-                        nk = tonumber(strBody) or strBody
+                    if keyIsArrayNumber then
+                        -- 数値インデックスの文字列のキーを数値へ戻す
+                        nk = tonumber(nk) or nk
                     end
                 else
                     nk = k
                     valueIsNegativeNumber = false
                 end
 
-                data[nk] = (valueIsNegativeNumber and type(v) == 'string') and tonumber(v) or cytanb.TableFromSerializable(v)
+                if valueIsNegativeNumber and type(v) == 'string' then
+                    data[nk] = tonumber(v)
+                elseif type(v) == 'string' then
+                    data[nk] = UnescapeForDeserialization(v, function (tag)
+                        return parameterValueReplacementMap[tag]
+                    end)
+                else
+                    data[nk] = cytanb.TableFromSerializable(v)
+                end
             end
             return data
         end,
@@ -792,6 +875,8 @@ local cytanb = (function ()
         ColorHueSamples = 10,
         ColorSaturationSamples = 4,
         ColorBrightnessSamples = 5,
+        EscapeSequenceTag = '#__CYTANB',
+        SolidusTag = '#__CYTANB_SOLIDUS',
         NegativeNumberTag = '#__CYTANB_NEGATIVE_NUMBER',
         ArrayNumberTag = '#__CYTANB_ARRAY_NUMBER',
         InstanceIDParameterName = '__CYTANB_INSTANCE_ID',
@@ -807,6 +892,16 @@ local cytanb = (function ()
         DebugLogLevel = cytanb.LogLevelDebug,    -- @deprecated
         TraceLogLevel = cytanb.LogLevelTrace     -- @deprecated
     })
+
+    -- タグ文字列の長い順にパターン配列をセットする
+    escapeSequenceReplacementPatterns = {
+        {tag = cytanb.NegativeNumberTag, pattern = '^' .. cytanb.NegativeNumberTag, replacement = ''},
+        {tag = cytanb.ArrayNumberTag, pattern = '^' .. cytanb.ArrayNumberTag, replacement = ''},
+        {tag = cytanb.SolidusTag, pattern = '^' .. cytanb.SolidusTag, replacement = '/'},
+        {tag = cytanb.EscapeSequenceTag, pattern = '^' .. cytanb.EscapeSequenceTag .. cytanb.EscapeSequenceTag, replacement = cytanb.EscapeSequenceTag}
+    }
+
+    parameterValueReplacementMap = cytanb.ListToMap({cytanb.NegativeNumberTag, cytanb.ArrayNumberTag})
 
     logLevel = cytanb.LogLevelInfo
 
