@@ -34,12 +34,14 @@
 ---@field scaleZ number
 
 ---@class cytanb UUID、ログ、色、メッセージなど、基礎的な機能を提供するモジュール。
+---@field LogLevelOff number @ログ出力を行わないことを表す定数値。
 ---@field LogLevelFatal number @致命的なレベルのログを表す定数値。
 ---@field LogLevelError number @エラーレベルのログを表す定数値。
 ---@field LogLevelWarn number @警告レベルのログを表す定数値。
 ---@field LogLevelInfo number @情報レベルのログを表す定数値。
 ---@field LogLevelDebug number @デバッグレベルのログを表す定数値。
 ---@field LogLevelTrace number @トレースレベルのログを表す定数値。
+---@field LogLevelAll number @すべてのログ出力を行うことを表す定数値。
 ---@field ColorHueSamples number @デフォルトの色相のサンプル数。
 ---@field ColorSaturationSamples number @デフォルトの彩度のサンプル数。
 ---@field ColorBrightnessSamples number @デフォルトの明度のサンプル数。
@@ -57,6 +59,8 @@
 ---@field Vars fun (v: any, padding: string): string @変数の情報を文字列で返す。`padding` は省略可能。`padding` に '__NOLF' を指定した場合は、インデントおよび改行を行わない。
 ---@field GetLogLevel fun (): number @現在のログレベルを取得する。デフォルト値は `LogLevelInfo`。
 ---@field SetLogLevel fun (level: number) @ログレベルを設定する。
+---@field IsOutputLogLevelEnabled fun (): boolean @ログレベルの文字列を出力するかを取得する。
+---@field SetOutputLogLevelEnabled fun (enabled: boolean) @ログレベルの文字列を出力するかを設定する。
 ---@field Log fun (level: number, ...) @`level <= cytanb.GetLogLevel()` のときにログを出力する。
 ---@field LogFatal fun (...) @致命的なレベルのログを出力する。
 ---@field LogError fun (...) @エラーレベルのログを出力する。
@@ -80,7 +84,7 @@
 ---@field ColorFromARGB32 fun (argb32: number): Color @ARGB 32 bit 値から、Color オブジェクトへ変換する。
 ---@field ColorToARGB32 fun (color: Color): number @Color オブジェクトから ARGB 32 bit 値へ変換する。
 ---@field ColorFromIndex fun (colorIndex: number, hueSamples: number, saturationSamples: number, brightnessSamples: number, omitScale: boolean): Color @カラーインデックスから対応する Color オブジェクトへ変換する。`hueSamples` は色相のサンプル数を指定し、省略した場合の値は　`ColorHueSamples`。`saturationSamples` は彩度のサンプル数を指定し、省略した場合の値は `ColorSaturationSamples`。`brightnessSamples` は明度のサンプル数を指定し、省略した場合の値は `ColorBrightnessSamples`。`omitScale` はグレースケールを省略するかを指定し、省略した場合の値は `false`。
----@field DetectClicks fun (lastClickCount: number, lastTime: TimeSpan, clickTiming: TimeSpan): number, TimeSpan @連続したクリック数を検出する。最後のクリック時間から 'clickTiming' 以内であれば、カウントアップして 1 番目の戻り値として返す。時間が過ぎていれば `1` を返す。この関数を呼び出した時間を 2 番目の戻り値として返す。`lastClickCount` には、この関数からの1番目の戻り値を指定する。初回呼び出し時は `0` を指定する。`lastTime` には、この関数からの2番目の戻り値を指定する。初回呼び出し時は `TimeSpan.Zero` を指定する。`clickTiming` には、連続したクリックとみなす時間を指定する。省略した場合の規定値は 500 ミリ秒。
+---@field DetectClicks fun (lastClickCount: number, lastTime: TimeSpan, clickTiming: TimeSpan): number, TimeSpan @連続したクリック数を検出する。最後のクリック時間から 'clickTiming' 以内であれば、カウントアップして 1 番目の戻り値として返す。時間が過ぎていれば `1` を返す。この関数を呼び出した時間を 2 番目の戻り値として返す。`lastClickCount` には、この関数からの1番目の戻り値を指定する。初回呼び出し時は `0` を指定する。`lastTime` には、この関数からの2番目の戻り値を指定する。初回呼び出し時は `TimeSpan.Zero` を指定する。`clickTiming` には、連続したクリックとみなす時間を指定する。省略した場合のデフォルト値は 500 ミリ秒。
 ---@field GetEffekseerEmitterMap fun (name: string): table<string, ExportEffekseer> @`vci.assets.GetEffekseerEmitters` で取得したリストを、`EffectName` をキーとするマップにして返す。失敗した場合は `nil` を返す。`name` には、`Effekseer Emitter` コンポーネントを設定した「オブジェクト名」を指定する。
 ---@field GetSubItemTransform fun (subItem: ExportTransform): cytanb_transform_t @SubItem の Transform を取得する。`EmitMessage`に Transform を渡すための簡便な方法として利用できる。
 ---@field TableToSerializable fun (data: table): table @json serialize/parse の問題に対するワークアラウンドを行う。[負の数値の問題](https://github.com/xanathar/moonsharp/issues/163)、[数値インデックスの多次元配列の問題](https://github.com/moonsharp-devs/moonsharp/issues/219)、[フォワードスラッシュ '/' の問題](https://github.com/moonsharp-devs/moonsharp/issues/180) のワークアラウンドを行う。数値インデックスの配列である場合は、キー名に '#__CYTANB_ARRAY_NUMBER' タグを付加する。負の数値である場合は、キー名に '#__CYTANB_NEGATIVE_NUMBER' タグを付加し、負の数値を文字列に変換する。文字列にフォワードスラッシュ '/' が含まれている場合は、'#__CYTANB_SOLIDUS' に置換する。
