@@ -21,6 +21,12 @@ local cytanb = (function ()
     --- 出力するログレベル。
     local logLevel
 
+    --- ログ出力する時に、ログレベルの文字列を出力するか。
+    local outputLogLevelEnabled = false
+
+    --- ログレベルの文字列マップ。
+    local logLevelStringMap
+
     --- インスタンス ID の文字列。
     local instanceID
 
@@ -319,18 +325,28 @@ local cytanb = (function ()
             logLevel = level
         end,
 
+        IsOutputLogLevelEnabled = function ()
+            return outputLogLevelEnabled
+        end,
+
+        SetOutputLogLevelEnabled = function (enabled)
+            outputLogLevelEnabled = not not enabled
+        end,
+
         Log = function (level, ...)
             if level <= logLevel then
+                local levelString = outputLogLevelEnabled and ((logLevelStringMap[level] or 'LOG LEVEL ' .. tostring(level)) .. ' | ') or ''
                 local args = table.pack(...)
                 if args.n == 1 then
                     local v = args[1]
                     if v ~= nil then
-                        print(type(v) == 'table' and cytanb.Vars(v) or tostring(v))
+                        local str = type(v) == 'table' and cytanb.Vars(v) or tostring(v)
+                        print(outputLogLevelEnabled and levelString .. str or str)
                     else
-                        print('')
+                        print(levelString)
                     end
                 else
-                    local str = ''
+                    local str = levelString
                     for i = 1, args.n do
                         local v = args[i]
                         if v ~= nil then
@@ -887,12 +903,14 @@ local cytanb = (function ()
     }
 
     cytanb.SetConstEach(cytanb, {
+        LogLevelOff = 0,
         LogLevelFatal = 100,
         LogLevelError = 200,
         LogLevelWarn = 300,
         LogLevelInfo = 400,
         LogLevelDebug = 500,
         LogLevelTrace = 600,
+        LogLevelAll = 0x7FFFFFFF,
         ColorHueSamples = 10,
         ColorSaturationSamples = 4,
         ColorBrightnessSamples = 5,
@@ -925,6 +943,14 @@ local cytanb = (function ()
     parameterValueReplacementMap = cytanb.ListToMap({cytanb.NegativeNumberTag, cytanb.ArrayNumberTag})
 
     logLevel = cytanb.LogLevelInfo
+    logLevelStringMap = {
+        [cytanb.LogLevelFatal] = 'FATAL',
+        [cytanb.LogLevelError] = 'ERROR',
+        [cytanb.LogLevelWarn] = 'WARN',
+        [cytanb.LogLevelInfo] = 'INFO',
+        [cytanb.LogLevelDebug] = 'DEBUG',
+        [cytanb.LogLevelTrace] = 'TRACE'
+    }
 
     package.loaded['cytanb'] = cytanb
 
