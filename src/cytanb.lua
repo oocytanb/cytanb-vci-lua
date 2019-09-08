@@ -706,6 +706,14 @@ local cytanb = (function ()
             end
         end,
 
+        DetectClicks = function (lastClickCount, lastTime, clickTiming)
+            local count = lastClickCount or 0
+            local timing = clickTiming or TimeSpan.FromMilliseconds(500)
+            local now = vci.me.Time
+            local result = (lastTime and now > lastTime + timing) and 1 or count + 1
+            return result, now
+        end,
+
         GetSubItemTransform = function (subItem)
             local position = subItem.GetPosition()
             local rotation = subItem.GetRotation()
