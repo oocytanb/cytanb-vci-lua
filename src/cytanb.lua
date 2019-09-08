@@ -714,6 +714,19 @@ local cytanb = (function ()
             return result, now
         end,
 
+        GetEffekseerEmitterMap = function (name)
+            local efkList = vci.assets.GetEffekseerEmitters(name)
+            if not efkList then
+                return nil
+            end
+
+            local map = {}
+            for i, efk in pairs(efkList) do
+                map[efk.EffectName] = efk
+            end
+            return map
+        end,
+
         GetSubItemTransform = function (subItem)
             local position = subItem.GetPosition()
             local rotation = subItem.GetRotation()
