@@ -481,6 +481,10 @@ local cytanb = (function ()
             )
         end,
 
+        RotateAround = function (targetPosition, targetRotation, centerPosition, rotation)
+            return centerPosition + cytanb.ApplyQuaternionToVector3(rotation, targetPosition - centerPosition), rotation * targetRotation
+        end,
+
         Random32 = function ()
             -- MoonSharp では整数値の場合 32bit int 型にキャストされ、2147483646 が渡すことのできる最大値。
             return bit32.band(math.random(-2147483648, 2147483646), 0xFFFFFFFF)
