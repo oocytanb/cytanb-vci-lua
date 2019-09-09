@@ -356,11 +356,6 @@ describe('Test cytanb owner user', function ()
         assert.are.same(-7, cytanb.PingPong(33, -10))
     end)
 
-    it('ApplyQuaternionToVector3', function ()
-        assert.are.equal(Vector3.__new(6.0980760000, -5.0000000000, 4.5621780000), cytanb.ApplyQuaternionToVector3(Quaternion.AngleAxis(30, Vector3.up), Vector3.__new (3, -5, 7)))
-        assert.are.equal(Vector3.__new(2.1036720000, -6.9570910000, 5.4930360000), cytanb.ApplyQuaternionToVector3(Quaternion.Euler(10, 20, -30), Vector3.__new (3, -5, 7)))
-    end)
-
     it('QuaternionToAngleAxis', function ()
         local a1, v1 = cytanb.QuaternionToAngleAxis(Quaternion.AngleAxis(0, Vector3.__new(3, -5, 7)))
         assert.are.equal(0, a1)
@@ -393,6 +388,25 @@ describe('Test cytanb owner user', function ()
         local a41, v41 = cytanb.QuaternionToAngleAxis(Quaternion.__new(0.000000000001, 0.000000000002, 0.000000000003, 0.000000000004))
         assert.are.equal(0, a41)
         assert.are.equal(Vector3.__new(1, 0, 0), v41)
+    end)
+
+    it('ApplyQuaternionToVector3', function ()
+        assert.are.equal(Vector3.__new(6.0980760000, -5.0000000000, 4.5621780000), cytanb.ApplyQuaternionToVector3(Quaternion.AngleAxis(30, Vector3.up), Vector3.__new(3, -5, 7)))
+        assert.are.equal(Vector3.__new(2.1036720000, -6.9570910000, 5.4930360000), cytanb.ApplyQuaternionToVector3(Quaternion.Euler(10, 20, -30), Vector3.__new(3, -5, 7)))
+    end)
+
+    it('RotateAround', function ()
+        local v1, q1 = cytanb.RotateAround(Vector3.__new(2.0, 3.0, -5.0), Quaternion.AngleAxis(25, Vector3.__new(7.0, -9.0, 2.5)), Vector3.__new(-4.0, 13.0, 17.0), Quaternion.AngleAxis(15, Vector3.__new(4.5, 6.0, -5.5)))
+        assert.are.equal(Vector3.__new(-3.25236200, 5.38540600, -6.69512600), v1)
+        assert.are.equal(Quaternion.__new(0.18136640, -0.09619174, -0.05086813, 0.97737700), q1)
+
+        local v20, q20 = cytanb.RotateAround(Vector3.__new(2.0, 3.0, 0.0), Quaternion.AngleAxis(90, Vector3.__new(1.0, 0.0, 0.0)), Vector3.__new(0.0, 2.0, 0.0), Quaternion.AngleAxis(90, Vector3.__new(0.0, 1.0, 0.0)))
+        assert.are.equal(Vector3.__new(0.0, 3.0, -2.0), v20)
+        assert.are.equal(Quaternion.__new(0.5, 0.5, -0.5, 0.5), q20)
+
+        local v21, q21 = cytanb.RotateAround(Vector3.__new(2.0, 3.0, 0.0), Quaternion.AngleAxis(90, Vector3.__new(1.0, 0.0, 0.0)), Vector3.__new(0.0, 2.0, 0.0), Quaternion.AngleAxis(-30, Vector3.__new(0.0, 1.0, 1.0)))
+        assert.are.equal(Vector3.__new(2.08560400, 2.22590600, 0.77409410), v21)
+        assert.are.equal(Quaternion.__new(0.68301270, -0.25881910, 0.00000000, 0.68301270), q21)
     end)
 
     it('UUID', function ()
