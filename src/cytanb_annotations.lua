@@ -74,6 +74,8 @@
 ---@field Lerp fun (a: number, b: number, t: number): number @`a` と `b` の間を `t` で線形補間する。`t` は 0 から 1 の範囲に制限される。
 ---@field LerpUnclamped fun (a: number, b: number, t: number): number @`a` と `b` の間を `t` で線形補間する。`t` の範囲に制限はない。
 ---@field PingPong fun (t: number, length: number): number @`t` が `0` と `length` の間を行き来する値を返す。
+---@field VectorApproximatelyEquals fun (lhs: Vector2 | Vector3 | Vector4, rhs: Vector2 | Vector3 | Vector4): boolean @2 つのベクトルがおよそ一致するかを調べる。差のノルムがゼロに近いときに `true` を返す。2 つのベクトルは同じ型を指定すること。
+---@field QuaternionApproximatelyEquals fun (lhs: Quaternion, rhs: Quaternion): boolean @2 つの Quaternion がおよそ一致するかを調べる。内積が `1.0` に近いときに `true` を返す。ただし、Quaternion は 720度までの回転角度をとるため、同じ回転結果にみえても、比較結果は `false` を返すことがある。
 ---@field ApplyQuaternionToVector3 fun (quat: Quaternion, vec3: Vector3): Vector3 @'vec3' に 'quat' の回転を適用し、新しい Vector3 オブジェクトを返す。
 ---@field QuaternionToAngleAxis fun (quat: Quaternion): number, Vector3 @`quat` を回転角度と回転軸に変換し、それぞれ1番目と2番目の戻り値として返す。
 ---@field RotateAround fun (targetPosition: Vector3, targetRotation: Quaternion, centerPosition: Vector3, rotation: Quaternion): Vector3, Quaternion @ターゲットを `centerPosition` で指定した位置を中心として、`rotation` で指定した回転を行う。計算結果を、1番目の戻り値にターゲットの位置、2番目の戻り値にターゲットの回転として返す。

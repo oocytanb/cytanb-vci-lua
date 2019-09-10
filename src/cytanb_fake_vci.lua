@@ -142,13 +142,17 @@ return (function ()
         return result
     end
 
-    local Approximately = function(a, b)
+    -- VCI の Lua API において、Vector や Quaternion の等値比較 `==` は、`Equals` メソッドによる判定を行っている可能性がある。
+    -- Unity 上では、single float の精度に落ちた結果、各成分が等しくなるケースがある。
+    -- この関数では、非ゼロのときは 1E-05 未満の差を、等しいとみなすことで、VCAS 上での実行結果に近づける。
+    local ComponentApproximatelyEquals = function(a, b)
         if a == 0 then
             return b == 0
         elseif b == 0 then
             return false
         else
-            return math.abs(a - b) < 1E-5
+            local d = a - b
+            return d < 1E-05 and d > -1E-05
         end
     end
 
@@ -228,8 +232,7 @@ return (function ()
         end,
 
         __eq = function (op1, op2)
-            -- @todo 近い値の判定方法の見直し
-            return Approximately(op1.x, op2.x) and Approximately(op1.y, op2.y)
+            return ComponentApproximatelyEquals(op1.x, op2.x) and ComponentApproximatelyEquals(op1.y, op2.y)
         end,
 
         __index = function (table, key)
@@ -288,8 +291,7 @@ return (function ()
         end,
 
         __eq = function (op1, op2)
-            -- @todo 近い値の判定方法の見直し
-            return Approximately(op1.x, op2.x) and Approximately(op1.y, op2.y) and Approximately(op1.z, op2.z)
+            return ComponentApproximatelyEquals(op1.x, op2.x) and ComponentApproximatelyEquals(op1.y, op2.y) and ComponentApproximatelyEquals(op1.z, op2.z)
         end,
 
         __index = function (table, key)
@@ -347,8 +349,7 @@ return (function ()
         end,
 
         __eq = function (op1, op2)
-            -- @todo 近い値の判定方法の見直し
-            return Approximately(op1.x, op2.x) and Approximately(op1.y, op2.y) and Approximately(op1.z, op2.z) and Approximately(op1.w, op2.w)
+            return ComponentApproximatelyEquals(op1.x, op2.x) and ComponentApproximatelyEquals(op1.y, op2.y) and ComponentApproximatelyEquals(op1.z, op2.z) and ComponentApproximatelyEquals(op1.w, op2.w)
         end,
 
         __index = function (table, key)
@@ -384,8 +385,7 @@ return (function ()
         end,
 
         __eq = function (op1, op2)
-            -- @todo 近い値の判定方法の見直し
-            return Approximately(op1.x, op2.x) and Approximately(op1.y, op2.y) and Approximately(op1.z, op2.z) and Approximately(op1.w, op2.w)
+            return ComponentApproximatelyEquals(op1.x, op2.x) and ComponentApproximatelyEquals(op1.y, op2.y) and ComponentApproximatelyEquals(op1.z, op2.z) and ComponentApproximatelyEquals(op1.w, op2.w)
         end,
 
         __index = function (table, key)
@@ -467,8 +467,7 @@ return (function ()
         end,
 
         __eq = function (op1, op2)
-            -- @todo 近い値の判定方法の見直し
-            return Approximately(op1.r, op2.r) and Approximately(op1.g, op2.g) and Approximately(op1.b, op2.b) and Approximately(op1.a, op2.a)
+            return ComponentApproximatelyEquals(op1.r, op2.r) and ComponentApproximatelyEquals(op1.g, op2.g) and ComponentApproximatelyEquals(op1.b, op2.b) and ComponentApproximatelyEquals(op1.a, op2.a)
         end,
 
         __index = function (table, key)
@@ -1520,6 +1519,15 @@ return (function ()
                     else
                         return math.floor(num + 0.5)
                     end
+                end,
+
+                VectorApproximatelyEquals = function (lhs, rhs)
+                    return (lhs - rhs).sqrMagnitude < 1E-10
+                end,
+
+                QuaternionApproximatelyEquals = function (lhs, rhs)
+                    local dot = Quaternion.Dot(lhs, rhs)
+                    return dot < 1.0 + 1E-06 and dot > 1.0 - 1E-06
                 end,
 
                 SetVciName = function (name)
