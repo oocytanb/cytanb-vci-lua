@@ -249,6 +249,11 @@ describe('Test cytanb_fake_vci', function ()
         assert.are.equal(Vector3.zero, Vector3.__new(Vector3.kEpsilon, -Vector3.kEpsilonNormalSqrt).normalized)
         assert.are.equal(Vector3.zero, Vector3.zero.normalized)
 
+        assert.are.equal(Vector3.__new(1, 1, 0), Vector3.__new(1 + 1e-8, 1 - 1e-8, 0))
+        assert.are_not.equal(Vector3.__new(1, 1, 0), Vector3.__new(1 + 1e-8, 1 - 1e-8, 1e-8))
+        assert.are_not.equal(Vector3.__new(0, 0, 0), Vector3.__new(1e-8, 0, 0))
+        assert.are_not.equal(Vector3.__new(4.4408920985006261617e-16, 3, -2), Vector3.__new(0, 3, -2))
+
         assert.are.equal(Vector3.__new(11.0, 19.0, 22.0), Vector3.__new(3, 4, 5) + Vector3.__new(8, 15, 17))
         assert.are.equal(Vector3.__new(-5.0, -11.0, -12.0), Vector3.__new(3, 4, 5) - Vector3.__new(8, 15, 17))
         assert.are.equal(Vector3.__new(24.0, 60.0, 85.0), Vector3.Scale(Vector3.__new(3, 4, 5), Vector3.__new(8, 15, 17)))

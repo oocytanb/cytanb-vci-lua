@@ -452,6 +452,15 @@ local cytanb = (function ()
             end
         end,
 
+        VectorApproximatelyEquals = function (lhs, rhs)
+            return (lhs - rhs).sqrMagnitude < 1E-10
+        end,
+
+        QuaternionApproximatelyEquals = function (lhs, rhs)
+            local dot = Quaternion.Dot(lhs, rhs)
+            return dot < 1.0 + 1E-06 and dot > 1.0 - 1E-06
+        end,
+
         QuaternionToAngleAxis = function (quat)
             local q = quat.normalized
             local halfTheta = math.acos(q.w)
