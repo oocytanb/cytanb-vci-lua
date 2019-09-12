@@ -1597,8 +1597,8 @@ return (function ()
         down = function() return Vector2.__new(0, -1) end,
         left = function() return Vector2.__new(-1, 0) end,
         right = function() return Vector2.__new(1, 0) end,
-        kEpsilon = 9.99999974737875E-06,
-        kEpsilonNormalSqrt = 1.00000000362749E-15
+        kEpsilon = 1E-05,
+        kEpsilonNormalSqrt = 1E-15
     })
 
     Vector3 = fakeModule.Vector3
@@ -1611,21 +1611,21 @@ return (function ()
         down = function() return Vector3.__new(0, -1, 0) end,
         left = function() return Vector3.__new(-1, 0, 0) end,
         right = function() return Vector3.__new(1, 0, 0) end,
-        kEpsilon = 9.99999974737875E-06,
-        kEpsilonNormalSqrt = 1.00000000362749E-15
+        kEpsilon = 1E-05,
+        kEpsilonNormalSqrt = 1E-15
     })
 
     Vector4 = fakeModule.Vector4
     cytanb.SetConstEach(Vector4, {
         zero = function() return Vector4.__new(0, 0, 0, 0) end,
         one = function() return Vector4.__new(1, 1, 1, 1) end,
-        kEpsilon = 9.99999974737875E-06
+        kEpsilon = 1E-05
     })
 
     Quaternion = fakeModule.Quaternion
     cytanb.SetConstEach(Quaternion, {
         identity = function() return Quaternion.__new(0, 0, 0, 1) end,
-        kEpsilon = 9.99999997475243E-07
+        kEpsilon = 1E-06
     })
 
     Matrix4x4 = fakeModule.Matrix4x4
