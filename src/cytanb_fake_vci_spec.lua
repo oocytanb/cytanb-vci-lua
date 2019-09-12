@@ -89,11 +89,11 @@ describe('Test cytanb_fake_vci', function ()
         assert.are.equal(Vector2.__new(0.5, 0.75), vOne)
         assert.are.equal(Vector2.__new(1, 1), Vector2.one)
 
-        assert.is_true(Vector2.kEpsilon < 1E-5)
+        assert.is_true(Vector2.kEpsilon <= 1E-05)
         assert.are_not.equal(0, 0 + Vector2.kEpsilon)
         assert.are_not.equal(0, 0 - Vector2.kEpsilon)
-        assert.are.equal(0, math.floor(Vector2.kEpsilon * 100000) / 100000)
-        assert.are.equal(0, math.floor(Vector2.kEpsilonNormalSqrt * 100000) / 100000)
+        assert.are.equal(0, math.floor(Vector2.kEpsilon * 10000) / 10000)
+        assert.are.equal(0, math.floor(Vector2.kEpsilonNormalSqrt * 100000000) / 100000000)
 
         assert.are.equal(Vector2.__new(1, 1), Vector2.__new(1 + 1e-8, 1))
         assert.are_not.equal(Vector2.__new(1, 0), Vector2.__new(1, 1e-8))
@@ -205,7 +205,7 @@ describe('Test cytanb_fake_vci', function ()
         assert.are.equal(Vector3.__new(0.5, 0.75, 1), vForward)
         assert.are.equal(Vector3.__new(0, 0, 1), Vector3.forward)
 
-        assert.is_true(Vector3.kEpsilon < 1E-5)
+        assert.is_true(Vector3.kEpsilon <= 1E-05)
         assert.is_true(Vector3.kEpsilonNormalSqrt < Vector3.kEpsilon)
 
         assert.are.equal(Vector3.__new(0, 0, -1), Vector3.back)
@@ -476,7 +476,7 @@ describe('Test cytanb_fake_vci', function ()
         assert.are.equal(Vector4.__new(1, 1, 1, 1), Vector4.one)
         assert.are.equal('(3.0, -2.0, 1.1, -0.5)', tostring(Vector4.__new(3, -2, 1.125, -0.5)))
 
-        assert.is_true(Vector4.kEpsilon < 1E-5)
+        assert.is_true(Vector4.kEpsilon <= 1E-05)
 
         assert.are.equal(Vector4.__new(100, 200, 300, 0), Vector4.__toVector4(Vector3.__new(100, 200, 300)))
         assert.are.equal(Vector4.__new(100, 200, 0, 0), Vector4.__toVector4(Vector2.__new(100, 200)))

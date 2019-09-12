@@ -175,6 +175,28 @@ local cytanb = (function ()
             return instanceID
         end,
 
+        NillableHasValue = function (nillable)
+            return nillable ~= nil
+        end,
+
+        NillableValue = function (nillable)
+            if nillable == nil then
+                error('value is nil')
+            end
+            return nillable
+        end,
+
+        NillableValueOrDefault = function (nillable, defaultValue)
+            if nillable == nil then
+                if defaultValue == nil then
+                    error('defaultValue is nil')
+                end
+                return defaultValue
+            else
+                return nillable
+            end
+        end,
+
         SetConst = function (target, name, value)
             if type(target) ~= 'table' then
                 error('Cannot set const to non-table target')
