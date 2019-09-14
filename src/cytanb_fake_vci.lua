@@ -145,7 +145,7 @@ return (function ()
     -- VCI の Lua API において、Vector や Quaternion の等値比較 `==` は、`Equals` メソッドによる判定を行っている可能性がある。
     -- Unity 上では、single float の精度に落ちた結果、各成分が等しくなるケースがある。
     -- この関数では、非ゼロのときは 1E-05 未満の差を、等しいとみなすことで、VCAS 上での実行結果に近づける。
-    local ComponentApproximatelyEquals = function(a, b)
+    local LowAccuracyEquals = function(a, b)
         if a == 0 then
             return b == 0
         elseif b == 0 then
@@ -232,7 +232,7 @@ return (function ()
         end,
 
         __eq = function (op1, op2)
-            return ComponentApproximatelyEquals(op1.x, op2.x) and ComponentApproximatelyEquals(op1.y, op2.y)
+            return LowAccuracyEquals(op1.x, op2.x) and LowAccuracyEquals(op1.y, op2.y)
         end,
 
         __index = function (table, key)
@@ -291,7 +291,7 @@ return (function ()
         end,
 
         __eq = function (op1, op2)
-            return ComponentApproximatelyEquals(op1.x, op2.x) and ComponentApproximatelyEquals(op1.y, op2.y) and ComponentApproximatelyEquals(op1.z, op2.z)
+            return LowAccuracyEquals(op1.x, op2.x) and LowAccuracyEquals(op1.y, op2.y) and LowAccuracyEquals(op1.z, op2.z)
         end,
 
         __index = function (table, key)
@@ -349,7 +349,7 @@ return (function ()
         end,
 
         __eq = function (op1, op2)
-            return ComponentApproximatelyEquals(op1.x, op2.x) and ComponentApproximatelyEquals(op1.y, op2.y) and ComponentApproximatelyEquals(op1.z, op2.z) and ComponentApproximatelyEquals(op1.w, op2.w)
+            return LowAccuracyEquals(op1.x, op2.x) and LowAccuracyEquals(op1.y, op2.y) and LowAccuracyEquals(op1.z, op2.z) and LowAccuracyEquals(op1.w, op2.w)
         end,
 
         __index = function (table, key)
@@ -385,7 +385,7 @@ return (function ()
         end,
 
         __eq = function (op1, op2)
-            return ComponentApproximatelyEquals(op1.x, op2.x) and ComponentApproximatelyEquals(op1.y, op2.y) and ComponentApproximatelyEquals(op1.z, op2.z) and ComponentApproximatelyEquals(op1.w, op2.w)
+            return LowAccuracyEquals(op1.x, op2.x) and LowAccuracyEquals(op1.y, op2.y) and LowAccuracyEquals(op1.z, op2.z) and LowAccuracyEquals(op1.w, op2.w)
         end,
 
         __index = function (table, key)
@@ -467,7 +467,7 @@ return (function ()
         end,
 
         __eq = function (op1, op2)
-            return ComponentApproximatelyEquals(op1.r, op2.r) and ComponentApproximatelyEquals(op1.g, op2.g) and ComponentApproximatelyEquals(op1.b, op2.b) and ComponentApproximatelyEquals(op1.a, op2.a)
+            return LowAccuracyEquals(op1.r, op2.r) and LowAccuracyEquals(op1.g, op2.g) and LowAccuracyEquals(op1.b, op2.b) and LowAccuracyEquals(op1.a, op2.a)
         end,
 
         __index = function (table, key)
