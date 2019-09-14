@@ -76,7 +76,7 @@ local cytanb = (function ()
             local meta2 = getmetatable(op2)
             local c2 = meta2 == UUIDMetatable or (type(meta2) == 'table' and meta2.__concat == UUIDMetatable.__concat)
             if not c1 and not c2 then
-                error('attempt to concatenate illegal values')
+                error('attempt to concatenate illegal values', 2)
             end
             return (c1 and UUIDMetatable.__tostring(op1) or op1) .. (c2 and UUIDMetatable.__tostring(op2) or op2)
         end
@@ -106,7 +106,7 @@ local cytanb = (function ()
             local mc = rawget(meta, ConstVariablesFieldName)
             if mc then
                 if rawget(mc, key) ~= nil then
-                    error('Cannot assign to read only field "' .. key .. '"')
+                    error('Cannot assign to read only field "' .. key .. '"', 2)
                 end
             end
         end
@@ -181,7 +181,7 @@ local cytanb = (function ()
 
         NillableValue = function (nillable)
             if nillable == nil then
-                error('value is nil')
+                error('value is nil', 2)
             end
             return nillable
         end,
@@ -189,7 +189,7 @@ local cytanb = (function ()
         NillableValueOrDefault = function (nillable, defaultValue)
             if nillable == nil then
                 if defaultValue == nil then
-                    error('defaultValue is nil')
+                    error('defaultValue is nil', 2)
                 end
                 return defaultValue
             else
@@ -199,14 +199,14 @@ local cytanb = (function ()
 
         SetConst = function (target, name, value)
             if type(target) ~= 'table' then
-                error('Cannot set const to non-table target')
+                error('Cannot set const to non-table target', 2)
             end
 
             local curMeta = getmetatable(target)
             local meta = curMeta or {}
             local metaConstVariables = rawget(meta, ConstVariablesFieldName)
             if rawget(target, name) ~= nil then
-                error('Non-const field "' .. name .. '" already exists')
+                error('Non-const field "' .. name .. '" already exists', 2)
             end
 
             if not metaConstVariables then
@@ -609,7 +609,7 @@ local cytanb = (function ()
 
         CreateCircularQueue = function (capacity)
             if type(capacity) ~= 'number' or capacity < 1 then
-                error('Invalid argument: capacity = ' .. tostring(capacity))
+                error('Invalid argument: capacity = ' .. tostring(capacity), 2)
             end
 
             local self
