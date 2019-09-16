@@ -796,6 +796,23 @@ local cytanb = (function ()
             }
         end,
 
+        -- @experimental 実験的な機能のため、変更される可能性がある。
+        RestoreCytanbTransform = function (transformParameters)
+            local pos = (transformParameters.positionX and transformParameters.positionY and transformParameters.positionZ) and
+                Vector3.__new(transformParameters.positionX, transformParameters.positionY, transformParameters.positionZ) or
+                nil
+
+            local rot = (transformParameters.rotationX and transformParameters.rotationY and transformParameters.rotationZ and transformParameters.rotationW) and
+                Quaternion.__new(transformParameters.rotationX, transformParameters.rotationY, transformParameters.rotationZ, transformParameters.rotationW) or
+                nil
+
+            local scale = (transformParameters.scaleX and transformParameters.scaleY and transformParameters.scaleZ) and
+                Vector3.__new(transformParameters.scaleX, transformParameters.scaleY, transformParameters.scaleZ) or
+                nil
+
+            return pos, rot, scale
+        end,
+
         TableToSerializable = function (data, refTable)
             if type(data) ~= 'table' then
                 return data
