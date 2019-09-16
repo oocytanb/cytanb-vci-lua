@@ -749,6 +749,58 @@ describe('Test cytanb owner user', function ()
         assert.are.equal(0, conflictCount)
     end)
 
+    it('TransformParameters', function ()
+        local p1, r1, s1 = cytanb.RestoreCytanbTransform(
+            {
+                positionX = 123,
+                positionY = -49.75,
+                positionZ = 0,
+                rotationX = -0.109807625412941,
+                rotationY = 0.146410167217255,
+                rotationZ = -0.183012709021568,
+                rotationW = 0.965925812721252,
+                scaleX = 0,
+                scaleY = 0.25,
+                scaleZ = 1.5
+            }
+        )
+        assert.are.equal(Vector3.__new(123, -49.75, 0), p1)
+        assert.are.equal(Quaternion.__new(-0.109807625412941, 0.146410167217255, -0.183012709021568, 0.965925812721252), r1)
+        assert.are.equal(Vector3.__new(0, 0.25, 1.5), s1)
+
+        local p40, r40, s40 = cytanb.RestoreCytanbTransform(
+            {
+                positionX = 123,
+                positionZ = 0,
+                rotationX = -0.109807625412941,
+                rotationY = 0.146410167217255,
+                rotationW = 0.965925812721252,
+                scaleX = 0,
+                scaleZ = 1.5
+            }
+        )
+        assert.is_nil(p40)
+        assert.is_nil(r40)
+        assert.is_nil(s40)
+
+        local p41, r41, s41 = cytanb.RestoreCytanbTransform(
+            {
+                positionX = 0,
+                positionY = 0,
+                positionZ = 0,
+                rotationX = 0,
+                rotationY = 0,
+                rotationZ = 0,
+                rotationW = 1,
+                scaleY = 0.8,
+                scaleZ = 1.5
+            }
+        )
+        assert.are.equal(Vector3.zero, p41)
+        assert.are.equal(Quaternion.identity, r41)
+        assert.is_nil(s41)
+    end)
+
     it('TableToSerializable', function ()
         assert.are.same({}, cytanb.TableToSerializable({}))
         assert.are.same({foo = 123.25, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', corge = false}}, cytanb.TableToSerializable({foo = 123.25, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}))
