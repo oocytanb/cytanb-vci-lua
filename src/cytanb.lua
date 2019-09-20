@@ -12,8 +12,8 @@ local cytanb = (function ()
     --- インスタンス ID の状態変数名。
     local InstanceIDStateName = '__CYTANB_INSTANCE_ID'
 
-    --- 成分マップ。
-    local compositionMap
+    --- 値の変換マップ。
+    local valueConversionMap
 
     --- エスケープシーケンスの置換パターン。
     local escapeSequenceReplacementPatterns
@@ -123,13 +123,18 @@ local cytanb = (function ()
             return false, false
         end
 
-        local composition = compositionMap[typeName]
-        local nameMap = composition.nameMap
-        local remain = composition.length
+        local nillableConv = valueConversionMap[typeName]
+        if not cytanb.NillableHasValue(nillableConv) then
+            return false, false
+        end
+
+        local conv = cytanb.NillableValue(nillableConv)
+        local fieldNames = conv.compositionFieldNames
+        local remain = conv.compositionFieldLength
         local unknownFieldContains = false
 
         for k, v in pairs(tbl) do
-            if nameMap[k] then
+            if fieldNames[k] then
                 remain = remain - 1
                 if remain <= 0 and unknownFieldContains then
                     break
@@ -197,6 +202,109 @@ local cytanb = (function ()
             end
         end
         return buf
+    end
+
+    local InternalTableToSerializable
+    InternalTableToSerializable = function (data, refTable)
+        if type(data) ~= 'table' then
+            return data
+        end
+
+        if not refTable then
+            refTable = {}
+        end
+
+        if refTable[data] then
+            error('circular reference')
+        end
+
+        refTable[data] = true
+        local serData = {}
+        for k, v in pairs(data) do
+            local keyType = type(k)
+            local nk
+            if keyType == 'string' then
+                -- 文字列であれば、エスケープ処理をする
+                nk = EscapeForSerialization(k)
+            elseif keyType == 'number' then
+                -- 数値インデックスであれば、タグを付加する
+                nk = tostring(k) .. cytanb.ArrayNumberTag
+            else
+                nk = k
+            end
+
+            local valueType = type(v)
+            if valueType == 'string' then
+                -- 文字列であれば、エスケープ処理をする
+                serData[nk] = EscapeForSerialization(v)
+            elseif valueType == 'number' and v < 0 then
+                -- 負の数値であれば、タグを付加する
+                serData[tostring(nk) .. cytanb.NegativeNumberTag] = tostring(v)
+            else
+                serData[nk] = InternalTableToSerializable(v, refTable)
+            end
+        end
+
+        refTable[data] = nil
+        return serData
+    end
+
+    local InternalTableFromSerializable
+    InternalTableFromSerializable = function (serData, noValueConversion)
+        if type(serData) ~= 'table' then
+            return serData
+        end
+
+        local data = {}
+        for k, v in pairs(serData) do
+            local nk
+            local valueIsNegativeNumber = false
+            if type(k) == 'string' then
+                local keyIsArrayNumber = false
+                nk = UnescapeForDeserialization(k, function (tag)
+                    if tag == cytanb.NegativeNumberTag then
+                        valueIsNegativeNumber = true
+                    elseif tag == cytanb.ArrayNumberTag then
+                        keyIsArrayNumber = true
+                    end
+                    return nil
+                end)
+
+                if keyIsArrayNumber then
+                    -- 数値インデックスの文字列のキーを数値へ戻す
+                    nk = tonumber(nk) or nk
+                end
+            else
+                nk = k
+                valueIsNegativeNumber = false
+            end
+
+            if valueIsNegativeNumber and type(v) == 'string' then
+                data[nk] = tonumber(v)
+            elseif type(v) == 'string' then
+                data[nk] = UnescapeForDeserialization(v, function (tag)
+                    return parameterValueReplacementMap[tag]
+                end)
+            else
+                data[nk] = InternalTableFromSerializable(v, noValueConversion)
+            end
+        end
+
+        local nillableType = data[cytanb.TypeParameterName]
+        if not noValueConversion and cytanb.NillableHasValue(nillableType) then
+            -- 値の変換を試みる
+            local nillableConv = valueConversionMap[cytanb.NillableValue(nillableType)]
+            if cytanb.NillableHasValue(nillableConv) then
+                local nillableValue, unknownFieldContains = cytanb.NillableValue(nillableConv).fromTableFunc(data)
+                if cytanb.NillableHasValue(nillableValue) and not unknownFieldContains then
+                    -- 値の変換に成功し、成分フィールド以外が含まれていない場合は、変換した値を返す
+                    return cytanb.NillableValue(nillableValue)
+                end
+            end
+        end
+
+        -- 値が変換されなければ、テーブルをそのまま返す。
+        return data
     end
 
     cytanb = {
@@ -863,100 +971,22 @@ local cytanb = (function ()
             return (b and Quaternion.__new(tbl.x, tbl.y, tbl.z, tbl.w) or nil), unknownFieldContains
         end,
 
-        TableToSerializable = function (data, refTable)
-            if type(data) ~= 'table' then
-                return data
-            end
-
-            if not refTable then
-                refTable = {}
-            end
-
-            if refTable[data] then
-                error('circular reference')
-            end
-
-            refTable[data] = true
-            local serData = {}
-            for k, v in pairs(data) do
-                local keyType = type(k)
-                local nk
-                if keyType == 'string' then
-                    -- 文字列であれば、エスケープ処理をする
-                    nk = EscapeForSerialization(k)
-                elseif keyType == 'number' then
-                    -- 数値インデックスであれば、タグを付加する
-                    nk = tostring(k) .. cytanb.ArrayNumberTag
-                else
-                    nk = k
-                end
-
-                local valueType = type(v)
-                if valueType == 'string' then
-                    -- 文字列であれば、エスケープ処理をする
-                    serData[nk] = EscapeForSerialization(v)
-                elseif valueType == 'number' and v < 0 then
-                    -- 負の数値であれば、タグを付加する
-                    serData[tostring(nk) .. cytanb.NegativeNumberTag] = tostring(v)
-                else
-                    serData[nk] = cytanb.TableToSerializable(v, refTable)
-                end
-            end
-
-            refTable[data] = nil
-            return serData
+        TableToSerializable = function (data)
+            return InternalTableToSerializable(data)
         end,
 
-        TableFromSerializable = function (serData)
-            if type(serData) ~= 'table' then
-                return serData
-            end
-
-            local data = {}
-            for k, v in pairs(serData) do
-                local nk
-                local valueIsNegativeNumber = false
-                if type(k) == 'string' then
-                    local keyIsArrayNumber = false
-                    nk = UnescapeForDeserialization(k, function (tag)
-                        if tag == cytanb.NegativeNumberTag then
-                            valueIsNegativeNumber = true
-                        elseif tag == cytanb.ArrayNumberTag then
-                            keyIsArrayNumber = true
-                        end
-                        return nil
-                    end)
-
-                    if keyIsArrayNumber then
-                        -- 数値インデックスの文字列のキーを数値へ戻す
-                        nk = tonumber(nk) or nk
-                    end
-                else
-                    nk = k
-                    valueIsNegativeNumber = false
-                end
-
-                if valueIsNegativeNumber and type(v) == 'string' then
-                    data[nk] = tonumber(v)
-                elseif type(v) == 'string' then
-                    data[nk] = UnescapeForDeserialization(v, function (tag)
-                        return parameterValueReplacementMap[tag]
-                    end)
-                else
-                    data[nk] = cytanb.TableFromSerializable(v)
-                end
-            end
-            return data
+        TableFromSerializable = function (serData, noValueConversion)
+            return InternalTableFromSerializable(serData, noValueConversion)
         end,
 
         -- @deprecated use TableToSerializable
-        TableToSerialiable = function (data, refTable)
-            return cytanb.TableToSerializable(data, refTable)
+        TableToSerialiable = function (data)
+            return InternalTableToSerializable(data)
         end,
 
         -- @deprecated use TableFromSerializable
-        TableFromSerialiable = function (serData)
-            return cytanb.TableFromSerializable(serData)
+        TableFromSerialiable = function (serData, noValueConversion)
+            return InternalTableFromSerializable(serData, noValueConversion)
         end,
 
         EmitMessage = function (name, parameterMap)
@@ -1037,9 +1067,9 @@ local cytanb = (function ()
         TraceLogLevel = cytanb.LogLevelTrace     -- @deprecated
     })
 
-    compositionMap = {
-        [cytanb.Vector3TypeName] = {nameMap = cytanb.ListToMap({'x', 'y', 'z'}), length = 3},
-        [cytanb.QuaternionTypeName] = {nameMap = cytanb.ListToMap({'x', 'y', 'z', 'w'}), length = 4}
+    valueConversionMap = {
+        [cytanb.Vector3TypeName] = {compositionFieldNames = cytanb.ListToMap({'x', 'y', 'z'}), compositionFieldLength = 3, toTableFunc = cytanb.Vector3ToTable, fromTableFunc = cytanb.Vector3FromTable},
+        [cytanb.QuaternionTypeName] = {compositionFieldNames = cytanb.ListToMap({'x', 'y', 'z', 'w'}), compositionFieldLength = 4, toTableFunc = cytanb.QuaternionToTable, fromTableFunc = cytanb.QuaternionFromTable}
     }
 
     -- タグ文字列の長い順にパターン配列をセットする

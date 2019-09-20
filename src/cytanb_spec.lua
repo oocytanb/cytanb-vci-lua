@@ -855,6 +855,8 @@ describe('Test cytanb owner user', function ()
 
         assert.are.same({['foo#__CYTANB_SOLIDUSbar'] = 'apple#__CYTANB_SOLIDUSorange', ['fake_negative#__CYTANB#__CYTANB_NEGATIVE_NUMBERtypeIsString'] = '-6', qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', ['color\\#__CYTANB_SOLIDUSnote'] = 'red#__CYTANB_SOLIDUSblue', ['fake_array#__CYTANB#__CYTANB_ARRAY_NUMBER'] = 'fake#__CYTANB#__CYTANB_SOLIDUSsolidus'}}, cytanb.TableToSerializable({['foo/bar'] = 'apple/orange', ['fake_negative#__CYTANB_NEGATIVE_NUMBERtypeIsString'] = '-6', qux = {quux = -9876.5, ['color\\/note'] = 'red/blue', ['fake_array#__CYTANB_ARRAY_NUMBER'] = 'fake#__CYTANB_SOLIDUSsolidus'}}))
 
+        assert.are.same({foo = 'apple', position = {['__CYTANB_TYPE'] = 'Vector3', x = 123, ['y#__CYTANB_NEGATIVE_NUMBER'] = '-456', z = 789}, rotation = {['__CYTANB_TYPE'] = 'Quaternion', x = 0.683012664318085, y = 0.1830126941204, ['z#__CYTANB_NEGATIVE_NUMBER'] = '-0.1830126941204', w = 0.683012664318085}}, cytanb.TableToSerializable({foo = 'apple', position = cytanb.Vector3ToTable(Vector3.__new(123, -456, 789)), rotation = cytanb.QuaternionToTable(Quaternion.__new(0.683012664318085, 0.1830126941204, -0.1830126941204, 0.683012664318085))}))
+
         local circularTable = {foo = 123.25}
         circularTable.ref = circularTable
         assert.has_error(function () cytanb.TableToSerializable(circularTable) end)
@@ -875,6 +877,23 @@ describe('Test cytanb owner user', function ()
 
         assert.are.same({['foo/bar'] = 'apple/orange', ['fake_negative#__CYTANB_NEGATIVE_NUMBERtypeIsString'] = '-6', qux = {quux = -9876.5, ['color\\/note'] = 'red/blue', ['fake_array#__CYTANB_ARRAY_NUMBER'] = 'fake#__CYTANB_SOLIDUSsolidus'}}, cytanb.TableFromSerializable({['foo#__CYTANB_SOLIDUSbar'] = 'apple#__CYTANB_SOLIDUSorange', ['fake_negative#__CYTANB#__CYTANB_NEGATIVE_NUMBERtypeIsString'] = '-6', qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', ['color\\#__CYTANB_SOLIDUSnote'] = 'red#__CYTANB_SOLIDUSblue', ['fake_array#__CYTANB#__CYTANB_ARRAY_NUMBER'] = 'fake#__CYTANB#__CYTANB_SOLIDUSsolidus'}}))
         assert.are.same({['#__CYTANB_invalid_key'] = 'unknown#__CYTANB#__CYTANB_escape_sequence'}, cytanb.TableFromSerializable({['#__CYTANB_invalid_key'] = 'unknown#__CYTANB#__CYTANB#__CYTANB_escape_sequence'}))
+
+        local s700 = {foo = 'apple', position = {['__CYTANB_TYPE'] = 'Vector3', x = 123, ['y#__CYTANB_NEGATIVE_NUMBER'] = '-456', z = 789}, rotation = {['__CYTANB_TYPE'] = 'Quaternion', x = 0.683012664318085, y = 0.1830126941204, ['z#__CYTANB_NEGATIVE_NUMBER'] = '-0.1830126941204', w = 0.683012664318085}}
+        local t700 = cytanb.TableFromSerializable(s700)
+        assert.are.equal('apple', t700.foo)
+        assert.are.equal(Vector3.__new(123, -456, 789), t700.position)
+        assert.are.equal(Quaternion.__new(0.683012664318085, 0.1830126941204, -0.1830126941204, 0.683012664318085), t700.rotation)
+
+        local t701 = cytanb.TableFromSerializable(s700, true)
+        assert.are.same('apple', t701.foo)
+        assert.are.same({['__CYTANB_TYPE'] = 'Vector3', x = 123, y = -456, z = 789}, t701.position)
+        assert.are.same({['__CYTANB_TYPE'] = 'Quaternion', x = 0.683012664318085, y = 0.1830126941204, z = -0.1830126941204, w = 0.683012664318085}, t701.rotation)
+
+        local s710 = {foo = 'apple', position = {['__CYTANB_TYPE'] = 'Vector3', x = 123, ['y#__CYTANB_NEGATIVE_NUMBER'] = '-456', z = 789, addition = 'black'}, rotation = {x = 0.683012664318085, y = 0.1830126941204, ['z#__CYTANB_NEGATIVE_NUMBER'] = '-0.1830126941204', w = 0.683012664318085}}
+        local t710 = cytanb.TableFromSerializable(s710)
+        assert.are.same('apple', t710.foo)
+        assert.are.same({['__CYTANB_TYPE'] = 'Vector3', x = 123, y = -456, z = 789, addition = 'black'}, t710.position)
+        assert.are.same({x = 0.683012664318085, y = 0.1830126941204, z = -0.1830126941204, w = 0.683012664318085}, t710.rotation)
     end)
 
     it('Message', function ()
