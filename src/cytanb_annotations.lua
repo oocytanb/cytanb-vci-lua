@@ -90,18 +90,24 @@
 ---@field UUIDFromNumbers fun (...): cytanb_uuid_t @指定した数値で、UUID オブジェクトを生成する。数値引数リストの1番目が最上位 32 bit で、4番目が最下位 32 bit となる。数値引数リストの替わりに数値配列を指定することも可能。
 ---@field UUIDFromString fun (str: string): cytanb_uuid_t @UUID の文字列表現から、UUID オブジェクトを生成する。無効な形式であった場合は nil を返す。
 ---@field CreateCircularQueue fun (capacity: number): cytanb_circular_queue_t @`capacity` で指定した容量の循環キューを作成する。`capacity` に `1` 未満を指定した場合はエラーとなる。
----@field ColorFromARGB32 fun (argb32: number): Color @ARGB 32 bit 値から、Color オブジェクトへ変換する。
----@field ColorToARGB32 fun (color: Color): number @Color オブジェクトから ARGB 32 bit 値へ変換する。
----@field ColorFromIndex fun (colorIndex: number, hueSamples: number, saturationSamples: number, brightnessSamples: number, omitScale: boolean): Color @カラーインデックスから対応する Color オブジェクトへ変換する。`hueSamples` は色相のサンプル数を指定し、省略した場合の値は　`ColorHueSamples`。`saturationSamples` は彩度のサンプル数を指定し、省略した場合の値は `ColorSaturationSamples`。`brightnessSamples` は明度のサンプル数を指定し、省略した場合の値は `ColorBrightnessSamples`。`omitScale` はグレースケールを省略するかを指定し、省略した場合の値は `false`。
 ---@field DetectClicks fun (lastClickCount: number, lastTime: TimeSpan, clickTiming: TimeSpan): number, TimeSpan @連続したクリック数を検出する。最後のクリック時間から 'clickTiming' 以内であれば、カウントアップして 1 番目の戻り値として返す。時間が過ぎていれば `1` を返す。この関数を呼び出した時間を 2 番目の戻り値として返す。`lastClickCount` には、この関数からの1番目の戻り値を指定する。初回呼び出し時は `0` を指定する。`lastTime` には、この関数からの2番目の戻り値を指定する。初回呼び出し時は `TimeSpan.Zero` を指定する。`clickTiming` には、連続したクリックとみなす時間を指定する。省略した場合のデフォルト値は 500 ミリ秒。
----@field GetEffekseerEmitterMap fun (name: string): table<string, ExportEffekseer> @`vci.assets.GetEffekseerEmitters` で取得したリストを、`EffectName` をキーとするマップにして返す。失敗した場合は `nil` を返す。`name` には、`Effekseer Emitter` コンポーネントを設定した「オブジェクト名」を指定する。
----@field GetSubItemTransform fun (subItem: ExportTransform): cytanb_transform_t @SubItem の Transform を取得する。`EmitMessage`に Transform を渡すための簡便な方法として利用できる。
+---@field ColorFromARGB32 fun (argb32: number): Color @ARGB 32 bit 値から、`Color` オブジェクトへ変換する。
+---@field ColorToARGB32 fun (color: Color): number @`Color` オブジェクトから ARGB 32 bit 値へ変換する。
+---@field ColorFromIndex fun (colorIndex: number, hueSamples: number, saturationSamples: number, brightnessSamples: number, omitScale: boolean): Color @カラーインデックスから対応する `Color` オブジェクトへ変換する。`hueSamples` は色相のサンプル数を指定し、省略した場合の値は　`ColorHueSamples`。`saturationSamples` は彩度のサンプル数を指定し、省略した場合の値は `ColorSaturationSamples`。`brightnessSamples` は明度のサンプル数を指定し、省略した場合の値は `ColorBrightnessSamples`。`omitScale` はグレースケールを省略するかを指定し、省略した場合の値は `false`。
+---@field ColorToTable fun (value: Color): table @`Color` の各成分と型情報を含むテーブルへ変換する。
+---@field ColorFromTable fun (tbl: table): Color, boolean @`ColorToTable` で得たテーブルを、`Color` へ変換して 1 番目の戻り値として返す。変換できなかった場合は `nil` を返す。テーブルに各成分以外のフィールドが含まれていたかを 2 番目の戻り値として返す。
+---@field Vector2ToTable fun (value: Vector2): table @`Vector2` の各成分と型情報を含むテーブルへ変換する。
+---@field Vector2FromTable fun (tbl: table): Vector2, boolean @`Vector2ToTable` で得たテーブルを、`Vector2` へ変換して 1 番目の戻り値として返す。変換できなかった場合は `nil` を返す。テーブルに各成分以外のフィールドが含まれていたかを 2 番目の戻り値として返す。
 ---@field Vector3ToTable fun (value: Vector3): table @`Vector3` の各成分と型情報を含むテーブルへ変換する。
----@field Vector3FromTable fun (tbl: table): Vector3, boolean @`Vector3ToTable` で得たテーブルから、`Vector3` へ変換して1番目の戻り値として返す。変換できなかった場合は `nil` を返す。テーブルに各成分以外のフィールドが含まれていたかを2番目の戻り値として返す。
+---@field Vector3FromTable fun (tbl: table): Vector3, boolean @`Vector3ToTable` で得たテーブルを、`Vector3` へ変換して 1 番目の戻り値として返す。変換できなかった場合は `nil` を返す。テーブルに各成分以外のフィールドが含まれていたかを 2 番目の戻り値として返す。
+---@field Vector4ToTable fun (value: Vector4): table @`Vector4` の各成分と型情報を含むテーブルへ変換する。
+---@field Vector4FromTable fun (tbl: table): Vector4, boolean @`Vector4ToTable` で得たテーブルを、`Vector4` へ変換して 1 番目の戻り値として返す。変換できなかった場合は `nil` を返す。テーブルに各成分以外のフィールドが含まれていたかを 2 番目の戻り値として返す。
 ---@field QuaternionToTable fun (value: Quaternion): table @`Quaternion` の各成分と型情報を含むテーブルへ変換する。
----@field QuaternionFromTable fun (tbl: table): Quaternion, boolean @`QuaternionToTable` で得たテーブルから、`Quaternion` へ変換して1番目の戻り値として返す。変換できなかった場合は `nil` を返す。テーブルに各成分以外のフィールドが含まれていたかを2番目の戻り値として返す。
+---@field QuaternionFromTable fun (tbl: table): Quaternion, boolean @`QuaternionToTable` で得たテーブルを、`Quaternion` へ変換して 1 番目の戻り値として返す。変換できなかった場合は `nil` を返す。テーブルに各成分以外のフィールドが含まれていたかを 2 番目の戻り値として返す。
 ---@field TableToSerializable fun (data: table): table @json serialize/parse の問題に対するワークアラウンドを行う。[負の数値の問題](https://github.com/xanathar/moonsharp/issues/163)、[数値インデックスの多次元配列の問題](https://github.com/moonsharp-devs/moonsharp/issues/219)、[フォワードスラッシュ '/' の問題](https://github.com/moonsharp-devs/moonsharp/issues/180) のワークアラウンドを行う。数値インデックスの配列である場合は、キー名に '#__CYTANB_ARRAY_NUMBER' タグを付加する。負の数値である場合は、キー名に '#__CYTANB_NEGATIVE_NUMBER' タグを付加し、負の数値を文字列に変換する。文字列にフォワードスラッシュ '/' が含まれている場合は、'#__CYTANB_SOLIDUS' に置換する。
 ---@field TableFromSerializable fun (serData: table, noValueConversion: boolean): table @TableToSerializable で変換したテーブルを復元する。`Vector3ToTable/QuaternionToTable` で変換したテーブルが含まれている場合は、テーブルから値へ自動変換を行う。`noValueConversion` に `true` を指定した場合は、値の自動変換を行わない。省略した場合の値は `false`。
 ---@field EmitMessage fun (name: string, parameterMap: table<string, any>) @パラメーターを JSON シリアライズして `vci.message.Emit` する。`name` はメッセージ名を指定する。`parameterMap` は送信するパラメーターのテーブルを指定する(省略可能)。また、`InstanceID` がパラメーターフィールド `__CYTANB_INSTANCE_ID` として付加されて送信される。
 ---@field OnMessage fun (name: string, callback: fun(sender: table, name: string, parameterMap: table)) @`EmitMessage` したメッセージを受信するコールバック関数を登録する。`name` はメッセージ名を指定する。`callback` 関数に渡される `parameterMap` は JSON データをデシリアライズしたテーブル。また、パラメーターフィールド `__CYTANB_INSTANCE_ID` を利用してメッセージ送信元のインスタンスを識別可能。もしデシリアライズできないデータであった場合は、パラメーターフィールド `__CYTANB_MESSAGE_VALUE` に値がセットされる。
 ---@field OnInstanceMessage fun (name: string, callback: fun(sender: table, name: string, parameterMap: table)) @自身のインスタンスから送信されたメッセージを受信するコールバック関数を登録する。パラメーターフィールド `__CYTANB_INSTANCE_ID` を利用してインスタンスの判定を行う。その他の事項については `OnMessage` を参照。
+---@field GetEffekseerEmitterMap fun (name: string): table<string, ExportEffekseer> @`vci.assets.GetEffekseerEmitters` で取得したリストを、`EffectName` をキーとするマップにして返す。失敗した場合は `nil` を返す。`name` には、`Effekseer Emitter` コンポーネントを設定した「オブジェクト名」を指定する。
+---@field GetSubItemTransform fun (subItem: ExportTransform): cytanb_transform_t @deprecated この関数のかわりに、`Vector3ToTable/QuaternionToTable` を使用すること。SubItem の Transform を取得する。
