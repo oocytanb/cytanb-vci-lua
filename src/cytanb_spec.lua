@@ -749,59 +749,45 @@ describe('Test cytanb owner user', function ()
         assert.are.equal(0, conflictCount)
     end)
 
-    it('TransformParameters', function ()
-        local p1, r1, s1 = cytanb.RestoreCytanbTransform(
-            {
-                positionX = 123,
-                positionY = -49.75,
-                positionZ = 0,
-                rotationX = -0.109807625412941,
-                rotationY = 0.146410167217255,
-                rotationZ = -0.183012709021568,
-                rotationW = 0.965925812721252,
-                scaleX = 0,
-                scaleY = 0.25,
-                scaleZ = 1.5
-            }
-        )
-        assert.are.equal(Vector3.__new(123, -49.75, 0), p1)
-        assert.are.equal(Quaternion.__new(-0.109807625412941, 0.146410167217255, -0.183012709021568, 0.965925812721252), r1)
-        assert.are.equal(Vector3.__new(0, 0.25, 1.5), s1)
-
-        local p40, r40, s40 = cytanb.RestoreCytanbTransform(
-            {
-                positionX = 123,
-                positionZ = 0,
-                rotationX = -0.109807625412941,
-                rotationY = 0.146410167217255,
-                rotationW = 0.965925812721252,
-                scaleX = 0,
-                scaleZ = 1.5
-            }
-        )
-        assert.is_nil(p40)
-        assert.is_nil(r40)
-        assert.is_nil(s40)
-
-        local p41, r41, s41 = cytanb.RestoreCytanbTransform(
-            {
-                positionX = 0,
-                positionY = 0,
-                positionZ = 0,
-                rotationX = 0,
-                rotationY = 0,
-                rotationZ = 0,
-                rotationW = 1,
-                scaleY = 0.8,
-                scaleZ = 1.5
-            }
-        )
-        assert.are.equal(Vector3.zero, p41)
-        assert.are.equal(Quaternion.identity, r41)
-        assert.is_nil(s41)
-    end)
-
     it('ValueTableConversion', function ()
+        local v100 = Color.__new(0, 0.75, 1.25, 0.5)
+        local t100 = {__CYTANB_TYPE = 'Color', r = 0, g = 0.75, b = 1.25, a = 0.5}
+        assert.are.same(t100, cytanb.ColorToTable(v100))
+        local vf100, uf100 = cytanb.ColorFromTable(t100)
+        assert.are.equal(v100, vf100)
+        assert.is_false(uf100)
+
+        local vf101, uf101 = cytanb.ColorFromTable({__CYTANB_TYPE = 'Color', r = 0, g = 0.75, b = 1.25, a = 0.5, addition = 98765})
+        assert.are.equal(v100, vf101)
+        assert.is_true(uf101)
+
+        local vf102, uf102 = cytanb.ColorFromTable({r = 0, g = 0.75, b = 1.25, a = 0.5, addition = 98765})
+        assert.are.equal(v100, vf102)
+        assert.is_true(uf102)
+
+        assert.is_nil(cytanb.ColorFromTable({r = 0, b = 1.25, a = 0.5, addition = 98765}))
+        assert.is_nil(cytanb.ColorFromTable({__CYTANB_TYPE = 'INVALID_TYPE', r = 0, g = 0.75, b = 1.25, a = 0.5}))
+        assert.is_nil(cytanb.ColorFromTable({__CYTANB_TYPE = 'Vector4', x = 0, y = 0, z = 0, w = 1}))
+
+        local v200 = Vector2.__new(123, -49.75)
+        local t200 = {__CYTANB_TYPE = 'Vector2', x = 123, y = -49.75}
+        assert.are.same(t200, cytanb.Vector2ToTable(v200))
+        local vf200, uf200 = cytanb.Vector2FromTable(t200)
+        assert.are.equal(v200, vf200)
+        assert.is_false(uf200)
+
+        local vf201, uf201 = cytanb.Vector2FromTable({__CYTANB_TYPE = 'Vector2', x = 123, y = -49.75, addition = 98765})
+        assert.are.equal(v200, vf201)
+        assert.is_true(uf201)
+
+        local vf202, uf202 = cytanb.Vector2FromTable({x = 123, y = -49.75, addition = 98765})
+        assert.are.equal(v200, vf202)
+        assert.is_true(uf202)
+
+        assert.is_nil(cytanb.Vector2FromTable({y = -49.75, addition = 98765}))
+        assert.is_nil(cytanb.Vector2FromTable({__CYTANB_TYPE = 'INVALID_TYPE', x = 123, y = -49.75}))
+        assert.is_nil(cytanb.Vector2FromTable({__CYTANB_TYPE = 'Quaternion', x = 0, y = 0, z = 0, w = 1}))
+
         local v300 = Vector3.__new(123, -49.75, 0)
         local t300 = {__CYTANB_TYPE = 'Vector3', x = 123, y = -49.75, z = 0}
         assert.are.same(t300, cytanb.Vector3ToTable(v300))
@@ -820,6 +806,25 @@ describe('Test cytanb owner user', function ()
         assert.is_nil(cytanb.Vector3FromTable({x = 123, z = 0, addition = 98765}))
         assert.is_nil(cytanb.Vector3FromTable({__CYTANB_TYPE = 'INVALID_TYPE', x = 123, y = -49.75, z = 0}))
         assert.is_nil(cytanb.Vector3FromTable({__CYTANB_TYPE = 'Quaternion', x = 0, y = 0, z = 0, w = 1}))
+
+        local v400 = Vector4.__new(123, -49.75, 0, 0.25)
+        local t400 = {__CYTANB_TYPE = 'Vector4', x = 123, y = -49.75, z = 0, w = 0.25}
+        assert.are.same(t400, cytanb.Vector4ToTable(v400))
+        local vf400, uf400 = cytanb.Vector4FromTable(t400)
+        assert.are.equal(v400, vf400)
+        assert.is_false(uf400)
+
+        local vf401, uf401 = cytanb.Vector4FromTable({__CYTANB_TYPE = 'Vector4', x = 123, y = -49.75, z = 0, w = 0.25, addition = 98765})
+        assert.are.equal(v400, vf401)
+        assert.is_true(uf401)
+
+        local vf402, uf402 = cytanb.Vector4FromTable({x = 123, y = -49.75, z = 0, w = 0.25, addition = 98765})
+        assert.are.equal(v400, vf402)
+        assert.is_true(uf402)
+
+        assert.is_nil(cytanb.Vector4FromTable({x = 123, y = -49.75, w = 0.25, addition = 98765}))
+        assert.is_nil(cytanb.Vector4FromTable({__CYTANB_TYPE = 'INVALID_TYPE', x = 123, y = -49.75, z = 0, w = 0.25}))
+        assert.is_nil(cytanb.Vector4FromTable({__CYTANB_TYPE = 'Quaternion', x = 0, y = 0, z = 0, w = 1}))
 
         local v500 = Quaternion.__new(-0.109807625412941, 0.146410167217255, -0.183012709021568, 0.965925812721252)
         local t500 = {__CYTANB_TYPE = 'Quaternion', x = -0.109807625412941, y = 0.146410167217255, z = -0.183012709021568, w = 0.965925812721252}
@@ -855,7 +860,31 @@ describe('Test cytanb owner user', function ()
 
         assert.are.same({['foo#__CYTANB_SOLIDUSbar'] = 'apple#__CYTANB_SOLIDUSorange', ['fake_negative#__CYTANB#__CYTANB_NEGATIVE_NUMBERtypeIsString'] = '-6', qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', ['color\\#__CYTANB_SOLIDUSnote'] = 'red#__CYTANB_SOLIDUSblue', ['fake_array#__CYTANB#__CYTANB_ARRAY_NUMBER'] = 'fake#__CYTANB#__CYTANB_SOLIDUSsolidus'}}, cytanb.TableToSerializable({['foo/bar'] = 'apple/orange', ['fake_negative#__CYTANB_NEGATIVE_NUMBERtypeIsString'] = '-6', qux = {quux = -9876.5, ['color\\/note'] = 'red/blue', ['fake_array#__CYTANB_ARRAY_NUMBER'] = 'fake#__CYTANB_SOLIDUSsolidus'}}))
 
-        assert.are.same({foo = 'apple', position = {['__CYTANB_TYPE'] = 'Vector3', x = 123, ['y#__CYTANB_NEGATIVE_NUMBER'] = '-456', z = 789}, rotation = {['__CYTANB_TYPE'] = 'Quaternion', x = 0.683012664318085, y = 0.1830126941204, ['z#__CYTANB_NEGATIVE_NUMBER'] = '-0.1830126941204', w = 0.683012664318085}}, cytanb.TableToSerializable({foo = 'apple', position = cytanb.Vector3ToTable(Vector3.__new(123, -456, 789)), rotation = cytanb.QuaternionToTable(Quaternion.__new(0.683012664318085, 0.1830126941204, -0.1830126941204, 0.683012664318085))}))
+        assert.are.same(
+            {
+                foo = 'apple',
+                position = {['__CYTANB_TYPE'] = 'Vector3', x = 123, ['y#__CYTANB_NEGATIVE_NUMBER'] = '-456', z = 789},
+                rotation = {['__CYTANB_TYPE'] = 'Quaternion', x = 0.683012664318085, y = 0.1830126941204, ['z#__CYTANB_NEGATIVE_NUMBER'] = '-0.1830126941204', w = 0.683012664318085}
+            },
+            cytanb.TableToSerializable({
+                foo = 'apple',
+                position = cytanb.Vector3ToTable(Vector3.__new(123, -456, 789)),
+                rotation = cytanb.QuaternionToTable(Quaternion.__new(0.683012664318085, 0.1830126941204, -0.1830126941204, 0.683012664318085))
+            })
+        )
+
+        assert.are.same(
+            {
+                color = {['__CYTANB_TYPE'] = 'Color', r = 0, g = 0.25, b = 1, a = 0.5},
+                uv = {['__CYTANB_TYPE'] = 'Vector2', x = 123, ['y#__CYTANB_NEGATIVE_NUMBER'] = '-456'},
+                column = {['__CYTANB_TYPE'] = 'Vector4', x = 5, y = 6, ['z#__CYTANB_NEGATIVE_NUMBER'] = '-7', w = 8}
+            },
+            cytanb.TableToSerializable({
+                color = cytanb.ColorToTable(Color.__new(0, 0.25, 1, 0.5)),
+                uv = cytanb.Vector2ToTable(Vector2.__new(123, -456)),
+                column = cytanb.Vector4ToTable(Vector4.__new(5, 6, -7, 8))
+            })
+        )
 
         local circularTable = {foo = 123.25}
         circularTable.ref = circularTable
@@ -894,6 +923,12 @@ describe('Test cytanb owner user', function ()
         assert.are.same('apple', t710.foo)
         assert.are.same({['__CYTANB_TYPE'] = 'Vector3', x = 123, y = -456, z = 789, addition = 'black'}, t710.position)
         assert.are.same({x = 0.683012664318085, y = 0.1830126941204, z = -0.1830126941204, w = 0.683012664318085}, t710.rotation)
+
+        local s720 = {color = {['__CYTANB_TYPE'] = 'Color', r = 0, g = 0.25, b = 1, a = 0.5}, uv = {['__CYTANB_TYPE'] = 'Vector2', x = 123, ['y#__CYTANB_NEGATIVE_NUMBER'] = '-456'}, column = {['__CYTANB_TYPE'] = 'Vector4', x = 5, y = 6, ['z#__CYTANB_NEGATIVE_NUMBER'] = '-7', w = 8}}
+        local t720 = cytanb.TableFromSerializable(s720)
+        assert.are.equal(Color.__new(0, 0.25, 1, 0.5), t720.color)
+        assert.are.equal(Vector2.__new(123, -456), t720.uv)
+        assert.are.equal(Vector4.__new(5, 6, -7, 8), t720.column)
     end)
 
     it('Message', function ()
@@ -991,6 +1026,58 @@ describe('Test cytanb owner user', function ()
         cbMap.cb2:revert()
 
         vci.fake.SetVciName(lastVciName)
+    end)
+
+    it('TransformParameters', function ()
+        local p1, r1, s1 = cytanb.RestoreCytanbTransform(
+            {
+                positionX = 123,
+                positionY = -49.75,
+                positionZ = 0,
+                rotationX = -0.109807625412941,
+                rotationY = 0.146410167217255,
+                rotationZ = -0.183012709021568,
+                rotationW = 0.965925812721252,
+                scaleX = 0,
+                scaleY = 0.25,
+                scaleZ = 1.5
+            }
+        )
+        assert.are.equal(Vector3.__new(123, -49.75, 0), p1)
+        assert.are.equal(Quaternion.__new(-0.109807625412941, 0.146410167217255, -0.183012709021568, 0.965925812721252), r1)
+        assert.are.equal(Vector3.__new(0, 0.25, 1.5), s1)
+
+        local p40, r40, s40 = cytanb.RestoreCytanbTransform(
+            {
+                positionX = 123,
+                positionZ = 0,
+                rotationX = -0.109807625412941,
+                rotationY = 0.146410167217255,
+                rotationW = 0.965925812721252,
+                scaleX = 0,
+                scaleZ = 1.5
+            }
+        )
+        assert.is_nil(p40)
+        assert.is_nil(r40)
+        assert.is_nil(s40)
+
+        local p41, r41, s41 = cytanb.RestoreCytanbTransform(
+            {
+                positionX = 0,
+                positionY = 0,
+                positionZ = 0,
+                rotationX = 0,
+                rotationY = 0,
+                rotationZ = 0,
+                rotationW = 1,
+                scaleY = 0.8,
+                scaleZ = 1.5
+            }
+        )
+        assert.are.equal(Vector3.zero, p41)
+        assert.are.equal(Quaternion.identity, r41)
+        assert.is_nil(s41)
     end)
 end)
 

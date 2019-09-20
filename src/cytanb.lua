@@ -855,6 +855,14 @@ local cytanb = (function ()
             return self
         end,
 
+        DetectClicks = function (lastClickCount, lastTime, clickTiming)
+            local count = lastClickCount or 0
+            local timing = clickTiming or TimeSpan.FromMilliseconds(500)
+            local now = vci.me.Time
+            local result = (lastTime and now > lastTime + timing) and 1 or count + 1
+            return result, now
+        end,
+
         ColorFromARGB32 = function (argb32)
             local n = (type(argb32) == 'number') and argb32 or 0xFF000000
             return Color.__new(
@@ -897,60 +905,22 @@ local cytanb = (function ()
             end
         end,
 
-        DetectClicks = function (lastClickCount, lastTime, clickTiming)
-            local count = lastClickCount or 0
-            local timing = clickTiming or TimeSpan.FromMilliseconds(500)
-            local now = vci.me.Time
-            local result = (lastTime and now > lastTime + timing) and 1 or count + 1
-            return result, now
+        ColorToTable = function (color)
+            return {[cytanb.TypeParameterName] = cytanb.ColorTypeName, r = color.r, g = color.g, b = color.b, a = color.a}
         end,
 
-        GetEffekseerEmitterMap = function (name)
-            local efkList = vci.assets.GetEffekseerEmitters(name)
-            if not efkList then
-                return nil
-            end
-
-            local map = {}
-            for i, efk in pairs(efkList) do
-                map[efk.EffectName] = efk
-            end
-            return map
+        ColorFromTable = function (tbl)
+            local b, unknownFieldContains = TestValueFromTable(tbl, cytanb.ColorTypeName)
+            return (b and Color.__new(tbl.r, tbl.g, tbl.b, tbl.a) or nil), unknownFieldContains
         end,
 
-        GetSubItemTransform = function (subItem)
-            local position = subItem.GetPosition()
-            local rotation = subItem.GetRotation()
-            local scale = subItem.GetLocalScale()
-            return {
-                positionX = position.x,
-                positionY = position.y,
-                positionZ = position.z,
-                rotationX = rotation.x,
-                rotationY = rotation.y,
-                rotationZ = rotation.z,
-                rotationW = rotation.w,
-                scaleX = scale.x,
-                scaleY = scale.y,
-                scaleZ = scale.z
-            }
+        Vector2ToTable = function (value)
+            return {[cytanb.TypeParameterName] = cytanb.Vector2TypeName, x = value.x, y = value.y}
         end,
 
-        -- @experimental 実験的な機能のため、変更される可能性がある。
-        RestoreCytanbTransform = function (transformParameters)
-            local pos = (transformParameters.positionX and transformParameters.positionY and transformParameters.positionZ) and
-                Vector3.__new(transformParameters.positionX, transformParameters.positionY, transformParameters.positionZ) or
-                nil
-
-            local rot = (transformParameters.rotationX and transformParameters.rotationY and transformParameters.rotationZ and transformParameters.rotationW) and
-                Quaternion.__new(transformParameters.rotationX, transformParameters.rotationY, transformParameters.rotationZ, transformParameters.rotationW) or
-                nil
-
-            local scale = (transformParameters.scaleX and transformParameters.scaleY and transformParameters.scaleZ) and
-                Vector3.__new(transformParameters.scaleX, transformParameters.scaleY, transformParameters.scaleZ) or
-                nil
-
-            return pos, rot, scale
+        Vector2FromTable = function (tbl)
+            local b, unknownFieldContains = TestValueFromTable(tbl, cytanb.Vector2TypeName)
+            return (b and Vector2.__new(tbl.x, tbl.y) or nil), unknownFieldContains
         end,
 
         Vector3ToTable = function (value)
@@ -960,6 +930,15 @@ local cytanb = (function ()
         Vector3FromTable = function (tbl)
             local b, unknownFieldContains = TestValueFromTable(tbl, cytanb.Vector3TypeName)
             return (b and Vector3.__new(tbl.x, tbl.y, tbl.z) or nil), unknownFieldContains
+        end,
+
+        Vector4ToTable = function (value)
+            return {[cytanb.TypeParameterName] = cytanb.Vector4TypeName, x = value.x, y = value.y, z = value.z, w = value.w}
+        end,
+
+        Vector4FromTable = function (tbl)
+            local b, unknownFieldContains = TestValueFromTable(tbl, cytanb.Vector4TypeName)
+            return (b and Vector4.__new(tbl.x, tbl.y, tbl.z, tbl.w) or nil), unknownFieldContains
         end,
 
         QuaternionToTable = function (value)
@@ -1031,6 +1010,54 @@ local cytanb = (function ()
             end
 
             return cytanb.OnMessage(name, f)
+        end,
+
+        GetEffekseerEmitterMap = function (name)
+            local efkList = vci.assets.GetEffekseerEmitters(name)
+            if not efkList then
+                return nil
+            end
+
+            local map = {}
+            for i, efk in pairs(efkList) do
+                map[efk.EffectName] = efk
+            end
+            return map
+        end,
+
+        GetSubItemTransform = function (subItem)
+            local position = subItem.GetPosition()
+            local rotation = subItem.GetRotation()
+            local scale = subItem.GetLocalScale()
+            return {
+                positionX = position.x,
+                positionY = position.y,
+                positionZ = position.z,
+                rotationX = rotation.x,
+                rotationY = rotation.y,
+                rotationZ = rotation.z,
+                rotationW = rotation.w,
+                scaleX = scale.x,
+                scaleY = scale.y,
+                scaleZ = scale.z
+            }
+        end,
+
+        -- @deprecated 廃止予定につき使用しないこと。
+        RestoreCytanbTransform = function (transformParameters)
+            local pos = (transformParameters.positionX and transformParameters.positionY and transformParameters.positionZ) and
+                Vector3.__new(transformParameters.positionX, transformParameters.positionY, transformParameters.positionZ) or
+                nil
+
+            local rot = (transformParameters.rotationX and transformParameters.rotationY and transformParameters.rotationZ and transformParameters.rotationW) and
+                Quaternion.__new(transformParameters.rotationX, transformParameters.rotationY, transformParameters.rotationZ, transformParameters.rotationW) or
+                nil
+
+            local scale = (transformParameters.scaleX and transformParameters.scaleY and transformParameters.scaleZ) and
+                Vector3.__new(transformParameters.scaleX, transformParameters.scaleY, transformParameters.scaleZ) or
+                nil
+
+            return pos, rot, scale
         end
     }
 
@@ -1053,7 +1080,10 @@ local cytanb = (function ()
         InstanceIDParameterName = '__CYTANB_INSTANCE_ID',
         MessageValueParameterName = '__CYTANB_MESSAGE_VALUE',
         TypeParameterName = '__CYTANB_TYPE',
+        ColorTypeName = 'Color',
+        Vector2TypeName = 'Vector2',
         Vector3TypeName = 'Vector3',
+        Vector4TypeName = 'Vector4',
         QuaternionTypeName = 'Quaternion'
     })
 
@@ -1068,7 +1098,10 @@ local cytanb = (function ()
     })
 
     valueConversionMap = {
+        [cytanb.ColorTypeName] = {compositionFieldNames = cytanb.ListToMap({'r', 'g', 'b', 'a'}), compositionFieldLength = 4, toTableFunc = cytanb.ColorToTable, fromTableFunc = cytanb.ColorFromTable},
+        [cytanb.Vector2TypeName] = {compositionFieldNames = cytanb.ListToMap({'x', 'y'}), compositionFieldLength = 2, toTableFunc = cytanb.Vector2ToTable, fromTableFunc = cytanb.Vector2FromTable},
         [cytanb.Vector3TypeName] = {compositionFieldNames = cytanb.ListToMap({'x', 'y', 'z'}), compositionFieldLength = 3, toTableFunc = cytanb.Vector3ToTable, fromTableFunc = cytanb.Vector3FromTable},
+        [cytanb.Vector4TypeName] = {compositionFieldNames = cytanb.ListToMap({'x', 'y', 'z', 'w'}), compositionFieldLength = 4, toTableFunc = cytanb.Vector4ToTable, fromTableFunc = cytanb.Vector4FromTable},
         [cytanb.QuaternionTypeName] = {compositionFieldNames = cytanb.ListToMap({'x', 'y', 'z', 'w'}), compositionFieldLength = 4, toTableFunc = cytanb.QuaternionToTable, fromTableFunc = cytanb.QuaternionFromTable}
     }
 
