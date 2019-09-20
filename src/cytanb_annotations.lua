@@ -52,6 +52,9 @@
 ---@field ArrayNumberTag string @連想配列でなく、keyが数値であることを示すタグ。
 ---@field InstanceIDParameterName string @インスタンス ID のパラーメーター名。
 ---@field MessageValueParameterName string @メッセージ値のパラーメーター名。
+---@field TypeParameterName string @タイプのパラーメーター名。
+---@field Vector3TypeName string @`Vector3` のタイプ名。
+---@field QuaternionTypeName string @`Quaternion` のタイプ名。
 ---@field InstanceID fun (): string @インスタンス ID を取得する。VCI を設置したユーザー以外では、同期完了前は空文字列を返す。
 ---@field NillableHasValue fun (nillable: any): boolean @`nillable` が `nil` 以外の値であるかを調べる。
 ---@field NillableValue fun (nillable: any): any @`nillable` の値を返す。`nillable` が `nil` の場合は、エラーを発生させる。
@@ -93,6 +96,10 @@
 ---@field DetectClicks fun (lastClickCount: number, lastTime: TimeSpan, clickTiming: TimeSpan): number, TimeSpan @連続したクリック数を検出する。最後のクリック時間から 'clickTiming' 以内であれば、カウントアップして 1 番目の戻り値として返す。時間が過ぎていれば `1` を返す。この関数を呼び出した時間を 2 番目の戻り値として返す。`lastClickCount` には、この関数からの1番目の戻り値を指定する。初回呼び出し時は `0` を指定する。`lastTime` には、この関数からの2番目の戻り値を指定する。初回呼び出し時は `TimeSpan.Zero` を指定する。`clickTiming` には、連続したクリックとみなす時間を指定する。省略した場合のデフォルト値は 500 ミリ秒。
 ---@field GetEffekseerEmitterMap fun (name: string): table<string, ExportEffekseer> @`vci.assets.GetEffekseerEmitters` で取得したリストを、`EffectName` をキーとするマップにして返す。失敗した場合は `nil` を返す。`name` には、`Effekseer Emitter` コンポーネントを設定した「オブジェクト名」を指定する。
 ---@field GetSubItemTransform fun (subItem: ExportTransform): cytanb_transform_t @SubItem の Transform を取得する。`EmitMessage`に Transform を渡すための簡便な方法として利用できる。
+---@field Vector3ToTable fun (value: Vector3): table @`Vector3` の各成分と型情報を含むテーブルへ変換する。
+---@field Vector3FromTable fun (tbl: table): Vector3, boolean @`Vector3ToTable` で得たテーブルから、`Vector3` へ変換して1番目の戻り値として返す。変換できなかった場合は `nil` を返す。テーブルに各成分以外のフィールドが含まれていたかを2番目の戻り値として返す。
+---@field QuaternionToTable fun (value: Quaternion): table @`Quaternion` の各成分と型情報を含むテーブルへ変換する。
+---@field QuaternionFromTable fun (tbl: table): Quaternion, boolean @`QuaternionToTable` で得たテーブルから、`Quaternion` へ変換して1番目の戻り値として返す。変換できなかった場合は `nil` を返す。テーブルに各成分以外のフィールドが含まれていたかを2番目の戻り値として返す。
 ---@field TableToSerializable fun (data: table): table @json serialize/parse の問題に対するワークアラウンドを行う。[負の数値の問題](https://github.com/xanathar/moonsharp/issues/163)、[数値インデックスの多次元配列の問題](https://github.com/moonsharp-devs/moonsharp/issues/219)、[フォワードスラッシュ '/' の問題](https://github.com/moonsharp-devs/moonsharp/issues/180) のワークアラウンドを行う。数値インデックスの配列である場合は、キー名に '#__CYTANB_ARRAY_NUMBER' タグを付加する。負の数値である場合は、キー名に '#__CYTANB_NEGATIVE_NUMBER' タグを付加し、負の数値を文字列に変換する。文字列にフォワードスラッシュ '/' が含まれている場合は、'#__CYTANB_SOLIDUS' に置換する。
 ---@field TableFromSerializable fun (serData: table): table @TableToSerializable で変換したテーブルを復元する。
 ---@field EmitMessage fun (name: string, parameterMap: table<string, any>) @パラメーターを JSON シリアライズして `vci.message.Emit` する。`name` はメッセージ名を指定する。`parameterMap` は送信するパラメーターのテーブルを指定する(省略可能)。また、`InstanceID` がパラメーターフィールド `__CYTANB_INSTANCE_ID` として付加されて送信される。

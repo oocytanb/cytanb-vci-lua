@@ -12,6 +12,9 @@ local cytanb = (function ()
     --- インスタンス ID の状態変数名。
     local InstanceIDStateName = '__CYTANB_INSTANCE_ID'
 
+    --- 成分マップ。
+    local compositionMap
+
     --- エスケープシーケンスの置換パターン。
     local escapeSequenceReplacementPatterns
 
@@ -111,6 +114,35 @@ local cytanb = (function ()
             end
         end
         rawset(table, key, v)
+    end
+
+    local TestValueFromTable = function (tbl, typeName)
+        local nillableType = tbl[cytanb.TypeParameterName]
+        if cytanb.NillableHasValue(nillableType) and cytanb.NillableValue(nillableType) ~= typeName then
+            -- 型が一致していない
+            return false, false
+        end
+
+        local composition = compositionMap[typeName]
+        local nameMap = composition.nameMap
+        local remain = composition.length
+        local unknownFieldContains = false
+
+        for k, v in pairs(tbl) do
+            if nameMap[k] then
+                remain = remain - 1
+                if remain <= 0 and unknownFieldContains then
+                    break
+                end
+            elseif k ~= cytanb.TypeParameterName then
+                unknownFieldContains = true
+                if remain <= 0 then
+                    break
+                end
+            end
+        end
+
+        return remain <= 0, unknownFieldContains
     end
 
     local EscapeForSerialization = function (str)
@@ -813,6 +845,24 @@ local cytanb = (function ()
             return pos, rot, scale
         end,
 
+        Vector3ToTable = function (value)
+            return {[cytanb.TypeParameterName] = cytanb.Vector3TypeName, x = value.x, y = value.y, z = value.z}
+        end,
+
+        Vector3FromTable = function (tbl)
+            local b, unknownFieldContains = TestValueFromTable(tbl, cytanb.Vector3TypeName)
+            return (b and Vector3.__new(tbl.x, tbl.y, tbl.z) or nil), unknownFieldContains
+        end,
+
+        QuaternionToTable = function (value)
+            return {[cytanb.TypeParameterName] = cytanb.QuaternionTypeName, x = value.x, y = value.y, z = value.z, w = value.w}
+        end,
+
+        QuaternionFromTable = function (tbl)
+            local b, unknownFieldContains = TestValueFromTable(tbl, cytanb.QuaternionTypeName)
+            return (b and Quaternion.__new(tbl.x, tbl.y, tbl.z, tbl.w) or nil), unknownFieldContains
+        end,
+
         TableToSerializable = function (data, refTable)
             if type(data) ~= 'table' then
                 return data
@@ -971,7 +1021,10 @@ local cytanb = (function ()
         NegativeNumberTag = '#__CYTANB_NEGATIVE_NUMBER',
         ArrayNumberTag = '#__CYTANB_ARRAY_NUMBER',
         InstanceIDParameterName = '__CYTANB_INSTANCE_ID',
-        MessageValueParameterName = '__CYTANB_MESSAGE_VALUE'
+        MessageValueParameterName = '__CYTANB_MESSAGE_VALUE',
+        TypeParameterName = '__CYTANB_TYPE',
+        Vector3TypeName = 'Vector3',
+        QuaternionTypeName = 'Quaternion'
     })
 
     cytanb.SetConstEach(cytanb, {
@@ -983,6 +1036,11 @@ local cytanb = (function ()
         DebugLogLevel = cytanb.LogLevelDebug,    -- @deprecated
         TraceLogLevel = cytanb.LogLevelTrace     -- @deprecated
     })
+
+    compositionMap = {
+        [cytanb.Vector3TypeName] = {nameMap = cytanb.ListToMap({'x', 'y', 'z'}), length = 3},
+        [cytanb.QuaternionTypeName] = {nameMap = cytanb.ListToMap({'x', 'y', 'z', 'w'}), length = 4}
+    }
 
     -- タグ文字列の長い順にパターン配列をセットする
     escapeSequenceReplacementPatterns = {
