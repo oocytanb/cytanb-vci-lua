@@ -801,6 +801,45 @@ describe('Test cytanb owner user', function ()
         assert.is_nil(s41)
     end)
 
+    it('ValueTableConversion', function ()
+        local v300 = Vector3.__new(123, -49.75, 0)
+        local t300 = {__CYTANB_TYPE = 'Vector3', x = 123, y = -49.75, z = 0}
+        assert.are.same(t300, cytanb.Vector3ToTable(v300))
+        local vf300, uf300 = cytanb.Vector3FromTable(t300)
+        assert.are.equal(v300, vf300)
+        assert.is_false(uf300)
+
+        local vf301, uf301 = cytanb.Vector3FromTable({__CYTANB_TYPE = 'Vector3', x = 123, y = -49.75, z = 0, addition = 98765})
+        assert.are.equal(v300, vf301)
+        assert.is_true(uf301)
+
+        local vf302, uf302 = cytanb.Vector3FromTable({x = 123, y = -49.75, z = 0, addition = 98765})
+        assert.are.equal(v300, vf302)
+        assert.is_true(uf302)
+
+        assert.is_nil(cytanb.Vector3FromTable({x = 123, z = 0, addition = 98765}))
+        assert.is_nil(cytanb.Vector3FromTable({__CYTANB_TYPE = 'INVALID_TYPE', x = 123, y = -49.75, z = 0}))
+        assert.is_nil(cytanb.Vector3FromTable({__CYTANB_TYPE = 'Quaternion', x = 0, y = 0, z = 0, w = 1}))
+
+        local v500 = Quaternion.__new(-0.109807625412941, 0.146410167217255, -0.183012709021568, 0.965925812721252)
+        local t500 = {__CYTANB_TYPE = 'Quaternion', x = -0.109807625412941, y = 0.146410167217255, z = -0.183012709021568, w = 0.965925812721252}
+        assert.are.same(t500, cytanb.QuaternionToTable(v500))
+        local vf500, uf500 = cytanb.QuaternionFromTable(t500)
+        assert.are.equal(v500, vf500)
+        assert.is_false(uf500)
+
+        local vf501, uf501 = cytanb.QuaternionFromTable({__CYTANB_TYPE = 'Quaternion', x = -0.109807625412941, y = 0.146410167217255, z = -0.183012709021568, w = 0.965925812721252, addition = 98765})
+        assert.are.equal(v500, vf501)
+        assert.is_true(uf501)
+
+        local vf502, uf502 = cytanb.QuaternionFromTable({x = 0, y = 0, z = 0, w = 1, addition = 98765})
+        assert.are.equal(Quaternion.identity, vf502)
+        assert.is_true(uf502)
+
+        assert.is_nil(cytanb.QuaternionFromTable({y = 0.146410167217255, z = -0.183012709021568, w = 0.965925812721252, addition = 98765}))
+        assert.is_nil(cytanb.QuaternionFromTable({__CYTANB_TYPE = 'INVALID_TYPE', x = 0, y = 0, z = 0, w = 1}))
+    end)
+
     it('TableToSerializable', function ()
         assert.are.same({}, cytanb.TableToSerializable({}))
         assert.are.same({foo = 123.25, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', corge = false}}, cytanb.TableToSerializable({foo = 123.25, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}))
