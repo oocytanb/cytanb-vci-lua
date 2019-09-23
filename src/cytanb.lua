@@ -1025,6 +1025,147 @@ local cytanb = (function ()
             return map
         end,
 
+        --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** サブアイテム間の位置と回転を相互に作用させるためのコネクターを作成する。スケールは非対応。サブアイテムのグループIDは、ゼロ以外の同じ値を設定しておく必要がある。
+        CreateSubItemConnector = function ()
+            local SetItemStatus = function (status, item, propagation)
+                status.item = item
+
+                status.position = item.GetPosition()
+                status.rotation = item.GetRotation()
+
+                status.initialPosition = status.position
+                status.initialRotation = status.rotation
+
+                status.propagation = not not propagation
+
+                return status
+            end
+
+            local UpdateItemStatusMap = function (statusMap)
+                for item, status in pairs(statusMap) do
+                    SetItemStatus(status, item, status.propagation)
+                end
+            end
+
+            local ApplyTransform = function (position, rotation, status, targetStatusMap, targetFilter)
+                local dp = position - status.initialPosition
+                local dr = rotation * Quaternion.Inverse(status.initialRotation)
+
+                status.position = position
+                status.rotation = rotation
+
+                for item, targetStatus in pairs(targetStatusMap) do
+                    -- フィルターが指定されていないか、フィルターが指定されていて true を返した場合は、適用処理をする
+                    if item ~= status.item and (not targetFilter or targetFilter(targetStatus)) then
+                        targetStatus.position, targetStatus.rotation = cytanb.RotateAround(targetStatus.initialPosition + dp, targetStatus.initialRotation, position, dr)
+
+                        item.SetPosition(targetStatus.position)
+                        item.SetRotation(targetStatus.rotation)
+                    end
+                end
+            end
+
+            local itemStatusMap = {}
+            local updateEnabled = true
+            local dirty = false
+
+            local self = {
+                IsEnabled = function ()
+                    return updateEnabled
+                end,
+
+                SetEnabled = function (enabled)
+                    updateEnabled = enabled
+                    if enabled then
+                        UpdateItemStatusMap(itemStatusMap)
+                        dirty = false
+                    end
+                end,
+
+                Contains = function (subItem)
+                    return cytanb.NillableHasValue(itemStatusMap[subItem])
+                end,
+
+                GetItems = function ()
+                    local itemList = {}
+                    for item, status in pairs(itemStatusMap) do
+                        table.insert(itemList, item)
+                    end
+                    return itemList
+                end,
+
+                Add = function (subItems, noPropagation)
+                    if not subItems then
+                        error('INVALID ARGUMENT: subItems = ' .. tostring(subItems))
+                    end
+
+                    local itemList = type(subItems) == 'table' and subItems or {subItems}
+
+                    UpdateItemStatusMap(itemStatusMap)
+                    dirty = false
+
+                    for k, item in pairs(itemList) do
+                        itemStatusMap[item] = SetItemStatus({}, item, not noPropagation)
+                    end
+                end,
+
+                Remove = function (subItem)
+                    local b = cytanb.NillableHasValue(itemStatusMap[subItem])
+                    itemStatusMap[subItem] = nil
+                    return b
+                end,
+
+                RemoveAll = function ()
+                    itemStatusMap = {}
+                    return true
+                end,
+
+                Update = function ()
+                    if not updateEnabled then
+                        return
+                    end
+
+                    local transformed = false
+                    for item, status in pairs(itemStatusMap) do
+                        local pos = item.GetPosition()
+                        local rot = item.GetRotation()
+                        if not cytanb.VectorApproximatelyEquals(pos, status.position) or not cytanb.QuaternionApproximatelyEquals(rot, status.rotation) then
+                            if status.propagation then
+                                if item.IsMine then
+                                    ApplyTransform(pos, rot, itemStatusMap[item], itemStatusMap, function (targetStatus)
+                                        if targetStatus.item.IsMine then
+                                            return true
+                                        else
+                                            -- 操作権がないアイテムがある場合は、ダーティーフラグをセットする
+                                            dirty = true
+                                            return false
+                                        end
+                                    end)
+
+                                    -- 複数のアイテムが変更されていても、1度に変更を適用するのは1つだけ
+                                    transformed = true
+                                    break
+                                else
+                                    -- 操作権がないものは非サポート。SubItem が同期されるときに補間される関係で、まともに動かないため。
+                                    dirty = true
+                                end
+                            else
+                                -- 変更を伝搬しない場合は、ダーティーフラグをセットする
+                                dirty = true
+                            end
+                        end
+                    end
+
+                    if not transformed and dirty then
+                        -- 全アイテムのステータスをセットし直す
+                        UpdateItemStatusMap(itemStatusMap)
+                        dirty = false
+                    end
+                end
+            }
+            return self
+        end,
+
         GetSubItemTransform = function (subItem)
             local position = subItem.GetPosition()
             local rotation = subItem.GetRotation()
