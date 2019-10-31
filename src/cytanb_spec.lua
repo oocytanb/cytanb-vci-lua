@@ -698,31 +698,38 @@ describe('Test cytanb owner user', function ()
     end)
 
     it('Color', function ()
-        local indexRgbList = {
-            [{0, 0, 0}] = 0xff0000,
-            [{1, 1, 0}] = 0xffbf40,
-            [{2, 2, 0}] = 0xd5ff80,
-            [{3, 3, 0}] = 0xbfffbf,
-            [{4, 0, 1}] = 0x00cc88,
-            [{5, 2, 1}] = 0x66aacc,
-            [{6, 1, 2}] = 0x262699,
-            [{7, 3, 2}] = 0x8c7399,
-            [{8, 0, 3}] = 0x660044,
-            [{9, 2, 4}] = 0x222222,
-            [{9, 0, 0}] = 0x000000,
-            [{9, 2, 0}] = 0xaaaaaa,
-            [{9, 3, 0}] = 0xffffff
+        local indexColorList = {
+            [{0, 0, 0}] = {rgb24 = 0xff0000, hsv = {h = 0, s = 1, v = 1}},
+            [{1, 1, 0}] = {rgb24 = 0xffbf40, hsv = {h = 0.1108202, s = 0.7490196, v = 1}},
+            [{2, 2, 0}] = {rgb24 = 0xd5ff80, hsv = {h = 0.2217848, s = 0.4980392, v = 1}},
+            [{3, 3, 0}] = {rgb24 = 0xbfffbf, hsv = {h = 0.3333333, s = 0.2509804, v = 1}},
+            [{4, 0, 1}] = {rgb24 = 0x00cc88, hsv = {h = 0.4444444, s = 1, v = 0.8}},
+            [{5, 2, 1}] = {rgb24 = 0x66aacc, hsv = {h = 0.5555555, s = 0.5, v = 0.8}},
+            [{6, 1, 2}] = {rgb24 = 0x262699, hsv = {h = 0.6666667, s = 0.751634, v = 0.6}},
+            [{7, 3, 2}] = {rgb24 = 0x8c7399, hsv = {h = 0.7763157, s = 0.248366, v = 0.6}},
+            [{8, 0, 3}] = {rgb24 = 0x660044, hsv = {h = 0.8888889, s = 1, v = 0.4}},
+            [{9, 2, 4}] = {rgb24 = 0x222222, hsv = {h = 0, s = 0, v = 0.1333333}},
+            [{9, 0, 0}] = {rgb24 = 0x000000, hsv = {h = 0, s = 0, v = 0}},
+            [{9, 2, 0}] = {rgb24 = 0xaaaaaa, hsv = {h = 0, s = 0, v = 0.6666667}},
+            [{9, 3, 0}] = {rgb24 = 0xffffff, hsv = {h = 0, s = 0, v = 1}}
         }
 
-        for iv, rgb24 in pairs(indexRgbList) do
+        for iv, colorValues in pairs(indexColorList) do
             local index = iv[1] + iv[2] * cytanb.ColorHueSamples + iv[3] * cytanb.ColorHueSamples * cytanb.ColorSaturationSamples
-            local rgb32 = bit32.bor(0xff000000, rgb24)
+            local rgb32 = bit32.bor(0xff000000, colorValues.rgb24)
             local c32 = cytanb.ColorFromARGB32(rgb32)
             local cidx = cytanb.ColorFromIndex(index)
             local diff = cidx - c32
             local rdiff = Color.__new(cytanb.Round(diff.r, 2), cytanb.Round(diff.g, 2), cytanb.Round(diff.b, 2), cytanb.Round(diff.a, 2))
             assert.are.equal(Color.clear, rdiff)
             assert.are.equal(rgb32, cytanb.ColorToARGB32(c32))
+
+            local chsv = colorValues.hsv
+            local h, s, v = cytanb.ColorRGBToHSV(c32)
+            assert.are.equal(cytanb.Round(chsv.h, 5), cytanb.Round(h, 5))
+            assert.are.equal(cytanb.Round(chsv.s, 5), cytanb.Round(s, 5))
+            assert.are.equal(cytanb.Round(chsv.v, 5), cytanb.Round(v, 5))
+            -- print(string.format('rgb32 = 0x%08x: h = %f, s = %f, v = %f', rgb32, h, s, v))
         end
 
         local conflictCount = 0

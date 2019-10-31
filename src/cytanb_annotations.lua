@@ -21,18 +21,6 @@
 ---@field IsFull fun (): boolean @キューが満杯かを調べる。
 ---@field MaxSize fun (): number @キューの最大容量を取得する。
 
----@class cytanb_transform_t
----@field positionX number
----@field positionY number
----@field positionZ number
----@field rotationX number
----@field rotationY number
----@field rotationZ number
----@field rotationW number
----@field scaleX number
----@field scaleY number
----@field scaleZ number
-
 ---@class cytanb UUID、ログ、数学関数、色、メッセージなど、基礎的な機能を提供するモジュール。
 ---@field LogLevelOff number @ログ出力を行わないことを表す定数値。
 ---@field LogLevelFatal number @致命的なレベルのログを表す定数値。
@@ -91,6 +79,7 @@
 ---@field UUIDFromString fun (str: string): cytanb_uuid_t @UUID の文字列表現から、UUID オブジェクトを生成する。無効な形式であった場合は nil を返す。
 ---@field CreateCircularQueue fun (capacity: number): cytanb_circular_queue_t @`capacity` で指定した容量の循環キューを作成する。`capacity` に `1` 未満を指定した場合はエラーとなる。
 ---@field DetectClicks fun (lastClickCount: number, lastTime: TimeSpan, clickTiming: TimeSpan): number, TimeSpan @連続したクリック数を検出する。最後のクリック時間から 'clickTiming' 以内であれば、カウントアップして 1 番目の戻り値として返す。時間が過ぎていれば `1` を返す。この関数を呼び出した時間を 2 番目の戻り値として返す。`lastClickCount` には、この関数からの1番目の戻り値を指定する。初回呼び出し時は `0` を指定する。`lastTime` には、この関数からの2番目の戻り値を指定する。初回呼び出し時は `TimeSpan.Zero` を指定する。`clickTiming` には、連続したクリックとみなす時間を指定する。省略した場合のデフォルト値は 500 ミリ秒。
+---@field ColorRGBToHSV fun (color: Color): number, number, number @`Color` オブジェクトの RGB 値から HSV 値へ変換する。戻り値の 1 番目に色相、2 番目に彩度、3 番目に明度を返す。
 ---@field ColorFromARGB32 fun (argb32: number): Color @ARGB 32 bit 値から、`Color` オブジェクトへ変換する。
 ---@field ColorToARGB32 fun (color: Color): number @`Color` オブジェクトから ARGB 32 bit 値へ変換する。
 ---@field ColorFromIndex fun (colorIndex: number, hueSamples: number, saturationSamples: number, brightnessSamples: number, omitScale: boolean): Color @カラーインデックスから対応する `Color` オブジェクトへ変換する。`hueSamples` は色相のサンプル数を指定し、省略した場合の値は　`ColorHueSamples`。`saturationSamples` は彩度のサンプル数を指定し、省略した場合の値は `ColorSaturationSamples`。`brightnessSamples` は明度のサンプル数を指定し、省略した場合の値は `ColorBrightnessSamples`。`omitScale` はグレースケールを省略するかを指定し、省略した場合の値は `false`。
@@ -110,4 +99,3 @@
 ---@field OnMessage fun (name: string, callback: fun(sender: table, name: string, parameterMap: table)) @`EmitMessage` したメッセージを受信するコールバック関数を登録する。`name` はメッセージ名を指定する。`callback` 関数に渡される `parameterMap` は JSON データをデシリアライズしたテーブル。また、パラメーターフィールド `__CYTANB_INSTANCE_ID` を利用してメッセージ送信元のインスタンスを識別可能。もしデシリアライズできないデータであった場合は、パラメーターフィールド `__CYTANB_MESSAGE_VALUE` に値がセットされる。
 ---@field OnInstanceMessage fun (name: string, callback: fun(sender: table, name: string, parameterMap: table)) @自身のインスタンスから送信されたメッセージを受信するコールバック関数を登録する。パラメーターフィールド `__CYTANB_INSTANCE_ID` を利用してインスタンスの判定を行う。その他の事項については `OnMessage` を参照。
 ---@field GetEffekseerEmitterMap fun (name: string): table<string, ExportEffekseer> @`vci.assets.GetEffekseerEmitters` で取得したリストを、`EffectName` をキーとするマップにして返す。失敗した場合は `nil` を返す。`name` には、`Effekseer Emitter` コンポーネントを設定した「オブジェクト名」を指定する。
----@field GetSubItemTransform fun (subItem: ExportTransform): cytanb_transform_t @deprecated この関数のかわりに、`Vector3ToTable/QuaternionToTable` を使用すること。SubItem の Transform を取得する。
