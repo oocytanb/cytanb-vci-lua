@@ -933,6 +933,42 @@ local cytanb = (function ()
             end
         end,
 
+        --- **EXPERIMENTAL:実験的な機能。`Color` オブジェクトから近似するカラーインデックスを計算する。**
+        ColorToIndex = function (color, hueSamples, saturationSamples, brightnessSamples, omitScale)
+            local hueN = math.max(math.floor(hueSamples or cytanb.ColorHueSamples), 1)
+            local toneN = omitScale and hueN or (hueN - 1)
+            local saturationN = math.max(math.floor(saturationSamples or cytanb.ColorSaturationSamples), 1)
+            local valueN = math.max(math.floor(brightnessSamples or cytanb.ColorBrightnessSamples), 1)
+
+            local h, s, v = cytanb.ColorRGBToHSV(color)
+            local si = cytanb.Round(saturationN * (1.0 - s))
+            if omitScale or si < saturationN then
+                local hi = cytanb.Round(toneN * h)
+                if hi >= toneN then
+                    hi = 0
+                end
+
+                if si >= saturationN then
+                    si = saturationN - 1
+                end
+
+                local vi = math.min(valueN - 1, cytanb.Round(valueN * (1.0 - v)))
+                return hi + hueN * (si + saturationN * vi)
+            else
+                local msi = cytanb.Round((saturationN - 1) * v)
+                if msi == 0 then
+                    local mvi = cytanb.Round(valueN * (1.0 - v))
+                    if mvi >= valueN then
+                        return hueN - 1
+                    else
+                        return hueN * (1 + cytanb.Round(v * (saturationN - 1) / (valueN - mvi) * valueN) + saturationN * mvi) - 1
+                    end
+                else
+                    return hueN * (1 + msi + saturationN * cytanb.Round(valueN * (1.0 - v * (saturationN - 1) / msi))) - 1
+                end
+            end
+        end,
+
         ColorToTable = function (color)
             return {[cytanb.TypeParameterName] = cytanb.ColorTypeName, r = color.r, g = color.g, b = color.b, a = color.a}
         end,
