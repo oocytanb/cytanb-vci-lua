@@ -79,7 +79,7 @@ local cytanb = (function ()
             local meta2 = getmetatable(op2)
             local c2 = meta2 == UUIDMetatable or (type(meta2) == 'table' and meta2.__concat == UUIDMetatable.__concat)
             if not c1 and not c2 then
-                error('attempt to concatenate illegal values', 2)
+                error('UUID: attempt to concatenate illegal values', 2)
             end
             return (c1 and UUIDMetatable.__tostring(op1) or op1) .. (c2 and UUIDMetatable.__tostring(op2) or op2)
         end
@@ -321,7 +321,7 @@ local cytanb = (function ()
 
         NillableValue = function (nillable)
             if nillable == nil then
-                error('value is nil', 2)
+                error('nillable: value is nil', 2)
             end
             return nillable
         end,
@@ -329,7 +329,7 @@ local cytanb = (function ()
         NillableValueOrDefault = function (nillable, defaultValue)
             if nillable == nil then
                 if defaultValue == nil then
-                    error('defaultValue is nil', 2)
+                    error('nillable: defaultValue is nil', 2)
                 end
                 return defaultValue
             else
@@ -1089,6 +1089,121 @@ local cytanb = (function ()
             return map
         end,
 
+        --- **EXPERIMENTAL:実験的な機能。 物理演算の実行間隔を推定する。`updateAll` 関数から呼び出して使う。`physicalObject` に `AddForce` し、オブジェクトの時間当たりの移動量から計算を行う。`physicalObject` は `Rigidbody` コンポーネントを設定 (`Mass: 1`, `Drag: 0`, `Use Gravity: OFF`, `Is Kinematic: OFF`, `Interpolate: None`, `Freeze Position: OFF`) したオブジェクト。`Collider` や `VCI Sub Item` コンポーネントをセットしてはいけない。
+        EstimateFixedTimestep = function (physicalObject)
+            -- mass は 1.0 固定とする。
+            local mass = 1.0
+
+            local acceleration = 1000.0
+
+            -- 規定値は 0.02 ms とする。
+            local timestep = TimeSpan.FromSeconds(0.02)
+
+            local timestepPrecision = 0xFFFF
+            local timestepQueue = cytanb.CreateCircularQueue(64)
+
+            -- キューを使った計算を開始する時間。
+            local minTime = TimeSpan.FromSeconds(5)
+
+            -- キューを使った計算を終了する時間。
+            local maxTime = TimeSpan.FromSeconds(30)
+
+            local finished = false
+
+            local startTime = vci.me.Time
+
+            -- 開始位置の X, Y 座標はランダムに、Z 座標はゼロとする。
+            local rnd32 = cytanb.Random32()
+            local startPosition = Vector3.__new(
+                bit32.bor(0x400, bit32.band(rnd32, 0x1FFF)),
+                bit32.bor(0x400, bit32.band(bit32.rshift(rnd32, 16), 0x1FFF)),
+                0.0
+            )
+
+            physicalObject.SetPosition(startPosition)
+            physicalObject.SetRotation(Quaternion.identity)
+            physicalObject.SetVelocity(Vector3.zero)
+            physicalObject.SetAngularVelocity(Vector3.zero)
+
+            -- Z 軸方向に力を加える。
+            physicalObject.AddForce(Vector3.__new(0.0, 0.0, mass * acceleration))
+
+            local self = {
+                --- 推定した物理演算の実行間隔を返す。
+                Timestep = function ()
+                    return timestep
+                end,
+
+                --- 推定した timestep の精度を返す。
+                Precision = function ()
+                    return timestepPrecision
+                end,
+
+                --- 計算が完了したかを返す。
+                IsFinished = function ()
+                    return finished
+                end,
+
+                --- `updateAll` 関数からこの関数を呼び出す。timestep を計算し、その値を返す。`IsFinish` が `true` を返したら、それ以上は呼び出す必要はない。
+                Update = function ()
+                    if finished then
+                        return timestep
+                    end
+
+                    local elapsedTime = vci.me.Time - startTime
+                    local dt = elapsedTime.TotalSeconds
+                    if dt <= Vector3.kEpsilon then
+                        return timestep
+                    end
+
+                    local dz = physicalObject.GetPosition().z - startPosition.z
+                    local vz = dz / dt
+                    local ts = vz / acceleration
+                    if ts <= Vector3.kEpsilon then
+                        return timestep
+                    end
+
+                    timestepQueue.Offer(ts)
+                    local queueSize = timestepQueue.Size()
+                    if queueSize >= 2 and elapsedTime >= minTime then
+                        -- 平均と分散を計算する
+                        local sum = 0.0
+                        for i = 1, queueSize do
+                            sum = sum + timestepQueue.Get(i)
+                        end
+                        local average = sum / queueSize
+
+                        local vSum = 0.0
+                        for i = 1, queueSize do
+                            vSum = vSum + (timestepQueue.Get(i) - average) ^ 2
+                        end
+                        local variance = vSum / queueSize
+
+                        if variance < timestepPrecision then
+                            -- 分散が小さければ採用する
+                            timestepPrecision = variance
+                            timestep = TimeSpan.FromSeconds(average)
+                        end
+
+                        if elapsedTime > maxTime then
+                            -- 最大時間を超えたら計算終了
+                            finished = true
+
+                            physicalObject.SetPosition(startPosition)
+                            physicalObject.SetRotation(Quaternion.identity)
+                            physicalObject.SetVelocity(Vector3.zero)
+                            physicalObject.SetAngularVelocity(Vector3.zero)
+                        end
+                    else
+                        timestep = TimeSpan.FromSeconds(ts)
+                    end
+
+                    return timestep
+                end
+            }
+            return self
+        end,
+
         --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** サブアイテム間の位置と回転を相互に作用させるためのコネクターを作成する。スケールは非対応。サブアイテムのグループIDは、ゼロ以外の同じ値を設定しておく必要がある。
         CreateSubItemConnector = function ()
             local SetItemStatus = function (status, item, propagation)
@@ -1160,7 +1275,7 @@ local cytanb = (function ()
 
                 Add = function (subItems, noPropagation)
                     if not subItems then
-                        error('INVALID ARGUMENT: subItems = ' .. tostring(subItems))
+                        error('CreateSubItemConnector.Add: INVALID ARGUMENT: subItems = ' .. tostring(subItems))
                     end
 
                     local itemList = type(subItems) == 'table' and subItems or {subItems}
