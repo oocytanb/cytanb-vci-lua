@@ -10,6 +10,7 @@
 -- **EXPERIMENTAL: 仮実装の実験的なモジュールであるため、多くの変更が加えられる可能性がある。**
 --
 -- 参考資料:
+-- https://docs.unity3d.com/2018.4/Documentation/Manual/index.html
 -- https://ja.wikipedia.org/wiki/%E5%9B%9B%E5%85%83%E6%95%B0
 -- https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
 -- https://en.wikipedia.org/wiki/Euler_angles

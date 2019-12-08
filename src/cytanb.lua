@@ -1096,7 +1096,7 @@ local cytanb = (function ()
 
             local acceleration = 1000.0
 
-            -- 規定値は 0.02 ms とする。
+            -- 規定値は 0.02 sec とする。
             local timestep = TimeSpan.FromSeconds(0.02)
 
             local timestepPrecision = 0xFFFF
@@ -1204,6 +1204,98 @@ local cytanb = (function ()
             return self
         end,
 
+        --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** サブアイテムオブジェクトの位置と回転を合わせるための、接着剤を作成する。
+        CreateSubItemGlue = function ()
+            local itemMap = {}
+
+            local self = {
+                Contains = function (parent, child)
+                    local nillableEntry = itemMap[parent]
+                    return cytanb.NillableHasValue(nillableEntry) and cytanb.NillableHasValue(cytanb.NillableValue(nillableEntry)[child])
+                end,
+
+                --- `parent` と `children` の組み合わせを指定する。`Update` 関数を呼び出すと、`parent` オブジェクトの位置と回転をが `children` に適用される。`velocityReset` に `true` が指定されていた場合は、`SetVelocity` と `SetAngularVelocity` も実行され、ゼロベクトルにリセットされる。
+                Add = function (parent, children, velocityReset)
+                    if not parent or not children then
+                        local msg = 'CreateSubItemGlue.Add: INVALID ARGUMENT ' ..
+                                    (not parent and (', parent = ' .. tostring(parent)) or '') ..
+                                    (not children and (', children = ' .. tostring(children)) or '')
+                        error(msg, 2)
+                    end
+
+                    local nillableEntry = itemMap[parent]
+                    if not cytanb.NillableHasValue(nillableEntry) then
+                        nillableEntry = {}
+                        itemMap[parent] = nillableEntry
+                    end
+
+                    local entry = cytanb.NillableValue(nillableEntry)
+                    if type(children) == 'table' then
+                        for key, val in pairs(children) do
+                            entry[val] = {velocityReset = not not velocityReset}
+                        end
+                    else
+                        entry[children] = {velocityReset = not not velocityReset}
+                    end
+                end,
+
+                RemoveParent = function (parent)
+                    if not cytanb.NillableHasValue(itemMap[parent]) then
+                        return false
+                    end
+
+                    itemMap[parent] = nil
+                    return true
+                end,
+
+                RemoveChild = function (parent, child)
+                    local nillableEntry = itemMap[parent]
+                    if not cytanb.NillableHasValue(nillableEntry) then
+                        return false
+                    end
+
+                    local entry = cytanb.NillableValue(nillableEntry)
+                    if not cytanb.NillableHasValue(entry[child]) then
+                        return false
+                    end
+
+                    entry[child] = nil
+                    return true
+                end,
+
+                RemoveAll = function ()
+                    itemMap = {}
+                    return true
+                end,
+
+                --- `child.IsMine` が `true` あるいは `force` を指定した場合に、 `parent` の位置と回転を `child` に適用する。`velocityReset` に `true` が指定されていた場合は、`SetVelocity` と `SetAngularVelocity` を行い、ゼロベクトルにリセットする。
+                Update = function (force)
+                    for parent, entry in pairs(itemMap) do
+                        local parentPos = parent.GetPosition()
+                        local parentRot = parent.GetRotation()
+
+                        for child, options in pairs(entry) do
+                            if force or child.IsMine then
+                                if child.GetRotation() ~= parentRot then
+                                    child.SetRotation(parentRot)
+                                end
+
+                                if child.GetPosition() ~= parentPos then
+                                    child.SetPosition(parentPos)
+                                end
+
+                                if options.velocityReset then
+                                    child.SetVelocity(Vector3.zero)
+                                    child.SetAngularVelocity(Vector3.zero)
+                                end
+                            end
+                        end
+                    end
+                end
+            }
+            return self
+        end,
+
         --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** サブアイテム間の位置と回転を相互に作用させるためのコネクターを作成する。スケールは非対応。サブアイテムのグループIDは、ゼロ以外の同じ値を設定しておく必要がある。
         CreateSubItemConnector = function ()
             local SetItemStatus = function (status, item, propagation)
@@ -1275,7 +1367,7 @@ local cytanb = (function ()
 
                 Add = function (subItems, noPropagation)
                     if not subItems then
-                        error('CreateSubItemConnector.Add: INVALID ARGUMENT: subItems = ' .. tostring(subItems))
+                        error('CreateSubItemConnector.Add: INVALID ARGUMENT: subItems = ' .. tostring(subItems), 2)
                     end
 
                     local itemList = type(subItems) == 'table' and subItems or {subItems}
