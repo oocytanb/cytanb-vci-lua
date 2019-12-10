@@ -1208,10 +1208,12 @@ local cytanb = (function ()
         CreateSubItemGlue = function ()
             local itemMap = {}
 
-            local self = {
+            local self
+            self = {
+                --- `parent` に `child` が含まれているかを調べる。
                 Contains = function (parent, child)
-                    local nillableEntry = itemMap[parent]
-                    return cytanb.NillableHasValue(nillableEntry) and cytanb.NillableHasValue(cytanb.NillableValue(nillableEntry)[child])
+                    local nillableEntries = itemMap[parent]
+                    return cytanb.NillableHasValue(nillableEntries) and cytanb.NillableHasValue(cytanb.NillableValue(nillableEntries)[child])
                 end,
 
                 --- `parent` と `children` の組み合わせを指定する。`Update` 関数を呼び出すと、`parent` オブジェクトの位置と回転をが `children` に適用される。`velocityReset` に `true` が指定されていた場合は、`SetVelocity` と `SetAngularVelocity` も実行され、ゼロベクトルにリセットされる。
@@ -1223,22 +1225,39 @@ local cytanb = (function ()
                         error(msg, 2)
                     end
 
-                    local nillableEntry = itemMap[parent]
-                    if not cytanb.NillableHasValue(nillableEntry) then
-                        nillableEntry = {}
-                        itemMap[parent] = nillableEntry
+                    local nillableEntries = itemMap[parent]
+                    if not cytanb.NillableHasValue(nillableEntries) then
+                        nillableEntries = {}
+                        itemMap[parent] = nillableEntries
                     end
 
-                    local entry = cytanb.NillableValue(nillableEntry)
+                    local entries = cytanb.NillableValue(nillableEntries)
                     if type(children) == 'table' then
                         for key, val in pairs(children) do
-                            entry[val] = {velocityReset = not not velocityReset}
+                            entries[val] = {velocityReset = not not velocityReset}
                         end
                     else
-                        entry[children] = {velocityReset = not not velocityReset}
+                        entries[children] = {velocityReset = not not velocityReset}
                     end
                 end,
 
+                --- `parent` から `child` を削除する。
+                Remove = function (parent, child)
+                    local nillableEntries = itemMap[parent]
+                    if not cytanb.NillableHasValue(nillableEntries) then
+                        return false
+                    end
+
+                    local entries = cytanb.NillableValue(nillableEntries)
+                    if not cytanb.NillableHasValue(entries[child]) then
+                        return false
+                    end
+
+                    entries[child] = nil
+                    return true
+                end,
+
+                --- `parent` とその子要素を削除する。
                 RemoveParent = function (parent)
                     if not cytanb.NillableHasValue(itemMap[parent]) then
                         return false
@@ -1248,39 +1267,48 @@ local cytanb = (function ()
                     return true
                 end,
 
-                RemoveChild = function (parent, child)
-                    local nillableEntry = itemMap[parent]
-                    if not cytanb.NillableHasValue(nillableEntry) then
-                        return false
-                    end
-
-                    local entry = cytanb.NillableValue(nillableEntry)
-                    if not cytanb.NillableHasValue(entry[child]) then
-                        return false
-                    end
-
-                    entry[child] = nil
-                    return true
-                end,
-
+                --- すべての要素を削除する。
                 RemoveAll = function ()
                     itemMap = {}
                     return true
                 end,
 
+                --- `callback(child, parent, glue)` には、各要素に対して実行するコールバック関数を指定する。`nillableParent` に親のオブジェクトを指定した場合は、その子要素が対象となる。省略した場合はすべての要素が対象となる。
+                Each = function (callback, nillableParent)
+                    if cytanb.NillableHasValue(nillableParent) then
+                        local parent = cytanb.NillableValue(nillableParent)
+                        local nillableEntries = itemMap[parent]
+                        if not cytanb.NillableHasValue(nillableEntries) then
+                            return
+                        end
+
+                        for child, options in pairs(cytanb.NillableValue(nillableEntries)) do
+                            if callback(child, parent, self) == false then
+                                return false
+                            end
+                        end
+                    else
+                        for parent, entries in pairs(itemMap) do
+                            if self.Each(callback, parent) == false then
+                                return false
+                            end
+                        end
+                    end
+                end,
+
                 --- `child.IsMine` が `true` あるいは `force` を指定した場合に、 `parent` の位置と回転を `child` に適用する。`velocityReset` に `true` が指定されていた場合は、`SetVelocity` と `SetAngularVelocity` を行い、ゼロベクトルにリセットする。
                 Update = function (force)
-                    for parent, entry in pairs(itemMap) do
+                    for parent, entries in pairs(itemMap) do
                         local parentPos = parent.GetPosition()
                         local parentRot = parent.GetRotation()
 
-                        for child, options in pairs(entry) do
+                        for child, options in pairs(entries) do
                             if force or child.IsMine then
-                                if child.GetRotation() ~= parentRot then
+                                if not cytanb.QuaternionApproximatelyEquals(child.GetRotation(), parentRot) then
                                     child.SetRotation(parentRot)
                                 end
 
-                                if child.GetPosition() ~= parentPos then
+                                if not cytanb.VectorApproximatelyEquals(child.GetPosition(), parentPos) then
                                     child.SetPosition(parentPos)
                                 end
 
@@ -1340,7 +1368,8 @@ local cytanb = (function ()
             local updateEnabled = true
             local dirty = false
 
-            local self = {
+            local self
+            self = {
                 IsEnabled = function ()
                     return updateEnabled
                 end,
@@ -1355,14 +1384,6 @@ local cytanb = (function ()
 
                 Contains = function (subItem)
                     return cytanb.NillableHasValue(itemStatusMap[subItem])
-                end,
-
-                GetItems = function ()
-                    local itemList = {}
-                    for item, status in pairs(itemStatusMap) do
-                        table.insert(itemList, item)
-                    end
-                    return itemList
                 end,
 
                 Add = function (subItems, noPropagation)
@@ -1389,6 +1410,24 @@ local cytanb = (function ()
                 RemoveAll = function ()
                     itemStatusMap = {}
                     return true
+                end,
+
+                --- `callback(item, connector)` には、各要素に対して実行するコールバック関数を指定する。
+                Each = function (callback)
+                    for item, status in pairs(itemStatusMap) do
+                        if callback(item, self) == false then
+                            return false
+                        end
+                    end
+                end,
+
+                -- @deprecated
+                GetItems = function ()
+                    local itemList = {}
+                    for item, status in pairs(itemStatusMap) do
+                        table.insert(itemList, item)
+                    end
+                    return itemList
                 end,
 
                 Update = function ()
