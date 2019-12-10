@@ -140,31 +140,33 @@ local cytanb = (function ()
             return false, false
         end
 
-        local nillableConv = valueConversionMap[typeName]
-        if not cytanb.NillableHasValue(nillableConv) then
-            return false, false
-        end
+        return cytanb.NillableIfHasValueOrElse(
+            valueConversionMap[typeName],
+            function (conv)
+                local fieldNames = conv.compositionFieldNames
+                local remain = conv.compositionFieldLength
+                local unknownFieldContains = false
 
-        local conv = cytanb.NillableValue(nillableConv)
-        local fieldNames = conv.compositionFieldNames
-        local remain = conv.compositionFieldLength
-        local unknownFieldContains = false
+                for k, v in pairs(tbl) do
+                    if fieldNames[k] then
+                        remain = remain - 1
+                        if remain <= 0 and unknownFieldContains then
+                            break
+                        end
+                    elseif k ~= cytanb.TypeParameterName then
+                        unknownFieldContains = true
+                        if remain <= 0 then
+                            break
+                        end
+                    end
+                end
 
-        for k, v in pairs(tbl) do
-            if fieldNames[k] then
-                remain = remain - 1
-                if remain <= 0 and unknownFieldContains then
-                    break
-                end
-            elseif k ~= cytanb.TypeParameterName then
-                unknownFieldContains = true
-                if remain <= 0 then
-                    break
-                end
+                return remain <= 0, unknownFieldContains
+            end,
+            function ()
+                return false, false
             end
-        end
-
-        return remain <= 0, unknownFieldContains
+        )
     end
 
     local EscapeForSerialization = function (str)
@@ -307,20 +309,21 @@ local cytanb = (function ()
             end
         end
 
-        local nillableType = data[cytanb.TypeParameterName]
-        if not noValueConversion and cytanb.NillableHasValue(nillableType) then
-            -- 値の変換を試みる
-            local nillableConv = valueConversionMap[cytanb.NillableValue(nillableType)]
-            if cytanb.NillableHasValue(nillableConv) then
-                local nillableValue, unknownFieldContains = cytanb.NillableValue(nillableConv).fromTableFunc(data)
-                if cytanb.NillableHasValue(nillableValue) and not unknownFieldContains then
+        if not noValueConversion then
+            cytanb.NillableIfHasValue(data[cytanb.TypeParameterName], function (typeValue)
+                -- 値の変換を試みる
+                cytanb.NillableIfHasValue(valueConversionMap[typeValue], function (conv)
+                    local nillableValue, unknownFieldContains = conv.fromTableFunc(data)
                     -- 値の変換に成功し、成分フィールド以外が含まれていない場合は、変換した値を返す
-                    return cytanb.NillableValue(nillableValue)
-                end
-            end
+                    if not unknownFieldContains then
+                        cytanb.NillableIfHasValue(nillableValue, function (value)
+                            data = value
+                        end)
+                    end
+                end)
+            end)
         end
 
-        -- 値が変換されなければ、テーブルをそのまま返す。
         return data
     end
 
@@ -351,6 +354,22 @@ local cytanb = (function ()
                 return defaultValue
             else
                 return nillable
+            end
+        end,
+
+        NillableIfHasValue = function (nillable, callback)
+            if nillable == nil then
+                return nil
+            else
+                return callback(nillable)
+            end
+        end,
+
+        NillableIfHasValueOrElse = function (nillable, callback, emptyCallback)
+            if nillable == nil then
+                return emptyCallback()
+            else
+                return callback(nillable)
             end
         end,
 
@@ -1229,8 +1248,11 @@ local cytanb = (function ()
             self = {
                 --- `parent` に `child` が含まれているかを調べる。
                 Contains = function (parent, child)
-                    local nillableEntries = itemMap[parent]
-                    return cytanb.NillableHasValue(nillableEntries) and cytanb.NillableHasValue(cytanb.NillableValue(nillableEntries)[child])
+                    return cytanb.NillableIfHasValueOrElse(
+                        itemMap[parent],
+                        function (entries) return cytanb.NillableHasValue(entries[child]) end,
+                        function () return false end
+                    )
                 end,
 
                 --- `parent` と `children` の組み合わせを指定する。`Update` 関数を呼び出すと、`parent` オブジェクトの位置と回転をが `children` に適用される。`velocityReset` に `true` が指定されていた場合は、`SetVelocity` と `SetAngularVelocity` も実行され、ゼロベクトルにリセットされる。
@@ -1242,13 +1264,18 @@ local cytanb = (function ()
                         error(msg, 2)
                     end
 
-                    local nillableEntries = itemMap[parent]
-                    if not cytanb.NillableHasValue(nillableEntries) then
-                        nillableEntries = {}
-                        itemMap[parent] = nillableEntries
-                    end
+                    local entries = cytanb.NillableIfHasValueOrElse(
+                        itemMap[parent],
+                        function (childMap)
+                            return childMap
+                        end,
+                        function ()
+                            local childMap = {}
+                            itemMap[parent] = childMap
+                            return childMap
+                        end
+                    )
 
-                    local entries = cytanb.NillableValue(nillableEntries)
                     if type(children) == 'table' then
                         for key, val in pairs(children) do
                             entries[val] = {velocityReset = not not velocityReset}
@@ -1260,28 +1287,30 @@ local cytanb = (function ()
 
                 --- `parent` から `child` を削除する。
                 Remove = function (parent, child)
-                    local nillableEntries = itemMap[parent]
-                    if not cytanb.NillableHasValue(nillableEntries) then
-                        return false
-                    end
-
-                    local entries = cytanb.NillableValue(nillableEntries)
-                    if not cytanb.NillableHasValue(entries[child]) then
-                        return false
-                    end
-
-                    entries[child] = nil
-                    return true
+                    return cytanb.NillableIfHasValueOrElse(
+                        itemMap[parent],
+                        function (entries)
+                            if cytanb.NillableHasValue(entries[child]) then
+                                entries[child] = nil
+                                return true
+                            else
+                                return false
+                            end
+                        end,
+                        function ()
+                            return false
+                        end
+                    )
                 end,
 
                 --- `parent` とその子要素を削除する。
                 RemoveParent = function (parent)
-                    if not cytanb.NillableHasValue(itemMap[parent]) then
+                    if cytanb.NillableHasValue(itemMap[parent]) then
+                        itemMap[parent] = nil
+                        return true
+                    else
                         return false
                     end
-
-                    itemMap[parent] = nil
-                    return true
                 end,
 
                 --- すべての要素を削除する。
@@ -1292,25 +1321,28 @@ local cytanb = (function ()
 
                 --- `callback(child, parent, glue)` には、各要素に対して実行するコールバック関数を指定する。`nillableParent` に親のオブジェクトを指定した場合は、その子要素が対象となる。省略した場合はすべての要素が対象となる。
                 Each = function (callback, nillableParent)
-                    if cytanb.NillableHasValue(nillableParent) then
-                        local parent = cytanb.NillableValue(nillableParent)
-                        local nillableEntries = itemMap[parent]
-                        if not cytanb.NillableHasValue(nillableEntries) then
-                            return
-                        end
-
-                        for child, options in pairs(cytanb.NillableValue(nillableEntries)) do
-                            if callback(child, parent, self) == false then
-                                return false
+                    return cytanb.NillableIfHasValueOrElse(
+                        nillableParent,
+                        function (parent)
+                            return cytanb.NillableIfHasValue(
+                                itemMap[parent],
+                                function (entries)
+                                    for child, options in pairs(entries) do
+                                        if callback(child, parent, self) == false then
+                                            return false
+                                        end
+                                    end
+                                end
+                            )
+                        end,
+                        function ()
+                            for parent, entries in pairs(itemMap) do
+                                if self.Each(callback, parent) == false then
+                                    return false
+                                end
                             end
                         end
-                    else
-                        for parent, entries in pairs(itemMap) do
-                            if self.Each(callback, parent) == false then
-                                return false
-                            end
-                        end
-                    end
+                    )
                 end,
 
                 --- `child.IsMine` が `true` あるいは `force` を指定した場合に、 `parent` の位置と回転を `child` に適用する。`velocityReset` に `true` が指定されていた場合は、`SetVelocity` と `SetAngularVelocity` を行い、ゼロベクトルにリセットする。
