@@ -7,8 +7,6 @@
 
 ---@type cytanb @See `cytanb_annotations.lua`
 local cytanb = (function ()
-    math.randomseed(os.time() - os.clock() * 10000)
-
     --- インスタンス ID の状態変数名。
     local InstanceIDStateName = '__CYTANB_INSTANCE_ID'
 
@@ -34,6 +32,25 @@ local cytanb = (function ()
     local instanceID
 
     local cytanb
+
+    -- set random seed
+    (function ()
+        local lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
+        local pmap = _G[lspid]
+        if not pmap then
+            pmap = {}
+            _G[lspid] = pmap
+        end
+
+        local seed = pmap.randomSeedValue
+        if not seed then
+            seed = os.time() - os.clock() * 10000
+            pmap.randomSeedValue = seed
+            math.randomseed(seed)
+        end
+
+        return seed
+    end)()
 
     local UUIDCompare = function (op1, op2)
         for i = 1, 4 do
