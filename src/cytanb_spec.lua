@@ -47,6 +47,16 @@ describe('Test cytanb owner user', function ()
         assert.are.same(true, cytanb.NillableValueOrDefault(nil, true))
         assert.are.same(false, cytanb.NillableValueOrDefault(nil, false))
         assert.has_error(function () return cytanb.NillableValueOrDefault(nil, nil) end)
+
+
+        assert.are.same(nil, cytanb.NillableIfHasValue(nil, function (value) error('invalid') end))
+        assert.are.same(0, cytanb.NillableIfHasValue(0, function (value) return value end))
+        assert.are.same('', cytanb.NillableIfHasValue('', function (value) return value end))
+        assert.are.same(false, cytanb.NillableIfHasValue(false, function (value) return value end))
+        assert.are.same(true, cytanb.NillableIfHasValue(true, function (value) return value end))
+
+        assert.are.same('[[EMPTY]]', cytanb.NillableIfHasValueOrElse(nil, function (value) error('invalid') end, function () return '[[EMPTY]]' end))
+        assert.are.same(9876.5, cytanb.NillableIfHasValueOrElse(9876, function (value) return value + 0.5 end, function () return -1 end))
     end)
 
     it('SetConst', function ()
