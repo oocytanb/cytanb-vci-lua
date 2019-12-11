@@ -1069,9 +1069,20 @@ local cytanb = (function ()
         end,
 
         EmitMessage = function (name, parameterMap)
-            local table = parameterMap and cytanb.TableToSerializable(parameterMap) or {}
-            table[cytanb.InstanceIDParameterName] = cytanb.InstanceID()
-            vci.message.Emit(name, json.serialize(table))
+            local serData = cytanb.NillableIfHasValueOrElse(
+                parameterMap,
+                function (data)
+                    if type(data) ~= 'table' then
+                        error('EmitMessage: invalid arguments: table expected', 3)
+                    end
+                    return cytanb.TableToSerializable(data)
+                end,
+                function ()
+                    return {}
+                end
+            )
+            serData[cytanb.InstanceIDParameterName] = cytanb.InstanceID()
+            vci.message.Emit(name, json.serialize(serData))
         end,
 
         OnMessage = function (name, callback)

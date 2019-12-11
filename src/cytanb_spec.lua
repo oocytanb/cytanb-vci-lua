@@ -984,6 +984,12 @@ describe('Test cytanb owner user', function ()
         cytanb.OnMessage('bar', cbMap.cb3)
         cytanb.OnMessage('comment', cbMap.cbComment)
 
+        assert.has_error(function () cytanb.EmitMessage('INVALID', true) end)
+        assert.has_error(function () cytanb.EmitMessage('INVALID', false) end)
+        assert.has_error(function () cytanb.EmitMessage('INVALID', 0) end)
+        assert.has_error(function () cytanb.EmitMessage('INVALID', '') end)
+        assert.has_error(function () cytanb.EmitMessage('INVALID', 'hogepiyo') end)
+
         cytanb.EmitMessage('foo')
         assert.stub(cbMap.cb1).was.called(1)
         assert.stub(cbMap.cb1).was.called_with({type = 'vci', name = 'test-cytanb-module'}, 'foo', {[cytanb.InstanceIDParameterName] = cytanb.InstanceID()})
