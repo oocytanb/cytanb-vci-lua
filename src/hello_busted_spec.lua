@@ -1,7 +1,5 @@
-----------------------------------------------------------------
---  Copyright (c) 2019 oO (https://github.com/oocytanb)
---  MIT Licensed
-----------------------------------------------------------------
+-- SPDX-License-Identifier: MIT
+-- Copyright (c) 2019 oO (https://github.com/oocytanb)
 
 -- [busted](https://olivinelabs.com/busted/) のサンプル用のテストコードです。
 -- ファイル名に `_spec` が含まれている lua ファイルがテスト対象となります。
