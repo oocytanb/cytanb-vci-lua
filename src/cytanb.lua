@@ -1,7 +1,5 @@
-----------------------------------------------------------------
---  Copyright (c) 2019 oO (https://github.com/oocytanb)
---  MIT Licensed
-----------------------------------------------------------------
+-- SPDX-License-Identifier: MIT
+-- Copyright (c) 2019 oO (https://github.com/oocytanb)
 
 -- VCAS@1.7.0a 時点において、`cytanb.lua` は VCI の `require` に対応していません。
 
@@ -31,26 +29,10 @@ local cytanb = (function ()
     --- インスタンス ID の文字列。
     local instanceID
 
+    --- クライアント ID の文字列。
+    local clientID
+
     local cytanb
-
-    -- set random seed
-    (function ()
-        local lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
-        local pmap = _G[lspid]
-        if not pmap then
-            pmap = {}
-            _G[lspid] = pmap
-        end
-
-        local seed = pmap.randomSeedValue
-        if not seed then
-            seed = os.time() - os.clock() * 10000
-            pmap.randomSeedValue = seed
-            math.randomseed(seed)
-        end
-
-        return seed
-    end)()
 
     local UUIDCompare = function (op1, op2)
         for i = 1, 4 do
@@ -785,7 +767,7 @@ local cytanb = (function ()
 
         CreateCircularQueue = function (capacity)
             if type(capacity) ~= 'number' or capacity < 1 then
-                error('Invalid argument: capacity = ' .. tostring(capacity), 2)
+                error('CreateCircularQueue: Invalid arguments: capacity = ' .. tostring(capacity), 2)
             end
 
             local self
@@ -1073,7 +1055,7 @@ local cytanb = (function ()
                 parameterMap,
                 function (data)
                     if type(data) ~= 'table' then
-                        error('EmitMessage: invalid arguments: table expected', 3)
+                        error('EmitMessage: Invalid arguments: table expected', 3)
                     end
                     return cytanb.TableToSerializable(data)
                 end,
@@ -1136,7 +1118,96 @@ local cytanb = (function ()
             return map
         end,
 
-        --- **EXPERIMENTAL:実験的な機能。 物理演算の実行間隔を推定する。`updateAll` 関数から呼び出して使う。`physicalObject` に `AddForce` し、オブジェクトの時間当たりの移動量から計算を行う。`physicalObject` は `Rigidbody` コンポーネントを設定 (`Mass: 1`, `Drag: 0`, `Use Gravity: OFF`, `Is Kinematic: OFF`, `Interpolate: None`, `Freeze Position: OFF`) したオブジェクト。`Collider` や `VCI Sub Item` コンポーネントをセットしてはいけない。
+        --- **EXPERIMENTAL:実験的な機能。**
+        ClientID = function ()
+            return clientID
+        end,
+
+        --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。**
+        CreateLocalSharedProperties = function (lspid, loadid)
+            local maxAliveTime = TimeSpan.FromSeconds(5)
+            local aliveLspid = 'bf033503-9855-4b09-90d3-fa7d71da4351'
+            local listenerMapKey = '__CYTANB_LOCAL_SHARED_PROPERTIES_LISTENER_MAP'
+            local propertyChangeEventName = 'property_change'
+            local expiredEventName = 'expired'
+
+            if type(lspid) ~= 'string' or string.len(lspid) <= 0 or type(loadid) ~= 'string' or string.len(loadid) <= 0 then
+                error('LocalSharedProperties: Invalid arguments', 2)
+            end
+
+            local aliveMap = _G[aliveLspid]
+            if not aliveMap then
+                aliveMap = {}
+                _G[aliveLspid] = aliveMap
+            end
+            aliveMap[loadid] = vci.me.UnscaledTime
+
+            local pmap = _G[lspid]
+            if not pmap then
+                pmap = {[listenerMapKey] = {}}
+                _G[lspid] = pmap
+            end
+            local listenerMap = pmap[listenerMapKey]
+
+            return {
+                propertyChangeEventName = propertyChangeEventName,
+
+                expiredEventName = expiredEventName,
+
+                GetLspID = function ()
+                    return lspid
+                end,
+
+                GetLoadID = function ()
+                    return loadid
+                end,
+
+                GetProperty = function (key, defaultValue)
+                    local value = pmap[key]
+                    if value == nil then
+                        return defaultValue
+                    else
+                        return value
+                    end
+                end,
+
+                SetProperty = function (key, value)
+                    if key == listenerMapKey then
+                        error('LocalSharedProperties: Invalid arguments: key = ', key, 2)
+                    end
+
+                    local now = vci.me.UnscaledTime
+                    local oldValue = pmap[key]
+                    pmap[key] = value
+
+                    for listener, id in pairs(listenerMap) do
+                        local t = aliveMap[id]
+                        if t and t + maxAliveTime >= now then
+                            listener(propertyChangeEventName, key, value, oldValue)
+                        else
+                            -- 期限切れしたリスナーを解除する
+                            listener(expiredEventName, key, value, oldValue)
+                            listenerMap[listener] = nil
+                            aliveMap[id] = nil
+                        end
+                    end
+                end,
+
+                AddListener = function (listener)
+                    listenerMap[listener] = loadid
+                end,
+
+                RemoveListener = function (listener)
+                    listenerMap[listener] = nil
+                end,
+
+                UpdateAlive = function ()
+                    aliveMap[loadid] = vci.me.UnscaledTime
+                end
+            }
+        end,
+
+        --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** 物理演算の実行間隔を推定する。`updateAll` 関数から呼び出して使う。`physicalObject` に `AddForce` し、オブジェクトの時間当たりの移動量から計算を行う。`physicalObject` は `Rigidbody` コンポーネントを設定 (`Mass: 1`, `Drag: 0`, `Use Gravity: OFF`, `Is Kinematic: OFF`, `Interpolate: None`, `Freeze Position: OFF`) したオブジェクト。`Collider` や `VCI Sub Item` コンポーネントをセットしてはいけない。
         EstimateFixedTimestep = function (physicalObject)
             -- mass は 1.0 固定とする。
             local mass = 1.0
@@ -1251,6 +1322,24 @@ local cytanb = (function ()
             return self
         end,
 
+        --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** サブアイテムオブジェクトの位置と回転を、基準となるオブジェクトに合わせる。`velocityReset` に `true` が指定されていた場合は、`SetVelocity` と `SetAngularVelocity` も実行され、ゼロベクトルにリセットされる。
+        AlignSubItemOrigin = function (refItem, item, velocityReset)
+            local refRot = refItem.GetRotation()
+            if not cytanb.QuaternionApproximatelyEquals(item.GetRotation(), refRot) then
+                item.SetRotation(refRot)
+            end
+
+            local refPos = refItem.GetPosition()
+            if not cytanb.VectorApproximatelyEquals(item.GetPosition(), refPos) then
+                item.SetPosition(refPos)
+            end
+
+            if velocityReset then
+                item.SetVelocity(Vector3.zero)
+                item.SetAngularVelocity(Vector3.zero)
+            end
+        end,
+
         --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** サブアイテムオブジェクトの位置と回転を合わせるための、接着剤を作成する。
         CreateSubItemGlue = function ()
             local itemMap = {}
@@ -1269,7 +1358,7 @@ local cytanb = (function ()
                 --- `parent` と `children` の組み合わせを指定する。`Update` 関数を呼び出すと、`parent` オブジェクトの位置と回転をが `children` に適用される。`velocityReset` に `true` が指定されていた場合は、`SetVelocity` と `SetAngularVelocity` も実行され、ゼロベクトルにリセットされる。
                 Add = function (parent, children, velocityReset)
                     if not parent or not children then
-                        local msg = 'CreateSubItemGlue.Add: INVALID ARGUMENT ' ..
+                        local msg = 'CreateSubItemGlue.Add: Invalid arguments ' ..
                                     (not parent and (', parent = ' .. tostring(parent)) or '') ..
                                     (not children and (', children = ' .. tostring(children)) or '')
                         error(msg, 2)
@@ -1448,7 +1537,7 @@ local cytanb = (function ()
 
                 Add = function (subItems, noPropagation)
                     if not subItems then
-                        error('CreateSubItemConnector.Add: INVALID ARGUMENT: subItems = ' .. tostring(subItems), 2)
+                        error('CreateSubItemConnector.Add: Invalid arguments: subItems = ' .. tostring(subItems), 2)
                     end
 
                     local itemList = type(subItems) == 'table' and subItems or {subItems}
@@ -1639,12 +1728,37 @@ local cytanb = (function ()
 
     package.loaded['cytanb'] = cytanb
 
-    instanceID = vci.state.Get(InstanceIDStateName) or ''
-    if instanceID == '' and vci.assets.IsMine then
-        -- vci.state に ID が設定されていない場合は生成する。
-        instanceID = tostring(cytanb.RandomUUID())
-        vci.state.Set(InstanceIDStateName, instanceID)
-    end
+    instanceID, clientID = (function ()
+        local lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
+        local pmap = _G[lspid]
+        if not pmap then
+            pmap = {}
+            _G[lspid] = pmap
+        end
+
+        -- set random seed
+        local seed = pmap.randomSeedValue
+        if not seed then
+            seed = os.time() - os.clock() * 10000
+            pmap.randomSeedValue = seed
+            math.randomseed(seed)
+        end
+
+        local rClientID = pmap.clientID
+        if type(rClientID) ~= 'string' then
+            rClientID = tostring(cytanb.RandomUUID())
+            pmap.clientID = rClientID
+        end
+
+        local rInstanceID = vci.state.Get(InstanceIDStateName) or ''
+        if rInstanceID == '' and vci.assets.IsMine then
+            -- vci.state に ID が設定されていない場合は生成する。
+            rInstanceID = tostring(cytanb.RandomUUID())
+            vci.state.Set(InstanceIDStateName, rInstanceID)
+        end
+
+        return rInstanceID, rClientID
+    end)()
 
     return cytanb
 end)()

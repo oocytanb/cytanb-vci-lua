@@ -1,7 +1,5 @@
-----------------------------------------------------------------
---  Copyright (c) 2019 oO (https://github.com/oocytanb)
---  MIT Licensed
-----------------------------------------------------------------
+-- SPDX-License-Identifier: MIT
+-- Copyright (c) 2019 oO (https://github.com/oocytanb)
 
 describe('Test cytanb owner user', function ()
     ---@type cytanb
@@ -24,6 +22,11 @@ describe('Test cytanb owner user', function ()
     it('owner InstanceID', function ()
         assert.are.same(36, #cytanb.InstanceID())
         assert.is_truthy(cytanb.UUIDFromString(cytanb.InstanceID()))
+    end)
+
+    it('ClientID', function ()
+        assert.are.same(36, #cytanb.ClientID())
+        assert.is_truthy(cytanb.UUIDFromString(cytanb.ClientID()))
     end)
 
     it('Nillable', function ()
