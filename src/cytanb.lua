@@ -1126,10 +1126,8 @@ local cytanb = (function ()
         --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。**
         CreateLocalSharedProperties = function (lspid, loadid)
             local maxAliveTime = TimeSpan.FromSeconds(5)
-            local aliveLspid = 'bf033503-9855-4b09-90d3-fa7d71da4351'
+            local aliveLspid = '33657f0e-7c44-4ee7-acd9-92dd8b8d807a'
             local listenerMapKey = '__CYTANB_LOCAL_SHARED_PROPERTIES_LISTENER_MAP'
-            local propertyChangeEventName = 'property_change'
-            local expiredEventName = 'expired'
 
             if type(lspid) ~= 'string' or string.len(lspid) <= 0 or type(loadid) ~= 'string' or string.len(loadid) <= 0 then
                 error('LocalSharedProperties: Invalid arguments', 2)
@@ -1150,10 +1148,6 @@ local cytanb = (function ()
             local listenerMap = pmap[listenerMapKey]
 
             return {
-                propertyChangeEventName = propertyChangeEventName,
-
-                expiredEventName = expiredEventName,
-
                 GetLspID = function ()
                     return lspid
                 end,
@@ -1183,10 +1177,10 @@ local cytanb = (function ()
                     for listener, id in pairs(listenerMap) do
                         local t = aliveMap[id]
                         if t and t + maxAliveTime >= now then
-                            listener(propertyChangeEventName, key, value, oldValue)
+                            listener(key, value, oldValue)
                         else
                             -- 期限切れしたリスナーを解除する
-                            listener(expiredEventName, key, value, oldValue)
+                            listener(cytanb.LOCAL_SHARED_PROPERTY_EXPIRED_KEY, true, false)
                             listenerMap[listener] = nil
                             aliveMap[id] = nil
                         end
@@ -1685,7 +1679,8 @@ local cytanb = (function ()
         Vector2TypeName = 'Vector2',
         Vector3TypeName = 'Vector3',
         Vector4TypeName = 'Vector4',
-        QuaternionTypeName = 'Quaternion'
+        QuaternionTypeName = 'Quaternion',
+        LOCAL_SHARED_PROPERTY_EXPIRED_KEY = '__CYTANB_LOCAL_SHARED_PROPERTY_EXPIRED'
     })
 
     cytanb.SetConstEach(cytanb, {
