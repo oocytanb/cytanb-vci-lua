@@ -1123,7 +1123,12 @@ local cytanb = (function ()
             return clientID
         end,
 
-        --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。**
+        ---@class cytanb_local_shared_properties_t ローカルの共有プロパティ
+
+        --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** ローカルの共有プロパティを作成する。
+        ---@param lspid string @プロパティの UUID 文字列。
+        ---@param loadid string @ロード ID の UUID 文字列。
+        ---@return cytanb_local_shared_properties_t
         CreateLocalSharedProperties = function (lspid, loadid)
             local maxAliveTime = TimeSpan.FromSeconds(5)
             local aliveLspid = '33657f0e-7c44-4ee7-acd9-92dd8b8d807a'
@@ -1467,7 +1472,197 @@ local cytanb = (function ()
             return self
         end,
 
-        --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** サブアイテム間の位置と回転を相互に作用させるためのコネクターを作成する。スケールは非対応。サブアイテムのグループIDは、ゼロ以外の同じ値を設定しておく必要がある。
+        ---@class cytanb_slide_switch_parameters_t スライドスイッチを作成するためのパラメーターテーブル。ゲームオブジェクトのスケールは、すべて `1` であることを前提としている。
+        ---@field colliderItem ExportTransform @スイッチを操作するための `VCI Sub Item` コンポーネントが設定されたコライダーオブジェクト。`baseItem` の原点位置を基準に移動する。通常は透明なオブジェクトとして設定する。
+        ---@field baseItem ExportTransform @スイッチの基準位置となるオブジェクト。
+        ---@field knobItem ExportTransform @スイッチのノブとなるオブジェクト。`baseItem` の子オブジェクトを指定する。`baseItem` の原点位置を基準に移動する。
+        ---@field knobStep Vector3 @ノブの 1 目盛り分の移動量。ゼロに近い移動量を指定した場合はエラーとなる。省略した場合は `Vector3.__new(0.01, 0.0, 0.0)`
+        ---@field minKnobValue number @ノブの最小値である整数値。`minKnobValue >= maxKnobValue` である場合はエラーとなる。省略した場合は `-5`
+        ---@field maxKnobValue number @ノブの最大値である整数値。省略した場合は `5`
+        ---@field defaultKnobValue number @ノブの規定値である整数値。省略した場合は `0`
+        ---@field minValue number @スイッチの最小値。`minValue >= maxValue` である場合はエラーとなる。省略した場合は `-1.0`
+        ---@field maxValue number @スイッチの最大値。省略した場合は `1.0`
+        ---@field lsp cytanb_local_shared_properties_t @`LocalSharedProperties` を使用する場合は指定する。省略可能。
+        ---@field propertyName string @`LocalSharedProperties` を使用する場合は、プロパティ名を指定する。使用しない場合は省略可能。
+
+        --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** スライドスイッチを作成する。トリガーでつまみをつかんで値の変更、および、グリップによる値の変更ができる。ユーザー間での値の同期処理は行わないため、必要であれば別途実装すること。
+        ---@param parameters cytanb_slide_switch_parameters_t @スライドスイッチを作成するためのパラメーターテーブルを指定する。
+        CreateSlideSwitch = function (parameters)
+            local colliderItem = cytanb.NillableValue(parameters.colliderItem)
+            local baseItem = cytanb.NillableValue(parameters.baseItem)
+            local knobItem = cytanb.NillableValue(parameters.knobItem)
+            local knobStep = cytanb.NillableValueOrDefault(parameters.knobStep, Vector3.__new(0.01, 0.0, 0.0))
+            local knobStepMagnitude = knobStep.magnitude
+            if knobStepMagnitude < Vector3.kEpsilon then
+                error('CreateSlideSwitch: Invalid arguments: knobStep is too small', 2)
+            end
+
+            local minKnobValue = math.floor(cytanb.NillableValueOrDefault(parameters.minKnobValue, -5))
+            local maxKnobValue = math.floor(cytanb.NillableValueOrDefault(parameters.maxKnobValue, 5))
+            if minKnobValue >= maxKnobValue then
+                error('CreateSlideSwitch: Invalid arguments: minKnobValue >= maxKnobValue', 2)
+            end
+
+            local defaultKnobValue = math.floor(cytanb.Clamp(cytanb.NillableValueOrDefault(parameters.defaultKnobValue, 0), minKnobValue, maxKnobValue))
+
+            local minValue = cytanb.NillableValueOrDefault(parameters.minValue, -1.0)
+            local maxValue = cytanb.NillableValueOrDefault(parameters.maxValue, 1.0)
+            if minValue >= maxValue then
+                error('CreateSlideSwitch: Invalid arguments: minValue >= maxValue', 2)
+            end
+
+            local propertyGetter, propertySetter
+            local listenerMap = {}
+
+            local self
+
+            local CalcValue = function (v)
+                -- max - min を 100% とし、v を割合として計算する。
+                return minValue + (maxValue - minValue) * (cytanb.Clamp(v, minKnobValue, maxKnobValue) - minKnobValue) / (maxKnobValue - minKnobValue)
+            end
+
+            local knobValue = defaultKnobValue
+            local value = CalcValue(knobValue)
+
+            local grabbed = false
+            local deltaKnobPos = Vector3.zero
+
+            local UpdateValue = function ()
+                local newKnobValue = cytanb.PingPong(propertyGetter() - minKnobValue, maxKnobValue - minKnobValue) + minKnobValue
+                if newKnobValue ~= knobValue then
+                    knobValue = newKnobValue
+                    value = CalcValue(knobValue)
+                    for listener, v in pairs(listenerMap) do
+                        listener(self, value, knobValue)
+                    end
+                end
+                local ksv = knobValue * knobStep
+                knobItem.SetPosition(baseItem.GetPosition() + knobItem.GetRotation() * ksv)
+                -- cytanb.LogInfo('on update value [', colliderItem.GetName(), ']: knobValue = ', knobValue, ', value = ', value)
+            end
+
+            cytanb.NillableIfHasValueOrElse(
+                parameters.lsp,
+                function (lsp)
+                    if not cytanb.NillableHasValue(parameters.propertyName) then
+                        error('CreateSlideSwitch: Invalid arguments: propertyName is nil', 3)
+                    end
+
+                    local propertyName = cytanb.NillableValue(parameters.propertyName)
+                    propertyGetter = function ()
+                        return lsp.GetProperty(propertyName, defaultKnobValue)
+                    end
+
+                    propertySetter = function (v)
+                        lsp.SetProperty(propertyName, v)
+                    end
+
+                    lsp.AddListener(function (key, propValue, oldPropValue)
+                        if key == propertyName then
+                            -- cytanb.LogInfo('lsp: key = ', key, ', propValue = ', propValue)
+                            UpdateValue()
+                        end
+                    end)
+                end,
+                function ()
+                    local propValue = defaultKnobValue
+                    propertyGetter = function ()
+                        return propValue
+                    end
+
+                    propertySetter = function (v)
+                        propValue = v
+                        UpdateValue()
+                    end
+                end
+            )
+
+            self = {
+                --- スイッチを操作するためのコライダーオブジェクトを取得する。
+                ---@return ExportTransform
+                GetColliderItem = function ()
+                    return colliderItem
+                end,
+
+                --- スイッチのノブとなるオブジェクトを取得する。
+                ---@return ExportTransform
+                GetKnobItem = function ()
+                    return knobItem
+                end,
+
+                --- スイッチの基準位置となるオブジェクトを取得する。
+                ---@return ExportTransform
+                GetBaseItem = function ()
+                    return baseItem
+                end,
+
+                --- ノブの値を取得する。
+                ---@return number
+                GetKnobValue = function ()
+                    return knobValue
+                end,
+
+                --- ノブの値を設定する。
+                ---@param val number @整数値を指定する。
+                SetKnobValue = function (val)
+                    propertySetter(math.floor(val))
+                end,
+
+                --- スイッチの値を取得する。
+                ---@return number
+                GetValue = function ()
+                    return value
+                end,
+
+                --- スイッチの変更イベントを受け取るリスナーを追加する。
+                ---@param listener fun(source: cytanb_slide_switch_parameters_t, value: number, knobValue: number) @`source` は、イベントの発生元のスイッチが渡される。`value` は、スイッチの値が渡される。`knobValue` は、ノブの値が渡される。
+                AddListener = function (listener)
+                    listenerMap[listener] = listener
+                end,
+
+                --- 登録したリスナーを削除する。
+                ---@param listener fun(source: cytanb_slide_switch_parameters_t, value: number, knobValue: number)
+                RemoveListener = function (listener)
+                    listenerMap[listener] = nil
+                end,
+
+                --- `onUse` 関数で、スイッチが使用されたときに、この関数を呼び出すこと。
+                DoUse = function ()
+                    propertySetter(propertyGetter() + 1)
+                end,
+
+                --- `onGrab` 関数で、スイッチがグラブされたときに、この関数を呼び出すこと。
+                DoGrab = function ()
+                    grabbed = true
+                    deltaKnobPos = knobItem.GetPosition() - baseItem.GetPosition()
+                end,
+
+                --- `onUngrab` 関数で、スイッチがアングラブされたときに、この関数を呼び出すこと。
+                DoUngrab = function ()
+                    grabbed = false
+                end,
+
+                --- `updateAll` 関数で、この関数を呼び出すこと。
+                Update = function ()
+                    if grabbed then
+                        local dp = colliderItem.GetPosition() - baseItem.GetPosition() + deltaKnobPos
+                        local nv = knobItem.GetRotation() * knobStep
+                        local rv = Vector3.Project(dp, nv)
+                        local kval = cytanb.Clamp((Vector3.Dot(knobStep, rv) >= 0 and 1 or -1) * cytanb.Round(rv.magnitude / knobStepMagnitude), minKnobValue, maxKnobValue)
+                        if kval ~= knobValue then
+                            propertySetter(kval)
+                        end
+                    elseif colliderItem.IsMine then
+                        cytanb.AlignSubItemOrigin(baseItem, colliderItem)
+                    end
+                end
+            }
+
+            UpdateValue()
+            return self
+        end,
+
+        -- @deprecated 非推奨。 サブアイテム間の位置と回転を相互に作用させるためのコネクターを作成する。スケールは非対応。サブアイテムのグループIDは、ゼロ以外の同じ値を設定しておく必要がある。
         CreateSubItemConnector = function ()
             local SetItemStatus = function (status, item, propagation)
                 status.item = item
