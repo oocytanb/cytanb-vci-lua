@@ -1118,7 +1118,8 @@ local cytanb = (function ()
             return map
         end,
 
-        --- **EXPERIMENTAL:実験的な機能。**
+        --- **EXPERIMENTAL:実験的な機能。** クライアント ID を取得する。
+        ---@return string
         ClientID = function ()
             return clientID
         end,
@@ -1126,8 +1127,8 @@ local cytanb = (function ()
         ---@class cytanb_local_shared_properties_t ローカルの共有プロパティ
 
         --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** ローカルの共有プロパティを作成する。
-        ---@param lspid string @プロパティの UUID 文字列。
-        ---@param loadid string @ロード ID の UUID 文字列。
+        ---@param lspid string @プロパティ ID の文字列を指定する。プロパティを識別するための固定 ID。
+        ---@param loadid string @ロード ID の文字列を指定する。スクリプトがロードされるごとに生成される一意な ID。
         ---@return cytanb_local_shared_properties_t
         CreateLocalSharedProperties = function (lspid, loadid)
             local maxAliveTime = TimeSpan.FromSeconds(5)
@@ -1152,15 +1153,24 @@ local cytanb = (function ()
             end
             local listenerMap = pmap[listenerMapKey]
 
-            return {
+            local self
+            self = {
+                --- プロパティ ID を取得する。
+                ---@return string
                 GetLspID = function ()
                     return lspid
                 end,
 
+                --- ロード ID を取得する。
+                ---@return string
                 GetLoadID = function ()
                     return loadid
                 end,
 
+                --- プロパティの値を取得する。
+                ---@param key string @プロパティのキー値を指定する。
+                ---@param defaultValue any @プロパティ値が `nil` であった場合の規定値を指定する。
+                ---@return any @取得したプロパティ値。
                 GetProperty = function (key, defaultValue)
                     local value = pmap[key]
                     if value == nil then
@@ -1170,6 +1180,9 @@ local cytanb = (function ()
                     end
                 end,
 
+                --- プロパティの値を設定する。
+                ---@param key string @プロパティのキー値を指定する。
+                ---@param value any @プロパティの値を指定する。
                 SetProperty = function (key, value)
                     if key == listenerMapKey then
                         error('LocalSharedProperties: Invalid arguments: key = ', key, 2)
@@ -1182,28 +1195,35 @@ local cytanb = (function ()
                     for listener, id in pairs(listenerMap) do
                         local t = aliveMap[id]
                         if t and t + maxAliveTime >= now then
-                            listener(key, value, oldValue)
+                            listener(self, key, value, oldValue)
                         else
                             -- 期限切れしたリスナーを解除する
-                            listener(cytanb.LOCAL_SHARED_PROPERTY_EXPIRED_KEY, true, false)
+                            listener(self, cytanb.LOCAL_SHARED_PROPERTY_EXPIRED_KEY, true, false)
                             listenerMap[listener] = nil
                             aliveMap[id] = nil
                         end
                     end
                 end,
 
+                --- プロパティの変更イベントを受け取るリスナーを追加する。
+                ---@param listener fun(source: cytanb_local_shared_properties_t, key: string, value: any, oldValue: any) @`source` は、イベントの発生元が渡される。`key` は、プロパティのキー値が渡される。`value` は、プロパティの値が渡される。`oldValue` は、以前のプロパティの値が渡される。
                 AddListener = function (listener)
                     listenerMap[listener] = loadid
                 end,
 
+                --- 登録したリスナーを削除する。
+                ---@param listener fun(source: cytanb_local_shared_properties_t, key: string, value: any, oldValue: any)
                 RemoveListener = function (listener)
                     listenerMap[listener] = nil
                 end,
 
+                --- `updateAll` 関数で、この関数を呼び出すこと。5 秒以上この関数が呼び出されなかった場合は、期限切れしたことをキー値 `cytanb.LOCAL_SHARED_PROPERTY_EXPIRED_KEY` としてリスナーに通知し、リスナーの登録を解除する。
                 UpdateAlive = function ()
                     aliveMap[loadid] = vci.me.UnscaledTime
                 end
             }
+
+            return self
         end,
 
         --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** 物理演算の実行間隔を推定する。`updateAll` 関数から呼び出して使う。`physicalObject` に `AddForce` し、オブジェクトの時間当たりの移動量から計算を行う。`physicalObject` は `Rigidbody` コンポーネントを設定 (`Mass: 1`, `Drag: 0`, `Use Gravity: OFF`, `Is Kinematic: OFF`, `Interpolate: None`, `Freeze Position: OFF`) したオブジェクト。`Collider` や `VCI Sub Item` コンポーネントをセットしてはいけない。
@@ -1261,7 +1281,7 @@ local cytanb = (function ()
                     return finished
                 end,
 
-                --- `updateAll` 関数からこの関数を呼び出す。timestep を計算し、その値を返す。`IsFinish` が `true` を返したら、それ以上は呼び出す必要はない。
+                --- `updateAll` 関数で、この関数を呼び出すこと。timestep を計算し、その値を返す。`IsFinish` が `true` を返したら、それ以上は呼び出す必要はない。
                 Update = function ()
                     if finished then
                         return timestep
@@ -1557,7 +1577,7 @@ local cytanb = (function ()
                         lsp.SetProperty(propertyName, v)
                     end
 
-                    lsp.AddListener(function (key, propValue, oldPropValue)
+                    lsp.AddListener(function (source, key, propValue, oldPropValue)
                         if key == propertyName then
                             -- cytanb.LogInfo('lsp: key = ', key, ', propValue = ', propValue)
                             UpdateValue()
