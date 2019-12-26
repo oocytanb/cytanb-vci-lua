@@ -612,22 +612,22 @@ local cytanb = (function ()
 
         PingPong = function (t, length)
             if length == 0 then
-                return 0
+                return 0, 1
             end
 
             local q = math.floor(t / length)
             local r = t - q * length
             if q < 0 then
                 if (q + 1) % 2 == 0 then
-                    return length - r
+                    return length - r, -1
                 else
-                    return r
+                    return r, 1
                 end
             else
                 if q % 2 == 0 then
-                    return r
+                    return r, 1
                 else
-                    return length - r
+                    return length - r, -1
                 end
             end
         end,
@@ -767,7 +767,7 @@ local cytanb = (function ()
 
         CreateCircularQueue = function (capacity)
             if type(capacity) ~= 'number' or capacity < 1 then
-                error('CreateCircularQueue: Invalid arguments: capacity = ' .. tostring(capacity), 2)
+                error('CreateCircularQueue: Invalid argument: capacity = ' .. tostring(capacity), 2)
             end
 
             local self
@@ -1055,7 +1055,7 @@ local cytanb = (function ()
                 parameterMap,
                 function (data)
                     if type(data) ~= 'table' then
-                        error('EmitMessage: Invalid arguments: table expected', 3)
+                        error('EmitMessage: Invalid argument: table expected', 3)
                     end
                     return cytanb.TableToSerializable(data)
                 end,
@@ -1185,7 +1185,7 @@ local cytanb = (function ()
                 ---@param value any @プロパティの値を指定する。
                 SetProperty = function (key, value)
                     if key == listenerMapKey then
-                        error('LocalSharedProperties: Invalid arguments: key = ', key, 2)
+                        error('LocalSharedProperties: Invalid argument: key = ', key, 2)
                     end
 
                     local now = vci.me.UnscaledTime
@@ -1377,7 +1377,7 @@ local cytanb = (function ()
                 --- `parent` と `children` の組み合わせを指定する。`Update` 関数を呼び出すと、`parent` オブジェクトの位置と回転をが `children` に適用される。`velocityReset` に `true` が指定されていた場合は、`SetVelocity` と `SetAngularVelocity` も実行され、ゼロベクトルにリセットされる。
                 Add = function (parent, children, velocityReset)
                     if not parent or not children then
-                        local msg = 'CreateSubItemGlue.Add: Invalid arguments ' ..
+                        local msg = 'SubItemGlue.Add: Invalid arguments ' ..
                                     (not parent and (', parent = ' .. tostring(parent)) or '') ..
                                     (not children and (', children = ' .. tostring(children)) or '')
                         error(msg, 2)
@@ -1494,14 +1494,14 @@ local cytanb = (function ()
 
         ---@class cytanb_slide_switch_parameters_t スライドスイッチを作成するためのパラメーターテーブル。ゲームオブジェクトのスケールは、すべて `1` であることを前提としている。
         ---@field colliderItem ExportTransform @スイッチを操作するための `VCI Sub Item` コンポーネントが設定されたコライダーオブジェクト。`baseItem` の原点位置を基準に移動する。通常は透明なオブジェクトとして設定する。
-        ---@field baseItem ExportTransform @スイッチの基準位置となるオブジェクト。
+        ---@field baseItem ExportTransform @スイッチの基準位置となるオブジェクト。原点がスイッチの中央位置となる。
         ---@field knobItem ExportTransform @スイッチのノブとなるオブジェクト。`baseItem` の子オブジェクトを指定する。`baseItem` の原点位置を基準に移動する。
-        ---@field knobStep Vector3 @ノブの 1 目盛り分の移動量。ゼロに近い移動量を指定した場合はエラーとなる。省略した場合は `Vector3.__new(0.01, 0.0, 0.0)`
-        ---@field minKnobValue number @ノブの最小値である整数値。`minKnobValue >= maxKnobValue` である場合はエラーとなる。省略した場合は `-5`
-        ---@field maxKnobValue number @ノブの最大値である整数値。省略した場合は `5`
-        ---@field defaultKnobValue number @ノブの規定値である整数値。省略した場合は `0`
-        ---@field minValue number @スイッチの最小値。`minValue >= maxValue` である場合はエラーとなる。省略した場合は `-1.0`
-        ---@field maxValue number @スイッチの最大値。省略した場合は `1.0`
+        ---@field minValue number @スイッチの最小値。`minValue >= maxValue` である場合はエラーとなる。省略した場合は `0`。
+        ---@field maxValue number @スイッチの最大値。省略した場合は `10`。
+        ---@field value number @スイッチの値。省略した場合は `0`。
+        ---@field tickFrequency number @目盛りの間隔。値の範囲を割り切れる数値を指定する。ゼロ以下である場合はエラーとなる。省略した場合は値の範囲を 10 等分した値。
+        ---@field tickVector Vector3 @1 目盛りのベクトル。ゼロに近いベクトルを指定した場合はエラーとなる。省略した場合は `Vector3.__new(0.01, 0.0, 0.0)`
+        ---@field snapToTick boolean @目盛りにスナップするかを指定する。省略した場合は `true`。
         ---@field lsp cytanb_local_shared_properties_t @`LocalSharedProperties` を使用する場合は指定する。省略可能。
         ---@field propertyName string @`LocalSharedProperties` を使用する場合は、プロパティ名を指定する。使用しない場合は省略可能。
 
@@ -1511,70 +1511,117 @@ local cytanb = (function ()
             local colliderItem = cytanb.NillableValue(parameters.colliderItem)
             local baseItem = cytanb.NillableValue(parameters.baseItem)
             local knobItem = cytanb.NillableValue(parameters.knobItem)
-            local knobStep = cytanb.NillableValueOrDefault(parameters.knobStep, Vector3.__new(0.01, 0.0, 0.0))
-            local knobStepMagnitude = knobStep.magnitude
-            if knobStepMagnitude < Vector3.kEpsilon then
-                error('CreateSlideSwitch: Invalid arguments: knobStep is too small', 2)
-            end
 
-            local minKnobValue = math.floor(cytanb.NillableValueOrDefault(parameters.minKnobValue, -5))
-            local maxKnobValue = math.floor(cytanb.NillableValueOrDefault(parameters.maxKnobValue, 5))
-            if minKnobValue >= maxKnobValue then
-                error('CreateSlideSwitch: Invalid arguments: minKnobValue >= maxKnobValue', 2)
-            end
-
-            local defaultKnobValue = math.floor(cytanb.Clamp(cytanb.NillableValueOrDefault(parameters.defaultKnobValue, 0), minKnobValue, maxKnobValue))
-
-            local minValue = cytanb.NillableValueOrDefault(parameters.minValue, -1.0)
-            local maxValue = cytanb.NillableValueOrDefault(parameters.maxValue, 1.0)
+            local minValue = cytanb.NillableValueOrDefault(parameters.minValue, 0)
+            local maxValue = cytanb.NillableValueOrDefault(parameters.maxValue, 10)
             if minValue >= maxValue then
-                error('CreateSlideSwitch: Invalid arguments: minValue >= maxValue', 2)
+                error('SlideSwitch: Invalid argument: minValue >= maxValue', 2)
             end
+            local valueLength = maxValue - minValue
+
+            local CalcValue = function (val)
+                local pp, pd = cytanb.PingPong(val - minValue, valueLength)
+                return pp + minValue, pd
+            end
+
+            local value = CalcValue(cytanb.NillableValueOrDefault(parameters.value, 0))
+
+            local tickFrequency = cytanb.NillableIfHasValueOrElse(
+                parameters.tickFrequency,
+                function (freqency)
+                    if freqency <= 0 then
+                        error('SlideSwitch: Invalid argument: tickFrequency <= 0', 3)
+                    end
+                    return math.min(freqency, valueLength)
+                end,
+                function ()
+                    return valueLength / 10.0
+                end
+            )
+
+            local tickVector = cytanb.NillableIfHasValueOrElse(
+                parameters.tickVector,
+                function (vec)
+                    return Vector3.__new(vec.x, vec.y, vec.z)
+                end,
+                function ()
+                    return Vector3.__new(0.01, 0.0, 0.0)
+                end
+            )
+
+            local tickMagnitude = tickVector.magnitude
+            if tickMagnitude < Vector3.kEpsilon then
+                error('SlideSwitch: Invalid argument: tickVector is too small', 2)
+            end
+
+            local snapToTick = cytanb.NillableValueOrDefault(parameters.snapToTick, true)
+
+            local gripWaitTime = TimeSpan.FromMilliseconds(1000)
+            local gripTickPeriod = TimeSpan.FromMilliseconds(50)
 
             local propertyGetter, propertySetter
             local listenerMap = {}
 
             local self
 
-            local CalcValue = function (v)
-                -- max - min を 100% とし、v を割合として計算する。
-                return minValue + (maxValue - minValue) * (cytanb.Clamp(v, minKnobValue, maxKnobValue) - minKnobValue) / (maxKnobValue - minKnobValue)
-            end
-
-            local knobValue = defaultKnobValue
-            local value = CalcValue(knobValue)
-
             local grabbed = false
+            local gripPressed = false
+            local gripStartTime = TimeSpan.Zero
+            local gripChangeTime = TimeSpan.Zero
             local deltaKnobPos = Vector3.zero
 
             local UpdateValue = function ()
-                local newKnobValue = cytanb.PingPong(propertyGetter() - minKnobValue, maxKnobValue - minKnobValue) + minKnobValue
-                if newKnobValue ~= knobValue then
-                    knobValue = newKnobValue
-                    value = CalcValue(knobValue)
+                local newValue = CalcValue(propertyGetter())
+                if newValue ~= value then
+                    value = newValue
                     for listener, v in pairs(listenerMap) do
-                        listener(self, value, knobValue)
+                        listener(self, value)
                     end
                 end
-                local ksv = knobValue * knobStep
-                knobItem.SetPosition(baseItem.GetPosition() + knobItem.GetRotation() * ksv)
-                -- cytanb.LogInfo('on update value [', colliderItem.GetName(), ']: knobValue = ', knobValue, ', value = ', value)
+
+                -- 中央値を基準位置の原点として計算する
+                local ktv = (newValue - minValue - valueLength * 0.5) / tickFrequency * tickVector
+                knobItem.SetPosition(baseItem.GetPosition() + knobItem.GetRotation() * ktv)
+                -- cytanb.LogInfo('on update value [', colliderItem.GetName(), ']: value = ', value)
+            end
+
+            local NextTickByUse = function ()
+                -- 最小値/最大値で折り返すときには、最小値/最大値を踏むようにする。
+                local curp = propertyGetter()
+                local cpp, cpd = CalcValue(curp)
+                local nextp = curp + tickFrequency
+                local npp, npd = CalcValue(nextp)
+                assert(npp)
+                local newValue
+                if cpd == npd or cpp == maxValue or cpp == minValue then
+                    newValue = nextp
+                else
+                    newValue = cpd >= 0 and maxValue or minValue
+                end
+
+                gripChangeTime = vci.me.UnscaledTime
+                if newValue == maxValue or newValue == minValue then
+                    -- 最小値/最大値のときには、スタートタイムをセットする
+                    gripStartTime = gripChangeTime
+                end
+
+                propertySetter(newValue)
             end
 
             cytanb.NillableIfHasValueOrElse(
                 parameters.lsp,
                 function (lsp)
                     if not cytanb.NillableHasValue(parameters.propertyName) then
-                        error('CreateSlideSwitch: Invalid arguments: propertyName is nil', 3)
+                        error('SlideSwitch: Invalid argument: propertyName is nil', 3)
                     end
 
                     local propertyName = cytanb.NillableValue(parameters.propertyName)
                     propertyGetter = function ()
-                        return lsp.GetProperty(propertyName, defaultKnobValue)
+                        return lsp.GetProperty(propertyName, value)
                     end
 
-                    propertySetter = function (v)
-                        lsp.SetProperty(propertyName, v)
+                    propertySetter = function (val)
+                        lsp.SetProperty(propertyName, val)
                     end
 
                     lsp.AddListener(function (source, key, propValue, oldPropValue)
@@ -1585,13 +1632,13 @@ local cytanb = (function ()
                     end)
                 end,
                 function ()
-                    local propValue = defaultKnobValue
+                    local propValue = value
                     propertyGetter = function ()
                         return propValue
                     end
 
-                    propertySetter = function (v)
-                        propValue = v
+                    propertySetter = function (val)
+                        propValue = val
                         UpdateValue()
                     end
                 end
@@ -1604,34 +1651,52 @@ local cytanb = (function ()
                     return colliderItem
                 end,
 
-                --- スイッチのノブとなるオブジェクトを取得する。
-                ---@return ExportTransform
-                GetKnobItem = function ()
-                    return knobItem
-                end,
-
                 --- スイッチの基準位置となるオブジェクトを取得する。
                 ---@return ExportTransform
                 GetBaseItem = function ()
                     return baseItem
                 end,
 
-                --- ノブの値を取得する。
-                ---@return number
-                GetKnobValue = function ()
-                    return knobValue
+                --- スイッチのノブとなるオブジェクトを取得する。
+                ---@return ExportTransform
+                GetKnobItem = function ()
+                    return knobItem
                 end,
 
-                --- ノブの値を設定する。
-                ---@param val number @整数値を指定する。
-                SetKnobValue = function (val)
-                    propertySetter(math.floor(val))
+                --- スイッチの最小値を取得する。
+                ---@return number
+                GetMinValue = function ()
+                    return minValue
+                end,
+
+                --- スイッチの最大値を取得する。
+                ---@return number
+                GetMaxValue = function ()
+                    return maxValue
                 end,
 
                 --- スイッチの値を取得する。
                 ---@return number
                 GetValue = function ()
                     return value
+                end,
+
+                --- スイッチの値を設定する。
+                ---@param val number @設定する数値を指定する。
+                SetValue = function (val)
+                    propertySetter(CalcValue(val))
+                end,
+
+                --- 目盛りの間隔を取得する。
+                ---@return number
+                GetTickFrequency = function ()
+                    return tickFrequency
+                end,
+
+                --- 目盛りにスナップするかを調べる。
+                ---@return boolean
+                IsSnapToTick = function ()
+                    return snapToTick
                 end,
 
                 --- スイッチの変更イベントを受け取るリスナーを追加する。
@@ -1646,9 +1711,16 @@ local cytanb = (function ()
                     listenerMap[listener] = nil
                 end,
 
-                --- `onUse` 関数で、スイッチが使用されたときに、この関数を呼び出すこと。
+                --- `onUse` 関数で、スイッチがユーズされたときに、この関数を呼び出すこと。
                 DoUse = function ()
-                    propertySetter(propertyGetter() + 1)
+                    gripPressed = true
+                    gripStartTime = vci.me.UnscaledTime
+                    NextTickByUse()
+                end,
+
+                --- `onUnuse` 関数で、スイッチがアンユーズされたときに、この関数を呼び出すこと。
+                DoUnuse = function ()
+                    gripPressed = false
                 end,
 
                 --- `onGrab` 関数で、スイッチがグラブされたときに、この関数を呼び出すこと。
@@ -1666,11 +1738,21 @@ local cytanb = (function ()
                 Update = function ()
                     if grabbed then
                         local dp = colliderItem.GetPosition() - baseItem.GetPosition() + deltaKnobPos
-                        local nv = knobItem.GetRotation() * knobStep
-                        local rv = Vector3.Project(dp, nv)
-                        local kval = cytanb.Clamp((Vector3.Dot(knobStep, rv) >= 0 and 1 or -1) * cytanb.Round(rv.magnitude / knobStepMagnitude), minKnobValue, maxKnobValue)
-                        if kval ~= knobValue then
-                            propertySetter(kval)
+                        local tv = knobItem.GetRotation() * tickVector
+                        local pv = Vector3.Project(dp, tv)
+                        local mv = (Vector3.Dot(tickVector, pv) >= 0 and 1 or -1) * (pv.magnitude / tickMagnitude)
+                        -- 中央値を基準位置の原点として計算する
+                        local fv = (snapToTick and cytanb.Round(mv) or mv) * tickFrequency + (minValue + maxValue) * 0.5
+                        local newValue = cytanb.Clamp(fv, minValue, maxValue)
+                        -- cytanb.LogTrace('SlideSwitch: ', colliderItem.GetName() , ': newValue = ', newValue, ', mv = ', mv, ', fv = ', fv)
+                        if newValue ~= value then
+                            propertySetter(newValue)
+                        end
+                    elseif gripPressed then
+                        -- 長押し状態であれば、値を進める。
+                        local unow = vci.me.UnscaledTime
+                        if unow >= gripStartTime + gripWaitTime and unow >= gripChangeTime + gripTickPeriod then
+                            NextTickByUse()
                         end
                     elseif colliderItem.IsMine then
                         cytanb.AlignSubItemOrigin(baseItem, colliderItem)
@@ -1746,7 +1828,7 @@ local cytanb = (function ()
 
                 Add = function (subItems, noPropagation)
                     if not subItems then
-                        error('CreateSubItemConnector.Add: Invalid arguments: subItems = ' .. tostring(subItems), 2)
+                        error('SubItemConnector.Add: Invalid argument: subItems = ' .. tostring(subItems), 2)
                     end
 
                     local itemList = type(subItems) == 'table' and subItems or {subItems}
