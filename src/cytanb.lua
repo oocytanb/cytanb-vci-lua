@@ -569,12 +569,22 @@ local cytanb = (function ()
         TraceLog = function (...) cytanb.LogTrace(...) end,
 
         ListToMap = function (list, itemValue)
-            local table = {}
-            local valueIsNil = itemValue == nil
-            for k, v in pairs(list) do
-                table[v] = valueIsNil and v or itemValue
+            local map = {}
+            if itemValue == nil then
+                for k, v in pairs(list) do
+                    map[v] = v
+                end
+            elseif type(itemValue) == 'function' then
+                for k, v in pairs(list) do
+                    local ik, iv = itemValue(v)
+                    map[ik] = iv
+                end
+            else
+                for k, v in pairs(list) do
+                    map[v] = itemValue
+                end
             end
-            return table
+            return map
         end,
 
         Round = function (num, decimalPlaces)

@@ -62,7 +62,7 @@
 ---@field LogInfo fun (...) @情報レベルのログを出力する。
 ---@field LogDebug fun (...) @デバッグレベルのログを出力する。
 ---@field LogTrace fun (...) @トレースレベルのログを出力する。
----@field ListToMap fun (list: any[], itemValue: any): table @リストをテーブルに変換する。リストの要素の値がキー値となる。`itemValue` に要素の値を指定する。`itemValue` に `nil` を指定するか省略した場合は、リストの要素の値が使われる。
+---@field ListToMap fun (list: any[], itemValue: any): table @リストをテーブルに変換する。リストの要素の値がキー値となる。`itemValue` に要素の値を指定する。`itemValue` に `nil` を指定するか省略した場合は、リストの要素の値が使われる。`itemValue` に関数を指定した場合は、引数に要素の値が渡され、戻り値の1番目のキー値、2番目が値として使われる。
 ---@field Round fun (num: number, decimalPlaces: number): number @`num` に最も近い整数、または `decimalPlaces` で指定した小数点以下の桁数に丸める。`decimalPlaces` は省略可能。
 ---@field Clamp fun (value: number, min: number, max: number): number @`min` 以上 `max` 以下の範囲に制限された `value` を返す。
 ---@field Lerp fun (a: number, b: number, t: number): number @`a` と `b` の間を `t` で線形補間する。`t` は 0 から 1 の範囲に制限される。
