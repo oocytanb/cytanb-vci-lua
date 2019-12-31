@@ -1527,10 +1527,10 @@ local cytanb = (function ()
             if minValue >= maxValue then
                 error('SlideSwitch: Invalid argument: minValue >= maxValue', 2)
             end
-            local valueLength = maxValue - minValue
+            local halfValue = (minValue + maxValue) * 0.5
 
             local CalcValue = function (val)
-                local pp, pd = cytanb.PingPong(val - minValue, valueLength)
+                local pp, pd = cytanb.PingPong(val - minValue, maxValue - minValue)
                 return pp + minValue, pd
             end
 
@@ -1542,10 +1542,10 @@ local cytanb = (function ()
                     if freqency <= 0 then
                         error('SlideSwitch: Invalid argument: tickFrequency <= 0', 3)
                     end
-                    return math.min(freqency, valueLength)
+                    return math.min(freqency, maxValue - minValue)
                 end,
                 function ()
-                    return valueLength / 10.0
+                    return (maxValue - minValue) / 10.0
                 end
             )
 
@@ -1575,10 +1575,10 @@ local cytanb = (function ()
             local self
 
             local grabbed = false
+            local grabbedDeltaTicks = 0
             local gripPressed = false
             local gripStartTime = TimeSpan.Zero
             local gripChangeTime = TimeSpan.Zero
-            local deltaKnobPos = Vector3.zero
 
             local UpdateValue = function ()
                 local newValue = CalcValue(propertyGetter())
@@ -1590,8 +1590,7 @@ local cytanb = (function ()
                 end
 
                 -- 中央値を基準位置の原点として計算する
-                local ktv = (newValue - minValue - valueLength * 0.5) / tickFrequency * tickVector
-                knobItem.SetPosition(baseItem.GetPosition() + knobItem.GetRotation() * ktv)
+                knobItem.SetLocalPosition((newValue - halfValue) / tickFrequency * tickVector)
                 -- cytanb.LogInfo('on update value [', colliderItem.GetName(), ']: value = ', value)
             end
 
@@ -1736,7 +1735,8 @@ local cytanb = (function ()
                 --- `onGrab` 関数で、スイッチがグラブされたときに、この関数を呼び出すこと。
                 DoGrab = function ()
                     grabbed = true
-                    deltaKnobPos = knobItem.GetPosition() - baseItem.GetPosition()
+                    -- 中央値を基準位置の原点として計算する
+                    grabbedDeltaTicks = (value - halfValue) / tickFrequency
                 end,
 
                 --- `onUngrab` 関数で、スイッチがアングラブされたときに、この関数を呼び出すこと。
@@ -1747,12 +1747,12 @@ local cytanb = (function ()
                 --- `updateAll` 関数で、この関数を呼び出すこと。
                 Update = function ()
                     if grabbed then
-                        local dp = colliderItem.GetPosition() - baseItem.GetPosition() + deltaKnobPos
+                        local dp = colliderItem.GetPosition() - baseItem.GetPosition()
                         local tv = knobItem.GetRotation() * tickVector
                         local pv = Vector3.Project(dp, tv)
-                        local mv = (Vector3.Dot(tickVector, pv) >= 0 and 1 or -1) * (pv.magnitude / tickMagnitude)
+                        local mv = (Vector3.Dot(tv, pv) >= 0 and 1 or -1) * (pv.magnitude / tickMagnitude) + grabbedDeltaTicks
                         -- 中央値を基準位置の原点として計算する
-                        local fv = (snapToTick and cytanb.Round(mv) or mv) * tickFrequency + (minValue + maxValue) * 0.5
+                        local fv = (snapToTick and cytanb.Round(mv) or mv) * tickFrequency + halfValue
                         local newValue = cytanb.Clamp(fv, minValue, maxValue)
                         -- cytanb.LogTrace('SlideSwitch: ', colliderItem.GetName() , ': newValue = ', newValue, ', mv = ', mv, ', fv = ', fv)
                         if newValue ~= value then
