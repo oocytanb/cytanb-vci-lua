@@ -1722,9 +1722,11 @@ local cytanb = (function ()
 
                 --- `onUse` 関数で、スイッチがユーズされたときに、この関数を呼び出すこと。
                 DoUse = function ()
-                    gripPressed = true
-                    gripStartTime = vci.me.UnscaledTime
-                    NextTickByUse()
+                    if not grabbed then
+                        gripPressed = true
+                        gripStartTime = vci.me.UnscaledTime
+                        NextTickByUse()
+                    end
                 end,
 
                 --- `onUnuse` 関数で、スイッチがアンユーズされたときに、この関数を呼び出すこと。
@@ -1734,9 +1736,11 @@ local cytanb = (function ()
 
                 --- `onGrab` 関数で、スイッチがグラブされたときに、この関数を呼び出すこと。
                 DoGrab = function ()
-                    grabbed = true
-                    -- 中央値を基準位置の原点として計算する
-                    grabbedDeltaTicks = (value - halfValue) / tickFrequency
+                    if not gripPressed then
+                        grabbed = true
+                        -- 中央値を基準位置の原点として計算する
+                        grabbedDeltaTicks = (value - halfValue) / tickFrequency
+                    end
                 end,
 
                 --- `onUngrab` 関数で、スイッチがアングラブされたときに、この関数を呼び出すこと。
