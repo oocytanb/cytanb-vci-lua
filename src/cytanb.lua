@@ -666,6 +666,7 @@ local cytanb = (function ()
             return angle, vec
         end,
 
+        -- @deprecated `Quaternion * Vector3` 演算子を使用すること。'vec3' に 'quat' の回転を適用し、新しい Vector3 オブジェクトを返す。
         ApplyQuaternionToVector3 = function (quat, vec3)
             -- (quat * Quaternion.__new(vec3.x, vec3.y, vec3.z, 0)) * Quaternion.Inverse(quat)
             local qpx = quat.w * vec3.x + quat.y * vec3.z - quat.z * vec3.y
@@ -681,7 +682,7 @@ local cytanb = (function ()
         end,
 
         RotateAround = function (targetPosition, targetRotation, centerPosition, rotation)
-            return centerPosition + cytanb.ApplyQuaternionToVector3(rotation, targetPosition - centerPosition), rotation * targetRotation
+            return centerPosition + rotation * (targetPosition - centerPosition), rotation * targetRotation
         end,
 
         Random32 = function ()
