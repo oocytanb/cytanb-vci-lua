@@ -173,6 +173,74 @@ return (function ()
         local dot = Vector3.Dot(ve, vdax)
         return (dot >= 0 and da or - da) % 360.0
     end
+
+    local CreateSoftImpactor = function (item, forceLimit)
+        if forceLimit <= 0 then
+            error('CreateSoftImpactor: Invalid argument: forceLimit <= 0', 2)
+        end
+
+        local limit = forceLimit
+        local accf = Vector3.zero
+
+        return {
+            Reset = function ()
+                accf = Vector3.zero
+            end,
+
+            GetForceLimit = function ()
+                return limit
+            end,
+
+            SetForceLimit = function (forceLimit)
+                if forceLimit <= 0 then
+                    error('CreateSoftImpactor: Invalid argument: forceLimit <= 0', 2)
+                end
+
+                limit = forceLimit
+            end,
+
+            GetAccumulatedForce = function ()
+                return accf
+            end,
+
+            AccumulateForce = function (force, deltaTime, fixedTimestep)
+                local ds = deltaTime.TotalSeconds
+                local fs = fixedTimestep.TotalSeconds
+                if ds <= 0 or fs <= 0 then
+                    return
+                end
+
+                accf = accf + ds / fs * force
+            end,
+
+            --- `updateAll` 関数の最後で、この関数を呼び出すこと。
+            Update = function ()
+                if accf == Vector3.zero then
+                    return
+                end
+
+                if not item.IsMine then
+                    -- 操作権が無い場合はリセットする。
+                    accf = Vector3.zero
+                    return
+                end
+
+                local am = accf.magnitude
+                local f
+                if am <= limit then
+                    f = accf
+                    accf = Vector3.zero
+                else
+                    -- 制限を超えている部分は、次以降のフレームに繰り越す
+                    f = limit / am * accf
+                    accf = accf - f
+                    -- cytanb.LogTrace('CreateSoftImpactor: on Update: accf.magnitude = ', accf.magnitude)
+                end
+
+                item.AddForce(f)
+            end
+        }
+    end
     ]]
 
     local ModuleName = 'cytanb_fake_vci'
@@ -375,12 +443,26 @@ return (function ()
     local QuaternionMetatable
     QuaternionMetatable = {
         __mul = function (op1, op2)
-            return Quaternion.__new(
-                op1.w * op2.x + op1.x * op2.w + op1.y * op2.z - op1.z * op2.y,
-                op1.w * op2.y - op1.x * op2.z + op1.y * op2.w + op1.z * op2.x,
-                op1.w * op2.z + op1.x * op2.y - op1.y * op2.x + op1.z * op2.w,
-                op1.w * op2.w - op1.x * op2.x - op1.y * op2.y - op1.z * op2.z
-            )
+            if getmetatable(op2) == Vector3Metatable then
+                -- (quat * Quaternion.__new(vec3.x, vec3.y, vec3.z, 0)) * Quaternion.Inverse(quat)
+                local qpx = op1.w * op2.x + op1.y * op2.z - op1.z * op2.y
+                local qpy = op1.w * op2.y - op1.x * op2.z + op1.z * op2.x
+                local qpz = op1.w * op2.z + op1.x * op2.y - op1.y * op2.x
+                local qpw = - op1.x * op2.x - op1.y * op2.y - op1.z * op2.z
+
+                return Vector3.__new(
+                    qpw * - op1.x + qpx * op1.w + qpy * - op1.z - qpz * - op1.y,
+                    qpw * - op1.y - qpx * - op1.z + qpy * op1.w + qpz * - op1.x,
+                    qpw * - op1.z + qpx * - op1.y - qpy * - op1.x + qpz * op1.w
+                )
+            else
+                return Quaternion.__new(
+                    op1.w * op2.x + op1.x * op2.w + op1.y * op2.z - op1.z * op2.y,
+                    op1.w * op2.y - op1.x * op2.z + op1.y * op2.w + op1.z * op2.x,
+                    op1.w * op2.z + op1.x * op2.y - op1.y * op2.x + op1.z * op2.w,
+                    op1.w * op2.w - op1.x * op2.x - op1.y * op2.y - op1.z * op2.z
+                )
+            end
         end,
 
         __eq = function (op1, op2)

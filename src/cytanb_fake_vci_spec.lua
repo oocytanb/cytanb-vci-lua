@@ -587,6 +587,9 @@ describe('Test cytanb_fake_vci', function ()
         assert.are.equal(Quaternion.__new(0, 0, 0, 1), Quaternion.__new(0, 0, 0, 0).normalized)
 
         assert.are.equal(Quaternion.__new(-30, 54, -172, 150), Quaternion.__new(3, 4, 5, -6) * Quaternion.__new(8, -15, 0, -19))
+        -- assert.are.equal(Vector3.__new(-1908, 717, 564), Quaternion.__new(3, 4, 5, -6) * Vector3.__new(8, -15, 0))
+        assert.are.equal(Vector3.__new(-14.2790679931641, -6.48837280273438, 6.55813884735107), Quaternion.__new(3, 4, 5, -6).normalized * Vector3.__new(8, -15, 0))
+        assert.are.equal(Vector3.__new(12.4615592956543, -11.5089797973633, -1.11933636665344), Quaternion.AngleAxis(25, Vector3.__new(-7, 16, 22)) * Vector3.__new(8, -15, 0))
 
         assert.are.equal(Quaternion.__new(1, 1, 0, 1), Quaternion.__new(1 + 1e-8, 1 - 1e-8, 0, 1))
         assert.are_not.equal(Quaternion.__new(1, 1, 0, 1), Quaternion.__new(1 + 1e-8, 1 - 1e-8, 1e-8, 1))
