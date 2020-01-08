@@ -156,30 +156,15 @@ return (function ()
     end
 
     --[[
-    local CalcRotationAngleAroundAxis = function (quatStart, quatEnd, axis)
-        local vax = axis.normalized
-        if vax == Vector3.zero then
-            vax = Vector3.forward
+    local CreateSoftImpactor = function (item, maxForceMagnitude)
+        local AssertMaxForceMagnitude = function (forceMagnitude)
+            if forceMagnitude < 0 then
+                error('CreateSoftImpactor: Invalid argument: forceMagnitude < 0', 3)
+            end
+            return forceMagnitude
         end
 
-        local vs = cytanb.ApplyQuaternionToVector3(quatStart, vax)
-        local ve = cytanb.ApplyQuaternionToVector3(quatEnd, vax)
-        local qr = quatEnd * Quaternion.Inverse(quatStart)
-        local qfr = Quaternion.FromToRotation(vs, ve)
-
-        local qd = qr * Quaternion.Inverse(qfr)
-        local da, vdax = cytanb.QuaternionToAngleAxis(qd)
-
-        local dot = Vector3.Dot(ve, vdax)
-        return (dot >= 0 and da or - da) % 360.0
-    end
-
-    local CreateSoftImpactor = function (item, forceLimit)
-        if forceLimit <= 0 then
-            error('CreateSoftImpactor: Invalid argument: forceLimit <= 0', 2)
-        end
-
-        local limit = forceLimit
+        local maxMagnitude = AssertMaxForceMagnitude(maxForceMagnitude)
         local accf = Vector3.zero
 
         return {
@@ -187,16 +172,12 @@ return (function ()
                 accf = Vector3.zero
             end,
 
-            GetForceLimit = function ()
-                return limit
+            GetMaxForceMagnitude = function ()
+                return maxMagnitude
             end,
 
-            SetForceLimit = function (forceLimit)
-                if forceLimit <= 0 then
-                    error('CreateSoftImpactor: Invalid argument: forceLimit <= 0', 2)
-                end
-
-                limit = forceLimit
+            SetMaxForceMagnitude = function (maxForceMagnitude)
+                maxMagnitude = AssertMaxForceMagnitude(maxForceMagnitude)
             end,
 
             GetAccumulatedForce = function ()
@@ -225,14 +206,18 @@ return (function ()
                     return
                 end
 
+                if maxMagnitude <= 0 then
+                    return
+                end
+
                 local am = accf.magnitude
                 local f
-                if am <= limit then
+                if am <= maxMagnitude then
                     f = accf
                     accf = Vector3.zero
                 else
                     -- 制限を超えている部分は、次以降のフレームに繰り越す
-                    f = limit / am * accf
+                    f = maxMagnitude / am * accf
                     accf = accf - f
                     -- cytanb.LogTrace('CreateSoftImpactor: on Update: accf.magnitude = ', accf.magnitude)
                 end
