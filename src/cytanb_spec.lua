@@ -462,7 +462,9 @@ describe('Test cytanb owner user', function ()
 
         local a4, v4 = cytanb.QuaternionToAngleAxis(Quaternion.AngleAxis(360, Vector3.__new(3, -5, 7)))
         assert.are.equal(360, a4)
-        assert.are.equal(Vector3.__new(1, 0, 0), v4)    -- Vector3.__new(-Infinity, Infinity, -Infinity)
+        assert.are.equal(Vector3.__new(1, 0, 0), v4)
+        -- Unity では、360°の倍数 (ゼロを除く)のときは、axis のコンポーネントは、`+- Infinity` となる。
+        -- Vector3.__new(-Infinity, Infinity, -Infinity)
 
         local a5, v5 = cytanb.QuaternionToAngleAxis(Quaternion.AngleAxis(-90, Vector3.__new(3, -5, 7)))
         assert.are.equal(90, a5)
@@ -479,6 +481,97 @@ describe('Test cytanb owner user', function ()
         local a41, v41 = cytanb.QuaternionToAngleAxis(Quaternion.__new(0.000000000001, 0.000000000002, 0.000000000003, 0.000000000004))
         assert.are.equal(0, a41)
         assert.are.equal(Vector3.__new(1, 0, 0), v41)
+    end)
+
+    it('QuaternionTwist', function ()
+        local q0 = Quaternion.AngleAxis(30, Vector3.__new(0, 0, 1))
+        local d0 = Vector3.__new(0, 0, 0)
+        local t0 = cytanb.QuaternionTwist(q0, d0)
+        assert.are.equal(Quaternion.identity, t0)
+
+        local q10 = Quaternion.AngleAxis(0, Vector3.__new(0, 0, 1))
+        local d10 = Vector3.__new(0, 1, 1)
+        local t10 = cytanb.QuaternionTwist(q10, d10)
+        assert.are.equal(Quaternion.identity, t10)
+
+        local q50axis = Vector3.__new(0, 0, 1)
+        local q50dir = Vector3.__new(0, 1, 1)
+        local q50 = Quaternion.AngleAxis(30, q50axis)
+        local t50 = cytanb.QuaternionTwist(q50, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(21.45717, q50dir), t50)
+        assert.are.equal(Quaternion.AngleAxis(21.09058, Vector3.__new(0.18616, -0.69475, 0.69475)), q50 * Quaternion.Inverse(t50))
+
+        local q51 = Quaternion.AngleAxis(60, q50axis)
+        local t51 = cytanb.QuaternionTwist(q51, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(44.41531, q50dir), t51)
+        assert.are.equal(Quaternion.AngleAxis(41.40961, Vector3.__new(0.37796, -0.65465, 0.65465)), q51 * Quaternion.Inverse(t51))
+
+        local q52 = Quaternion.AngleAxis(90, q50axis)
+        local t52 = cytanb.QuaternionTwist(q52, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(70.52877, q50dir), t52)
+        assert.are.equal(Quaternion.AngleAxis(60, Vector3.__new(0.57735, -0.57735, 0.57735)), q52 * Quaternion.Inverse(t52))
+
+        local q53 = Quaternion.AngleAxis(180, q50axis)
+        local t53 = cytanb.QuaternionTwist(q53, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(180, q50dir), t53)
+        -- assert.are.equal(Quaternion.AngleAxis(90, Vector3.__new(1, 0, 0)), q53 * Quaternion.Inverse(t53))
+
+        local q54 = Quaternion.AngleAxis(270, q50axis)
+        local t54 = cytanb.QuaternionTwist(q54, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(289.4712, q50dir), t54)
+        assert.are.equal(Quaternion.AngleAxis(60, Vector3.__new(0.57735, 0.57735, -0.57735)), q54 * Quaternion.Inverse(t54))
+
+        local q55 = Quaternion.AngleAxis(330, q50axis)
+        local t55 = cytanb.QuaternionTwist(q55, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(338.5429, q50dir), t55)
+        assert.are.equal(Quaternion.AngleAxis(21.09058, Vector3.__new(0.18616, 0.69475, -0.69475)), q55 * Quaternion.Inverse(t55))
+
+        local q56 = Quaternion.AngleAxis(360, q50axis)
+        local t56 = cytanb.QuaternionTwist(q56, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(360, q50dir), t56)
+        assert.are.equal(360, cytanb.QuaternionToAngleAxis(t56))
+
+        local q57 = Quaternion.AngleAxis(720, q50axis)
+        local t57 = cytanb.QuaternionTwist(q57, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(0, q50dir), t57)
+        assert.are.equal(0, cytanb.QuaternionToAngleAxis(t57))
+
+        local q58 = Quaternion.AngleAxis(1080, q50axis)
+        local t58 = cytanb.QuaternionTwist(q58, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(360, q50dir), t58)
+        assert.are.equal(360, cytanb.QuaternionToAngleAxis(t58))
+
+        local q60 = Quaternion.AngleAxis(-30, q50axis)
+        local t60 = cytanb.QuaternionTwist(q60, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(-21.45717, q50dir), t60)
+        assert.are.equal(Quaternion.AngleAxis(21.09058, Vector3.__new(0.18616, 0.69475, -0.69475)), q60 * Quaternion.Inverse(t60))
+
+        local q61 = Quaternion.AngleAxis(-180, q50axis)
+        local t61 = cytanb.QuaternionTwist(q61, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(-180, q50dir), t61)
+        -- assert.are.equal(Quaternion.AngleAxis(90, Vector3.__new(1, 0, 0)), q61 * Quaternion.Inverse(t61))
+
+        local q62 = Quaternion.AngleAxis(-360, q50axis)
+        local t62 = cytanb.QuaternionTwist(q62, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(-360, q50dir), t62)
+        assert.are.equal(360, cytanb.QuaternionToAngleAxis(t62))
+
+        local q63 = Quaternion.AngleAxis(-720, q50axis)
+        local t63 = cytanb.QuaternionTwist(q63, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(0, q50dir), t63)
+        assert.are.equal(0, cytanb.QuaternionToAngleAxis(t63))
+
+        local q64 = Quaternion.AngleAxis(-1080, q50axis)
+        local t64 = cytanb.QuaternionTwist(q64, q50dir)
+        assert.are.equal(Quaternion.AngleAxis(-360, q50dir), t64)
+        assert.are.equal(360, cytanb.QuaternionToAngleAxis(t64))
+
+        local q70axis = Vector3.__new(0, 0, 1)
+        local q70dir = Vector3.__new(0, 1, 0)
+        local q70 = Quaternion.AngleAxis(30, q70axis)
+        local t70 = cytanb.QuaternionTwist(q70, q70dir)
+        assert.are.equal(Quaternion.AngleAxis(0, q70dir), t70)
+        assert.are.equal(Quaternion.AngleAxis(30, Vector3.__new(0, 0, 1)), q70 * Quaternion.Inverse(t70))
     end)
 
     it('ApplyQuaternionToVector3', function ()

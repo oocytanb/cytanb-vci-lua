@@ -666,6 +666,31 @@ local cytanb = (function ()
             return angle, vec
         end,
 
+        --- **EXPERIMENTAL:実験的な機能。任意の回転 `quat` に対する `direction` における捻り (twist) を計算する。振り (swing) を求める場合は `quat * Quaternion.Inverse(twist)` で得られる。**
+        ---@param quat Quaternion @任意の回転を指定する。
+        ---@param direction Vector3 @捻りを得る方向を指定する。
+        ---@return Quaternion @`direction` における捻り (twist)。
+        QuaternionTwist = function (quat, direction)
+            if direction.sqrMagnitude < Vector3.kEpsilonNormalSqrt then
+                return Quaternion.identity
+            end
+
+            local rotAxis = Vector3.__new(quat.x, quat.y, quat.z)
+            if rotAxis.sqrMagnitude >= Vector3.kEpsilonNormalSqrt then
+                local prj = Vector3.Project(rotAxis, direction)
+                if prj.sqrMagnitude >= Vector3.kEpsilonNormalSqrt then
+                    local twist = Quaternion.__new(prj.x, prj.y, prj.z, quat.w)
+                    twist.Normalize()
+                    return twist
+                else
+                    return Quaternion.AngleAxis(0, direction)
+                end
+            else
+                local rotAngle = cytanb.QuaternionToAngleAxis(quat)
+                return Quaternion.AngleAxis(rotAngle, direction)
+            end
+        end,
+
         -- @deprecated `Quaternion * Vector3` 演算子を使用すること。'vec3' に 'quat' の回転を適用し、新しい Vector3 オブジェクトを返す。
         ApplyQuaternionToVector3 = function (quat, vec3)
             -- (quat * Quaternion.__new(vec3.x, vec3.y, vec3.z, 0)) * Quaternion.Inverse(quat)
