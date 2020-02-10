@@ -1186,6 +1186,36 @@ describe('Test cytanb owner user', function ()
         vci.fake.SetVciName(lastVciName)
     end)
 
+    it('ParseTagString', function ()
+        local m1, n1 = cytanb.ParseTagString('foo#bar#baz=123')
+        assert.are.same('foo', n1)
+        assert.are.same({bar = 'bar', baz = '123'}, m1)
+
+        local m2, n2 = cytanb.ParseTagString('#()!~*\'%  #qux%E3%81%82=(-3.14!1e-16)')
+        assert.are.same('', n2)
+        assert.are.same({['()!~*\'%'] = '()!~*\'%', ['qux%E3%81%82'] = '(-3.14!1e-16)'}, m2)
+
+        local m3, n3 = cytanb.ParseTagString('###=#corge=##grault=')
+        assert.are.same('', n3)
+        assert.are.same({corge = '', grault = ''}, m3)
+
+        local m4, n4 = cytanb.ParseTagString('')
+        assert.are.same('', n4)
+        assert.are.same({}, m4)
+
+        local m5, n5 = cytanb.ParseTagString('Hello, world!')
+        assert.are.same('Hello, world!', n5)
+        assert.are.same({}, m5)
+
+        local m6, n6 = cytanb.ParseTagString('#')
+        assert.are.same('', n6)
+        assert.are.same({}, m6)
+
+        local m7, n7 = cytanb.ParseTagString('  #garply=waldo#')
+        assert.are.same('  ', n7)
+        assert.are.same({ garply = 'waldo'}, m7)
+    end)
+
     it('TransformParameters', function ()
         local p1, r1, s1 = cytanb.RestoreCytanbTransform(
             {

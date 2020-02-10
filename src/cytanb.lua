@@ -1,7 +1,7 @@
 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2019 oO (https://github.com/oocytanb)
 
--- VCAS@1.7.0a 時点において、`cytanb.lua` は VCI の `require` に対応していません。
+-- `cytanb.lua` は、VCAS@1.7.0a で追加された VCI の `require` に対応していません。
 
 ---@type cytanb @See `cytanb_annotations.lua`
 local cytanb = (function ()
@@ -1158,6 +1158,54 @@ local cytanb = (function ()
         ---@return string
         ClientID = function ()
             return clientID
+        end,
+
+        --- **EXPERIMENTAL:実験的な機能。** タグ文字列をパースする。文字列全体の書式は、ベース名に 0 個以上のタグが続く。`basename#tag1#tag2...#tagN` タグの書式は、ハッシュ記号 `#` にタグ名、省略可能な値の指定が続く。`#name[=value]` 値を省略した場合は、タグ名が値となる。タグ名と値に使用可能な文字は、`A-Z a-z 0-9 _ - .` および、予約文字として `( ) ! ~ * ' %` となっている。(例: `foo#bar#baz=123`)
+        ---@return table<string, string>, string @戻り値の1番目にタグのマップを、2番目にベース名を返す。
+        ParseTagString = function (str)
+            local pos = string.find(str, '#', 1, true)
+            if not pos then
+                -- タグが存在しなかった
+                return {}, str
+            end
+
+            local tagMap = {}
+            local baseName = string.sub(str, 1, pos - 1)
+            pos = pos + 1
+            local len = string.len(str)
+
+            local reComponent = '^[A-Za-z0-9_%-.()!~*\'%%]+'
+            while pos <= len do
+                local s1, e1 = string.find(str, reComponent, pos)
+                if s1 then
+                    local tagKey = string.sub(str, s1, e1)
+                    -- タグの値が指定されない場合は、キー値とする
+                    local tagValue = tagKey
+                    pos = e1 + 1
+                    if pos <= len and string.sub(str, pos, pos) == '=' then
+                        pos = pos + 1
+                        local s2, e2 = string.find(str, reComponent, pos)
+                        if s2 then
+                            -- タグの値が指定された
+                            tagValue = string.sub(str, s2, e2)
+                            pos = e2 + 1
+                        else
+                            -- 空のタグの値が指定された
+                            tagValue = ''
+                        end
+                    end
+                    tagMap[tagKey] = tagValue
+                end
+
+                -- 次のタグを検索する
+                pos = string.find(str, '#', pos, true)
+                if not pos then
+                    break
+                end
+                pos = pos + 1
+            end
+
+            return tagMap, baseName
         end,
 
         ---@class cytanb_local_shared_properties_t ローカルの共有プロパティ
