@@ -1289,6 +1289,25 @@ local cytanb = (function ()
                     end
                 end,
 
+                --- プロパティを消去する。
+                Clear = function ()
+                    for key, value in pairs(pmap) do
+                        if key ~= listenerMapKey then
+                            -- next で巡回中に、既存のフィールドを変更・消去することは可能とマニュアルに明記してある。
+                            self.SetProperty(key, nil)
+                        end
+                    end
+                end,
+
+                --- `callback(value, key, lsp)` には、各要素に対して実行するコールバック関数を指定する。コールバック関数内から、新しいプロパティを設定する操作は未定義の動作を引き起こす。`
+                Each = function (callback)
+                    for key, value in pairs(pmap) do
+                        if key ~= listenerMapKey and callback(value, key, self) == false then
+                            return false
+                        end
+                    end
+                end,
+
                 --- プロパティの変更イベントを受け取るリスナーを追加する。
                 ---@param listener fun(source: cytanb_local_shared_properties_t, key: string, value: any, oldValue: any) @`source` は、イベントの発生元が渡される。`key` は、プロパティのキー値が渡される。`value` は、プロパティの値が渡される。`oldValue` は、以前のプロパティの値が渡される。
                 AddListener = function (listener)
