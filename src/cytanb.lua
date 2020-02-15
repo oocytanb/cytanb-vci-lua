@@ -1208,6 +1208,20 @@ local cytanb = (function ()
             return tagMap, baseName
         end,
 
+        --- **EXPERIMENTAL:実験的な機能。** 与えられた数値の SI 接頭辞を計算する。
+        ---@param num number @数値を指定する。
+        ---@return number, string, number @戻り値の1番目に計算した SI 接頭辞での数値を、2番目に SI 接頭辞を、3番目に 10 の累乗数を返す。
+        CalculateSIPrefix = (function ()
+            local baseIndex = 9
+            local unitList = {'y', 'z', 'a', 'f', 'p', 'n', 'u', 'm', '', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'}
+            local unitLength = #unitList
+
+            return function (num)
+                local exp = num == 0 and 0 or cytanb.Clamp(math.floor(math.log(math.abs(num), 1000)), 1 - baseIndex, unitLength - baseIndex)
+                return (exp == 0 and num or num / (1000 ^ exp)), unitList[baseIndex + exp], exp * 3
+            end
+        end)(),
+
         ---@class cytanb_local_shared_properties_t ローカルの共有プロパティ
 
         --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** ローカルの共有プロパティを作成する。
