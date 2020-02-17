@@ -1609,6 +1609,61 @@ local cytanb = (function ()
             return self
         end,
 
+        --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。アップデートルーチンを作成する。`updateAll` 関数で、作成したルーチンを呼び出すこと。
+        ---@param updateCallback fun(deltaTime: TimeSpan, unscaledDeltaTime: TimeSpan) @毎フレーム呼び出されるコールバック関数。
+        ---@param nillableFirstTimeCallback fun() @初回のアップデート時に、一度だけ呼び出されるコールバック関数。省略可能。
+        CreateUpdateRoutine = function (updateCallback, nillableFirstTimeCallback)
+            return coroutine.wrap(function ()
+                -- InstanceID を取得できるまで待つ。
+                local MaxWaitTime = TimeSpan.FromSeconds(30)
+                local unscaledStartTime = vci.me.UnscaledTime
+                local unscaledLastTime = unscaledStartTime
+                local lastTime = vci.me.Time
+                local needWaiting = true
+                while true do
+                    local id = cytanb.InstanceID()
+                    if id ~= '' then
+                        break
+                    end
+
+                    local unscaledNow = vci.me.UnscaledTime
+                    if unscaledNow - MaxWaitTime > unscaledStartTime then
+                        cytanb.LogError('TIMEOUT: Could not receive Instance ID.')
+                        return -1
+                    end
+
+                    unscaledLastTime = unscaledNow
+                    lastTime = vci.me.Time
+                    needWaiting = false
+                    coroutine.yield(100)
+                end
+
+                if needWaiting then
+                    -- VCI アイテムを出して 1 フレーム目の update 後に、onUngrab が発生するのを待つ。
+                    unscaledLastTime = vci.me.UnscaledTime
+                    lastTime = vci.me.Time
+                    coroutine.yield(100)
+                end
+
+                -- ロード完了。
+                cytanb.NillableIfHasValue(nillableFirstTimeCallback, function (cb)
+                    cb()
+                end)
+
+                while true do
+                    local now = vci.me.Time
+                    local delta = now - lastTime
+                    local unscaledNow = vci.me.UnscaledTime
+                    local unscaledDelta = unscaledNow - unscaledLastTime
+                    updateCallback(delta, unscaledDelta)
+                    lastTime = now
+                    unscaledLastTime = unscaledNow
+                    coroutine.yield(100)
+                end
+                -- return 0
+            end)
+        end,
+
         ---@class cytanb_slide_switch_parameters_t スライドスイッチを作成するためのパラメーターテーブル。ゲームオブジェクトのスケールは、すべて `1` であることを前提としている。
         ---@field colliderItem ExportTransform @スイッチを操作するための `VCI Sub Item` コンポーネントが設定されたコライダーオブジェクト。`baseItem` の原点位置を基準に移動する。通常は透明なオブジェクトとして設定する。
         ---@field baseItem ExportTransform @スイッチの基準位置となるオブジェクト。原点がスイッチの中央位置となる。
