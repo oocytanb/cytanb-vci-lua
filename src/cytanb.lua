@@ -1664,6 +1664,8 @@ local cytanb = (function ()
             end)
         end,
 
+        ---@class cytanb_slide_switch_t スライドスイッチ。
+
         ---@class cytanb_slide_switch_parameters_t スライドスイッチを作成するためのパラメーターテーブル。ゲームオブジェクトのスケールは、すべて `1` であることを前提としている。
         ---@field colliderItem ExportTransform @スイッチを操作するための `VCI Sub Item` コンポーネントが設定されたコライダーオブジェクト。`baseItem` の原点位置を基準に移動する。通常は透明なオブジェクトとして設定する。
         ---@field baseItem ExportTransform @スイッチの基準位置となるオブジェクト。原点がスイッチの中央位置となる。
@@ -1676,6 +1678,8 @@ local cytanb = (function ()
         ---@field snapToTick boolean @目盛りにスナップするかを指定する。省略した場合は `true`。
         ---@field lsp cytanb_local_shared_properties_t @`LocalSharedProperties` を使用する場合は指定する。省略可能。
         ---@field propertyName string @`LocalSharedProperties` を使用する場合は、プロパティ名を指定する。使用しない場合は省略可能。
+        ---@field valueTextName string @値をテキスト表示する場合は、`TextMesh Pro` のオブジェクト名を指定する。省略可能。
+        ---@field valueToText fun(source: cytanb_slide_switch_t, value: string): string @ 値をテキスト表示する際に、値を文字列へ変換するための関数を指定することができる。使用しない場合は省略可能。
 
         --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** スライドスイッチを作成する。トリガーでつまみをつかんで値の変更、および、グリップによる値の変更ができる。ユーザー間での値の同期処理は行わないため、必要であれば別途実装すること。
         ---@param parameters cytanb_slide_switch_parameters_t @スライドスイッチを作成するためのパラメーターテーブルを指定する。
@@ -1728,6 +1732,9 @@ local cytanb = (function ()
 
             local snapToTick = cytanb.NillableValueOrDefault(parameters.snapToTick, true)
 
+            local nillableValueTextName = parameters.valueTextName
+            local valueToText = cytanb.NillableValueOrDefault(parameters.valueToText, tostring)
+
             local gripWaitTime = TimeSpan.FromMilliseconds(1000)
             local gripTickPeriod = TimeSpan.FromMilliseconds(50)
 
@@ -1742,18 +1749,22 @@ local cytanb = (function ()
             local gripStartTime = TimeSpan.Zero
             local gripChangeTime = TimeSpan.Zero
 
-            local UpdateValue = function ()
-                local newValue = CalcValue(propertyGetter())
-                if newValue ~= value then
+            local UpdateValue = function (newValue, forceNotification)
+                if forceNotification or newValue ~= value then
+                    local oldValue = value
                     value = newValue
                     for listener, v in pairs(listenerMap) do
-                        listener(self, value)
+                        listener(self, value, oldValue)
                     end
                 end
 
                 -- 中央値を基準位置の原点として計算する
                 knobItem.SetLocalPosition((newValue - halfValue) / tickFrequency * tickVector)
                 -- cytanb.LogInfo('on update value [', colliderItem.GetName(), ']: value = ', value)
+
+                if nillableValueTextName then
+                    vci.assets.SetText(nillableValueTextName, valueToText(newValue, self))
+                end
             end
 
             local NextTickByUse = function ()
@@ -1798,7 +1809,7 @@ local cytanb = (function ()
                     lsp.AddListener(function (source, key, propValue, oldPropValue)
                         if key == propertyName then
                             -- cytanb.LogInfo('lsp: key = ', key, ', propValue = ', propValue)
-                            UpdateValue()
+                            UpdateValue(CalcValue(propValue), true)
                         end
                     end)
                 end,
@@ -1810,7 +1821,7 @@ local cytanb = (function ()
 
                     propertySetter = function (val)
                         propValue = val
-                        UpdateValue()
+                        UpdateValue(CalcValue(val), true)
                     end
                 end
             )
@@ -1852,6 +1863,15 @@ local cytanb = (function ()
                     return value
                 end,
 
+                --- スイッチのスケール値を取得する。
+                ---@param minScale number @最小のスケール値を指定する。
+                ---@param maxScale number @最大のスケール値を指定する。
+                ---@return number
+                GetScaleValue = function (minScale, maxScale)
+                    assert(minScale <= maxScale)
+                    return minScale + (maxScale - minScale) * (value - minValue) / (maxValue - minValue)
+                end,
+
                 --- スイッチの値を設定する。
                 ---@param val number @設定する数値を指定する。
                 SetValue = function (val)
@@ -1871,13 +1891,13 @@ local cytanb = (function ()
                 end,
 
                 --- スイッチの変更イベントを受け取るリスナーを追加する。
-                ---@param listener fun(source: cytanb_slide_switch_parameters_t, value: number, knobValue: number) @`source` は、イベントの発生元のスイッチが渡される。`value` は、スイッチの値が渡される。`knobValue` は、ノブの値が渡される。
+                ---@param listener fun(source: cytanb_slide_switch_t, value: number, oldValue: number) @`source` は、イベントの発生元のスイッチが渡される。`value` は、スイッチの値が渡される。`oldValue` は、以前のスイッチの値が渡される。
                 AddListener = function (listener)
                     listenerMap[listener] = listener
                 end,
 
                 --- 登録したリスナーを削除する。
-                ---@param listener fun(source: cytanb_slide_switch_parameters_t, value: number, knobValue: number)
+                ---@param listener fun(source: cytanb_slide_switch_t, value: number, oldValue: number)
                 RemoveListener = function (listener)
                     listenerMap[listener] = nil
                 end,
@@ -1936,7 +1956,7 @@ local cytanb = (function ()
                 end
             }
 
-            UpdateValue()
+            UpdateValue(CalcValue(propertyGetter()), false)
             return self
         end,
 
