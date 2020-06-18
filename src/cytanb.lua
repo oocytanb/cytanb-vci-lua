@@ -152,10 +152,12 @@ local cytanb = (function ()
     end
 
     local EscapeForSerialization = function (str)
-        -- エスケープタグの文字列を処理したあと、前方スラッシュをエスケープする。
+        -- エスケープタグの文字列を処理したあと、フォワードスラッシュをエスケープする。
+        -- [forward slash bug](https://github.com/moonsharp-devs/moonsharp/issues/180)
+        -- [unicode replace string bug](https://github.com/moonsharp-devs/moonsharp/issues/187)
         return string.gsub(
-            string.gsub(str, cytanb.EscapeSequenceTag, cytanb.EscapeSequenceTag .. cytanb.EscapeSequenceTag),
-            '/', cytanb.SolidusTag
+            string.gsub(str, cytanb.EscapeSequenceTag, {[cytanb.EscapeSequenceTag] = cytanb.EscapeSequenceTag .. cytanb.EscapeSequenceTag}),
+            '/', {['/'] = cytanb.SolidusTag}
         )
     end
 
