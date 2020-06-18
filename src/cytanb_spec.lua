@@ -998,6 +998,12 @@ describe('Test cytanb owner user', function ()
     end)
 
     it('TableToSerializable', function ()
+        -- test for [unicode replace string bug?](https://github.com/moonsharp-devs/moonsharp/issues/187)
+        -- but only affect on MoonSharp script engine
+        assert.are.same('|㌣|', string.gsub('|㌣|', '#', '@'))
+        assert.are.same('|㌣|', string.gsub('|㌣|', '#', {['#'] = '@'}))
+        assert.are.same({solidas_and_cytanb_tag_data = '|伯|㌣た⽟千す協㑁低あ|'}, cytanb.TableToSerializable({solidas_and_cytanb_tag_data = '|伯|㌣た⽟千す協㑁低あ|'}))
+
         assert.are.same({}, cytanb.TableToSerializable({}))
         assert.are.same({foo = 123.25, bar = 'abc', baz = true, qux = {['quux#__CYTANB_NEGATIVE_NUMBER'] = '-9876.5', corge = false}}, cytanb.TableToSerializable({foo = 123.25, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}))
         assert.are.same({['#__CYTANB_NEGATIVE_NUMBER'] = '-100', bar = 'abc'}, cytanb.TableToSerializable({[''] = -100, bar = 'abc'}))
