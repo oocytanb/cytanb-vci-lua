@@ -47,6 +47,7 @@
 ---@field NillableValueOrDefault fun (nillable: any, defaultValue: any): any @`nillable` の値を返す。`nillable` が `nil` の場合は、`defaultValue` で指定した値を返す。`defaultValue` が `nil` の場合は、エラーを発生させる。
 ---@field NillableIfHasValue fun (nillable: any, callback: fun(value: any)) @`nillable` の値が `nil` ではない場合は、`callback` を実行する。`value` に `nillable` の値が渡される。
 ---@field NillableIfHasValueOrElse fun (nillable: any, callback: fun(value: any), emptyCallback: fun()): any @`nillable` の値が `nil` ではない場合は `callback` を実行する。`value` に `nillable` の値が渡される。`nillable` の値が `nil` の場合は `emptyCallback` を実行する。コールバック関数の実行結果を返す。
+---@field StringReplace fun (str: string, target: string, replacement: string): string @`str` の文字列から `target` に一致する部分文字列を `replacement` で置換し、その結果の文字列を返す。
 ---@field SetConst fun (target: table, name: string, value: any): table @`target` に定数フィールドを設定し、target 自身を返す。`name` に定数名を指定する。`value` に定数値を指定する。`value` に関数を指定した場合は getter として呼び出される。
 ---@field SetConstEach fun (target: table, entries: table<string, any>): table @`entries` のそれぞれの要素について `SetConst` を行い、target 自身を返す。
 ---@field Extend fun (target: table, source: table, deep: boolean, omitMetaTable: boolean): table @`target` のテーブルフィールドを `source` のテーブルフィールドで拡張し、その結果を返す。`deep` に `true` を指定した場合は、ディープコピーを行う(省略するか `false` を指定した場合は、シャローコピーを行う)。`omitMetaTable` に 'true' を指定した場合は、メタテーブルをコピーしない。ただし、シャローコピーした場合は下位のテーブルの参照値がそのままコピーされる。(省略するか `false` を指定した場合は、コピーする)。

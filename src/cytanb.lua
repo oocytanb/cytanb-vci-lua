@@ -357,6 +357,34 @@ local cytanb = (function ()
             end
         end,
 
+        StringReplace = function (str, target, replacement)
+            local res
+            local len = string.len(str)
+            if target == '' then
+                res = replacement
+                for i = 1, len do
+                    res = res .. string.sub(str, i, i) .. replacement
+                end
+            else
+                res = ''
+                local i = 1
+                while true do
+                    local si, ei = string.find(str, target, i, true)
+                    if si then
+                        res = res .. string.sub(str, i, si - 1) .. replacement
+                        i = ei + 1
+                        if i > len then
+                            break
+                        end
+                    else
+                        res = i == 1 and str or res .. string.sub(str, i)
+                        break
+                    end
+                end
+            end
+            return res
+        end,
+
         SetConst = function (target, name, value)
             if type(target) ~= 'table' then
                 error('Cannot set const to non-table target', 2)
