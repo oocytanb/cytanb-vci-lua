@@ -77,6 +77,21 @@ describe('Test cytanb owner user', function ()
         assert.are.same(65536, table.foo)
     end)
 
+    it('String', function ()
+        assert.are.same('EM', cytanb.StringReplace('', '', 'EM'))
+        assert.are.same('EaEbEcEdE', cytanb.StringReplace('abcd', '', 'E'))
+        assert.are.same('', cytanb.StringReplace('', 'ab', 'E'))
+        assert.are.same('ba', cytanb.StringReplace('aaa', 'aa', 'b'))
+        assert.are.same('XYXYa', cytanb.StringReplace('aaaaa', 'aa', 'XY'))
+        assert.are.same('cdcd', cytanb.StringReplace('abcdabcdab', 'ab', ''))
+        assert.are.same('abcdabcdab', cytanb.StringReplace('abcdabcdab', 'AB', 'XY'))
+        assert.are.same('@|㌣|', cytanb.StringReplace('#|㌣|', '#', '@'))
+        assert.are.same('#__CYTANB_SOLIDUS#__CYTANB#__CYTANB|伯|㌣た⽟千す協㑁低あ|', cytanb.StringReplace(
+            cytanb.StringReplace('/#__CYTANB|伯|㌣た⽟千す協㑁低あ|', '#__CYTANB', '#__CYTANB#__CYTANB'),
+            '/', '#__CYTANB_SOLIDUS'
+        ))
+    end)
+
     it('Extend', function ()
         local source1 = {foo = 123, bar = 'abc', baz = true, qux = {quux = -9876.5, corge = false}}
         local source2 = {bar = 'opq', qux = {quux = 543, grault = 246}, zyzzy = 'rst'}
