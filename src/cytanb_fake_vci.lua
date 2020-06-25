@@ -1634,11 +1634,35 @@ return (function ()
                 end,
 
                 EmitVciMessage = function (vciName, messageName, value)
-                    vci.fake.EmitRawMessage({type = 'vci', name = vciName}, messageName, value)
+                    vci.fake.EmitRawMessage({type = 'vci', name = vciName, commentSource = ''}, messageName, value)
                 end,
 
-                EmitCommentMessage = function (userName, value)
-                    vci.fake.EmitRawMessage({type = 'comment', name = userName or ''}, 'comment', tostring(value))
+                EmitVciCommentMessage = function (userName, value, commentSource)
+                    vci.fake.EmitRawMessage({type = 'comment', name = userName or '', commentSource = commentSource or ''}, 'comment', tostring(value))
+                end,
+
+                EmitVciNicoliveCommentMessage = function (userName, value)
+                    vci.fake.EmitVciCommentMessage(userName, value, 'Nicolive')
+                end,
+
+                EmitVciTwitterCommentMessage = function (userName, value)
+                    vci.fake.EmitVciCommentMessage(userName, value, 'Twitter')
+                end,
+
+                EmitVciShowroomCommentMessage = function (userName, value)
+                    vci.fake.EmitVciCommentMessage(userName, value, 'Showroom')
+                end,
+
+                EmitVciNotificationMessage = function (userName, value)
+                    vci.fake.EmitRawMessage({type = 'notification', name = userName or '', commentSource = ''}, 'notification', tostring(value))
+                end,
+
+                EmitVciJoinedNotificationMessage = function (userName)
+                    vci.fake.EmitVciNotificationMessage(userName, 'joined')
+                end,
+
+                EmitVciLeftNotificationMessage = function (userName)
+                    vci.fake.EmitVciNotificationMessage(userName, 'left')
                 end,
 
                 OffMessage = function (messageName, callback)

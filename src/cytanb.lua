@@ -1135,16 +1135,32 @@ local cytanb = (function ()
 
         OnMessage = function (name, callback)
             local f = function (sender, messageName, message)
-                local decodedData = nil
-                if sender.type ~= 'comment' and type(message) == 'string' then
+                if type(message) == 'string' and message ~= '' and string.sub(message, 1, 1) == '{' then
+                    -- JSON デコードを試みる
                     local pcallStatus, serData = pcall(json.parse, message)
-                    if pcallStatus and type(serData) == 'table' then
-                        decodedData = cytanb.TableFromSerializable(serData)
+                    if pcallStatus and type(serData) == 'table' and serData[cytanb.InstanceIDParameterName] then
+                        local decodedData = cytanb.TableFromSerializable(serData)
+                        -- 送信者情報置換処理
+                        local messageSender
+                        local senderOverride = decodedData[cytanb.MessageSenderOverride]
+                        if senderOverride then
+                            messageSender = cytanb.Extend(
+                                cytanb.Extend({}, sender, true),
+                                senderOverride,
+                                true
+                            )
+                            -- 送信者情報置換処理を行った場合は、オリジナルの送信者情報を残しておく
+                            decodedData[cytanb.MessageOriginalSender] = sender
+                        else
+                            messageSender = sender
+                        end
+                        callback(messageSender, messageName, decodedData)
+                        return
                     end
                 end
 
-                local parameterMap = decodedData and decodedData or {[cytanb.MessageValueParameterName] = message}
-                callback(sender, messageName, parameterMap)
+                -- `cytanb.EmitMessage` を通して送信されたデータでなければ、パラメーターフィールド `__CYTANB_MESSAGE_VALUE` に値をセットする。
+                callback(sender, messageName, {[cytanb.MessageValueParameterName] = message})
             end
 
             vci.message.On(name, f)
@@ -1167,8 +1183,52 @@ local cytanb = (function ()
                     callback(sender, messageName, parameterMap)
                 end
             end
-
             return cytanb.OnMessage(name, f)
+        end,
+
+        ---**EXPERIMENTAL:実験的な機能。** スタジオ内に、疑似的にコメントメッセージ (メッセージ名: `comment`) を送信する。受信側は `cytanb.OnCommentMessage` を使用すること。
+        ---@param message string @送信するメッセージの内容を指定する。
+        ---@param senderOverride table @送信者情報を置換するためのテーブルを指定する。(例: `{name = 'NicoUser', commentSource = 'Nicolive'}`)
+        EmitCommentMessage = function (message, senderOverride)
+            local defaultSender = {type = 'comment', name = '', commentSource = ''}
+            local parameterMap = {
+                [cytanb.MessageValueParameterName] = tostring(message),
+                [cytanb.MessageSenderOverride] = type(senderOverride) == 'table' and cytanb.Extend(defaultSender, senderOverride, true) or defaultSender
+            }
+            cytanb.EmitMessage('comment', parameterMap)
+        end,
+
+
+        ---**EXPERIMENTAL:実験的な機能。** `OnMessage` を通して、コメントメッセージ (メッセージ名: `comment`)を受信するコールバック関数を登録する。
+        ---@param callback fun(sender: table, name: string, message)
+        OnCommentMessage = function (callback)
+            local f = function (sender, messageName, parameterMap)
+                local message = tostring(parameterMap[cytanb.MessageValueParameterName] or '')
+                callback(sender, messageName, message)
+            end
+            return cytanb.OnMessage('comment', f)
+        end,
+
+        ---**EXPERIMENTAL:実験的な機能。** スタジオ内に、疑似的に通知メッセージ (メッセージ名: `notification`) を送信する。受信側は `cytanb.OnNotificationMessage` を使用すること。
+        ---@param message string @送信するメッセージの内容を指定する。('joined' | 'left')
+        ---@param senderOverride table @送信者情報を置換するためのテーブルを指定する。(例: `{name = 'FooUser'}`)
+        EmitNotificationMessage = function (message, senderOverride)
+            local defaultSender = {type = 'notification', name = '', commentSource = ''}
+            local parameterMap = {
+                [cytanb.MessageValueParameterName] = tostring(message),
+                [cytanb.MessageSenderOverride] = type(senderOverride) == 'table' and cytanb.Extend(defaultSender, senderOverride, true) or defaultSender
+            }
+            cytanb.EmitMessage('notification', parameterMap)
+        end,
+
+        ---**EXPERIMENTAL:実験的な機能。** `OnMessage` を通して、通知メッセージ (メッセージ名: `notification`)を受信するコールバック関数を登録する。
+        ---@param callback fun(sender: table, name: string, message)
+        OnNotificationMessage = function (callback)
+            local f = function (sender, messageName, parameterMap)
+                local message = tostring(parameterMap[cytanb.MessageValueParameterName] or '')
+                callback(sender, messageName, message)
+            end
+            return cytanb.OnMessage('notification', f)
         end,
 
         GetEffekseerEmitterMap = function (name)
@@ -2197,6 +2257,8 @@ local cytanb = (function ()
         ArrayNumberTag = '#__CYTANB_ARRAY_NUMBER',
         InstanceIDParameterName = '__CYTANB_INSTANCE_ID',
         MessageValueParameterName = '__CYTANB_MESSAGE_VALUE',
+        MessageSenderOverride = '__CYTANB_MESSAGE_SENDER_OVERRIDE',
+        MessageOriginalSender = '__CYTANB_MESSAGE_ORIGINAL_SENDER',
         TypeParameterName = '__CYTANB_TYPE',
         ColorTypeName = 'Color',
         Vector2TypeName = 'Vector2',
