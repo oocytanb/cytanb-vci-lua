@@ -1150,7 +1150,7 @@ local cytanb = (function ()
                                 true
                             )
                             -- 送信者情報置換処理を行った場合は、オリジナルの送信者情報を残しておく
-                            decodedData[cytanb.MessageOriginalSender] = sender
+                            messageSender[cytanb.MessageOriginalSender] = sender
                         else
                             messageSender = sender
                         end
