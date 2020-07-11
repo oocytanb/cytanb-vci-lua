@@ -311,6 +311,57 @@ local cytanb = (function ()
         return data
     end
 
+    local typeConversionMap = {
+        ['nil'] = function (val) return nil end,
+        ['number'] = function (val) return tonumber(val) end,
+        ['string'] = function (val) return tostring(val) end,
+        ['boolean'] = function (val) if val then return true else return false end end
+    }
+
+    local ToType = function (val, targetType)
+        local valType = type(val)
+        if valType == targetType then
+             return val
+        else
+            local f = typeConversionMap[targetType]
+            if f then
+                return f(val)
+            else
+                return nil
+            end
+        end
+    end
+
+    -- 送信者情報置換処理
+    local TreatMessegeSender = function (sender, senderOverride)
+        if senderOverride and type(senderOverride) == 'table' then
+            local newSender = {}
+            for key, val in pairs(sender) do
+                local overrideVal = senderOverride[key]
+                local newVal
+                if overrideVal == nil then
+                    newVal = val
+                else
+                    local tVal = ToType(overrideVal, type(val))
+                    if tVal == nil then
+                        newVal = val
+                    else
+                        -- 変換できた場合だけオーバーライドする
+                        newVal = tVal
+                    end
+                end
+                newSender[key] = newVal
+            end
+
+            -- 送信者情報置換処理を行った場合は、オリジナルの送信者情報を残しておく
+            newSender[cytanb.MessageOriginalSender] = sender
+            return newSender
+        else
+            -- senderOverride が指定されていない場合は、そのまま返す
+            return sender
+        end
+    end
+
     cytanb = {
         InstanceID = function ()
             if instanceID == '' then
@@ -1140,21 +1191,7 @@ local cytanb = (function ()
                     local pcallStatus, serData = pcall(json.parse, message)
                     if pcallStatus and type(serData) == 'table' and serData[cytanb.InstanceIDParameterName] then
                         local decodedData = cytanb.TableFromSerializable(serData)
-                        -- 送信者情報置換処理
-                        local messageSender
-                        local senderOverride = decodedData[cytanb.MessageSenderOverride]
-                        if senderOverride then
-                            messageSender = cytanb.Extend(
-                                cytanb.Extend({}, sender, true),
-                                senderOverride,
-                                true
-                            )
-                            -- 送信者情報置換処理を行った場合は、オリジナルの送信者情報を残しておく
-                            messageSender[cytanb.MessageOriginalSender] = sender
-                        else
-                            messageSender = sender
-                        end
-                        callback(messageSender, messageName, decodedData)
+                        callback(TreatMessegeSender(sender, decodedData[cytanb.MessageSenderOverride]), messageName, decodedData)
                         return
                     end
                 end
