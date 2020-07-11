@@ -1283,7 +1283,7 @@ describe('Test cytanb owner user', function ()
         cytanb.EmitMessage('comment', {
             [cytanb.MessageSenderOverride] = 'invalid-sender',
             [cytanb.MessageValueParameterName] = 'test-invalid-sender-override'
-        });
+        })
         assert.stub(cbMap.cbMapComment).was.called(8)
         assert.stub(cbMap.cbMapComment).was.called_with({
             type = 'vci',
@@ -1305,7 +1305,7 @@ describe('Test cytanb owner user', function ()
         cytanb.EmitMessage('comment', {
             [cytanb.MessageSenderOverride] = {type = 123, name = 'loose-sender2', commentSource = true},
             [cytanb.MessageValueParameterName] = 'loose-sender-message2'
-        });
+        })
         assert.stub(cbMap.cbMapComment).was.called(9)
         assert.stub(cbMap.cbMapComment).was.called_with({
             type = '123',
@@ -1329,7 +1329,7 @@ describe('Test cytanb owner user', function ()
         cytanb.EmitMessage('comment', {
             [cytanb.MessageSenderOverride] = {type = false, unsupportedParameter = 'unsupportedValue'},
             [cytanb.MessageValueParameterName] = 'loose-sender-message3'
-        });
+        })
         assert.stub(cbMap.cbMapComment).was.called(10)
         assert.stub(cbMap.cbMapComment).was.called_with({
             type = 'false',
@@ -1349,6 +1349,51 @@ describe('Test cytanb owner user', function ()
             commentSource = 'true',
             [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
         }, 'comment', 'loose-sender-message2')
+
+        cytanb.EmitCommentMessage('{"content":"nested"}', {name = 'NestedTestUser', commentSource = 'BarTV'})
+        assert.stub(cbMap.cbMapComment).was.called(11)
+        assert.stub(cbMap.cbMapComment).was.called_with({
+            type = 'comment',
+            name = 'NestedTestUser',
+            commentSource = 'BarTV',
+            [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
+        }, 'comment', {
+            [cytanb.InstanceIDParameterName] = cytanb.InstanceID(),
+            [cytanb.MessageSenderOverride] = {type = 'comment', name = 'NestedTestUser', commentSource = 'BarTV'},
+            [cytanb.MessageValueParameterName] = '{"content":"nested"}'}
+        )
+
+        assert.stub(cbMap.cbComment).was.called(11)
+        assert.stub(cbMap.cbComment).was.called_with({
+            type = 'comment',
+            name = 'NestedTestUser',
+            commentSource = 'BarTV',
+            [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
+        }, 'comment', '{"content":"nested"}')
+
+        cytanb.EmitMessage('comment', {
+            [cytanb.MessageSenderOverride] = {name = 'TestInvalidJsonUser', commentSource = 'BazTV'},
+            [cytanb.MessageValueParameterName] = '{invalid json 404}'
+        })
+        assert.stub(cbMap.cbMapComment).was.called(12)
+        assert.stub(cbMap.cbMapComment).was.called_with({
+            type = 'vci',
+            name = 'TestInvalidJsonUser',
+            commentSource = 'BazTV',
+            [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
+        }, 'comment', {
+            [cytanb.InstanceIDParameterName] = cytanb.InstanceID(),
+            [cytanb.MessageSenderOverride] = {name = 'TestInvalidJsonUser', commentSource = 'BazTV'},
+            [cytanb.MessageValueParameterName] = '{invalid json 404}'}
+        )
+
+        assert.stub(cbMap.cbComment).was.called(12)
+        assert.stub(cbMap.cbComment).was.called_with({
+            type = 'vci',
+            name = 'TestInvalidJsonUser',
+            commentSource = 'BazTV',
+            [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
+        }, 'comment', '{invalid json 404}')
 
         assert.stub(cbMap.cbMapNotification).was.called(0)
         assert.stub(cbMap.cbNotification).was.called(0)
@@ -1431,8 +1476,8 @@ describe('Test cytanb owner user', function ()
         assert.stub(cbMap.cb1).was.called(2)
         assert.stub(cbMap.cb2).was.called(2)
         assert.stub(cbMap.cb3).was.called(4)
-        assert.stub(cbMap.cbMapComment).was.called(10)
-        assert.stub(cbMap.cbComment).was.called(10)
+        assert.stub(cbMap.cbMapComment).was.called(12)
+        assert.stub(cbMap.cbComment).was.called(12)
 
         vci.fake.ClearMessageCallbacks()
 
@@ -1440,7 +1485,37 @@ describe('Test cytanb owner user', function ()
             cbMap[key]:revert()
         end
 
-        --
+        --------
+        local looseMapCommentSender = nil
+        local looseMapCommentParameterMap = nil
+        local looseCommentSender = nil
+        local looseCommentMessage = nil
+
+        cytanb.OnMessage('comment', function (sender, name, parameterMap)
+            looseMapCommentSender = sender
+            looseMapCommentParameterMap = parameterMap
+        end)
+
+        cytanb.OnCommentMessage(function (sender, name, message)
+            looseCommentSender = sender
+            looseCommentMessage = message
+        end)
+
+        cytanb.EmitMessage('comment', {
+            [cytanb.MessageValueParameterName] = {strProp = 'foobar', numProp = -302},
+            [cytanb.MessageSenderOverride] = {name = 'TableMessenger', commentSource = 'TableLive'}
+        })
+        assert.are.same(looseMapCommentSender, looseCommentSender)
+        assert.are.same({
+            type = 'vci',
+            name = 'TableMessenger',
+            commentSource = 'TableLive',
+            [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
+        }, looseCommentSender)
+        assert.are.same({name = 'TableMessenger', commentSource = 'TableLive'}, looseMapCommentParameterMap[cytanb.MessageSenderOverride])
+        assert.are.same({strProp = 'foobar', numProp = -302}, looseMapCommentParameterMap[cytanb.MessageValueParameterName])
+        assert.are.same('table', string.sub(looseCommentMessage, 1, #'table'))
+
         local looseNotificationSender = nil
         local looseNotificationParameterMap = nil
         cytanb.OnMessage('notification', function (sender, name, parameterMap)
@@ -1462,6 +1537,7 @@ describe('Test cytanb owner user', function ()
         assert.are.same({foo = 'HOGE'}, looseNotificationParameterMap[cytanb.MessageSenderOverride].commentSource)
 
         vci.fake.ClearMessageCallbacks()
+        --------
 
         vci.fake.SetVciName(lastVciName)
     end)

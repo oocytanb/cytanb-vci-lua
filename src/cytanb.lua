@@ -1223,9 +1223,6 @@ local cytanb = (function ()
             return cytanb.OnMessage(name, f)
         end,
 
-        ---**EXPERIMENTAL:実験的な機能。** スタジオ内に、疑似的にコメントメッセージ (メッセージ名: `comment`) を送信する。受信側は `cytanb.OnCommentMessage` を使用すること。
-        ---@param message string @送信するメッセージの内容を指定する。
-        ---@param senderOverride table @送信者情報を置換するためのテーブルを指定する。(例: `{name = 'NicoUser', commentSource = 'Nicolive'}`)
         EmitCommentMessage = function (message, senderOverride)
             local defaultSender = {type = 'comment', name = '', commentSource = ''}
             local parameterMap = {
@@ -1235,9 +1232,6 @@ local cytanb = (function ()
             cytanb.EmitMessage('comment', parameterMap)
         end,
 
-
-        ---**EXPERIMENTAL:実験的な機能。** `OnMessage` を通して、コメントメッセージ (メッセージ名: `comment`)を受信するコールバック関数を登録する。
-        ---@param callback fun(sender: table, name: string, message)
         OnCommentMessage = function (callback)
             local f = function (sender, messageName, parameterMap)
                 local message = tostring(parameterMap[cytanb.MessageValueParameterName] or '')
@@ -1246,9 +1240,6 @@ local cytanb = (function ()
             return cytanb.OnMessage('comment', f)
         end,
 
-        ---**EXPERIMENTAL:実験的な機能。** スタジオ内に、疑似的に通知メッセージ (メッセージ名: `notification`) を送信する。受信側は `cytanb.OnNotificationMessage` を使用すること。
-        ---@param message string @送信するメッセージの内容を指定する。('joined' | 'left')
-        ---@param senderOverride table @送信者情報を置換するためのテーブルを指定する。(例: `{name = 'FooUser'}`)
         EmitNotificationMessage = function (message, senderOverride)
             local defaultSender = {type = 'notification', name = '', commentSource = ''}
             local parameterMap = {
@@ -1258,8 +1249,6 @@ local cytanb = (function ()
             cytanb.EmitMessage('notification', parameterMap)
         end,
 
-        ---**EXPERIMENTAL:実験的な機能。** `OnMessage` を通して、通知メッセージ (メッセージ名: `notification`)を受信するコールバック関数を登録する。
-        ---@param callback fun(sender: table, name: string, message)
         OnNotificationMessage = function (callback)
             local f = function (sender, messageName, parameterMap)
                 local message = tostring(parameterMap[cytanb.MessageValueParameterName] or '')
