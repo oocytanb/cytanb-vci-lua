@@ -77,7 +77,489 @@ describe('Test cytanb owner user', function ()
         assert.are.same(65536, table.foo)
     end)
 
-    it('String', function ()
+    it('MakeSearchPattern', function ()
+        assert.has_error(function() cytanb.MakeSearchPattern({'ab', ''}, -1) end)
+        assert.has_error(function() cytanb.MakeSearchPattern({'ab', ''}, -1, 0) end)
+        assert.has_error(function() cytanb.MakeSearchPattern({'ab', ''}, 4, 2) end)
+
+        assert.are.same({
+            hasEmptySearch = false,
+            searchMap = {},
+            lengthList = {},
+            repeatMin = 1,
+            repeatMax = 1
+        }, cytanb.MakeSearchPattern({})
+        )
+
+        assert.are.same({
+            hasEmptySearch = true,
+            searchMap = {['ab'] = 2},
+            lengthList = {2},
+            repeatMin = 3,
+            repeatMax = 3
+        }, cytanb.MakeSearchPattern({'ab', ''}, 3)
+        )
+
+        assert.are.same({
+            hasEmptySearch = false,
+            searchMap = {['ab'] = 2, ['efgh'] = 4},
+            lengthList = {4, 2},
+            repeatMin = 3,
+            repeatMax = 7
+        }, cytanb.MakeSearchPattern({'ab', 'efgh'}, 3, 7)
+        )
+
+        assert.are.same({
+            hasEmptySearch = false,
+            searchMap = {['ab'] = 2, ['efgh'] = 4},
+            lengthList = {4, 2},
+            repeatMin = 0,
+            repeatMax = 7
+        }, cytanb.MakeSearchPattern({'ab', 'efgh'}, 0, 7)
+        )
+
+        assert.are.same({
+            hasEmptySearch = true,
+            searchMap = {['ab'] = 2, ['efgh'] = 4, ['jklm'] = 4},
+            lengthList = {4, 2},
+            repeatMin = 0,
+            repeatMax = 0
+        }, cytanb.MakeSearchPattern({'jklm', 'ab', 'efgh'}, 0, 0)
+        )
+
+        assert.are.same({
+            hasEmptySearch = false,
+            searchMap = {['ab'] = 2, ['efgh'] = 4},
+            lengthList = {4, 2},
+            repeatMin = 0,
+            repeatMax = -1
+        }, cytanb.MakeSearchPattern({'ab', 'efgh'}, 0, -1)
+        )
+
+        assert.are.same({
+            hasEmptySearch = false,
+            searchMap = {['\t'] = 1, ['\n'] = 1, ['\v'] = 1, ['\f'] = 1, ['\r'] = 1, [' '] = 1},
+            lengthList = {1},
+            repeatMin = 1,
+            repeatMax = -1
+        }, cytanb.MakeSearchPattern({'\t', '\n', '\v', '\f', '\r', ' '}, 1, -1)
+        )
+    end)
+
+    it('StringStartsWith', function ()
+        assert.are.same({false, -1}, {cytanb.StringStartsWith(nil, '')})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('', nil)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith(nil, nil)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith(nil, '', -10)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith(nil, '', 0)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('', nil, 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith(nil, nil, 2)})
+
+        assert.are.same({true, 0}, {cytanb.StringStartsWith('', '')})
+        assert.are.same({true, 0}, {cytanb.StringStartsWith('', '', -1)})
+        assert.are.same({true, 0}, {cytanb.StringStartsWith('', '', 0)})
+        assert.are.same({true, 0}, {cytanb.StringStartsWith('', '', 1)})
+        assert.are.same({true, 0}, {cytanb.StringStartsWith('abcd', '')})
+        assert.are.same({true, 0}, {cytanb.StringStartsWith('abcd', '', -1)})
+        assert.are.same({true, 0}, {cytanb.StringStartsWith('abcd', '', 0)})
+        assert.are.same({true, 0}, {cytanb.StringStartsWith('abcd', '', 1)})
+        assert.are.same({true, 0}, {cytanb.StringStartsWith('abcd', '', 2)})
+        assert.are.same({true, 0}, {cytanb.StringStartsWith('abcd', '', 99)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'abcdef')})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', 'ab')})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', 'ab', 0)})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', 'ab', 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'ab', 2)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'ab', 3)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'ab', 4)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'ab', 5)})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', 'ab', -1)})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', 'ab', -2)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'bc')})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'bc', 0)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'bc', 1)})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', 'bc', 2)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'bc', 3)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'bc', 4)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'bc', 5)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'bc', -1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'bc', -2)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', 'bc', -3)})
+
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('幡a', 'a')})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('幡a', 'a', 1)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('幡a', 'a', string.len('幡') + 1)})
+        assert.are.same({true, string.len('幡')}, {cytanb.StringStartsWith('幡a', '幡')})
+        assert.are.same({true, string.len('幡')}, {cytanb.StringStartsWith('幡a', '幡', 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('幡a', '幡', string.len('幡') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('a幡', '幡')})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('a幡', '幡', 1)})
+        assert.are.same({true, string.len('幡')}, {cytanb.StringStartsWith('a幡', '幡', string.len('a') + 1)})
+    end)
+
+    it('StringStartsWith - Pattern', function ()
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', cytanb.MakeSearchPattern({}))})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', cytanb.MakeSearchPattern({}), 3)})
+
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', cytanb.MakeSearchPattern({'bc', 'cd'}))})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', cytanb.MakeSearchPattern({'bc', 'ab', 'cd'}))})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', cytanb.MakeSearchPattern({'b', 'ab', 'cd'}))})
+
+        local sp10 = cytanb.MakeSearchPattern({'de', 'cd', 'efg'})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp10, -2)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp10, -1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp10, 0)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp10, 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp10, 2)})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', sp10, 3)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp10, 4)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp10, 5)})
+
+        local sp11 = cytanb.MakeSearchPattern({'b', 'cd', 'efg'})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp11, -3)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp11, -2)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp11, -1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp11, 0)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp11, 1)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('abcd', sp11, 2)})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', sp11, 3)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp11, 4)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp11, 5)})
+
+        local sp12 = cytanb.MakeSearchPattern({'ab', 'cd', 'efg'})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', sp12, -2)})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', sp12, -1)})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', sp12, 0)})
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('abcd', sp12, 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('abcd', sp12, 2)})
+
+        local sp13 = cytanb.MakeSearchPattern({ '\t', ' '})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t @\t ', sp13)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t @\t ', sp13, 0)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t @\t ', sp13, 1)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t @\t ', sp13, 2)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t @\t ', sp13, 3)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t @\t ', sp13, 4)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t @\t ', sp13, 5)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t @\t ', sp13, 6)})
+
+        local sp14 = cytanb.MakeSearchPattern({'伉', '㤠'})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp14)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp14, 0)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp14, 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp14, 2)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp14, string.len('\t ') + 1)})
+        assert.are.same({true, string.len('伉')}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp14, string.len('\t #') + 1)})
+        assert.are.same({true, string.len('㤠')}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp14, string.len('\t #伉') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp14, string.len('\t #伉㤠') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp14, string.len('\t #伉㤠#') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp14, string.len('\t #伉㤠#\t') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp14, string.len('\t #伉㤠#\t' ) + 1)})
+        assert.are.same({true, string.len('伉')}, {cytanb.StringStartsWith('伉㤠#\t ', sp14)})
+        assert.are.same({true, string.len('伉')}, {cytanb.StringStartsWith('伉㤠#\t ', sp14, 0)})
+        assert.are.same({true, string.len('伉')}, {cytanb.StringStartsWith('伉㤠#\t ', sp14, 1)})
+        assert.are.same({true, string.len('㤠')}, {cytanb.StringStartsWith('伉㤠#\t ', sp14, string.len('伉') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('伉㤠#\t ', sp14, string.len('伉㤠') + 1)})
+
+        local sp15 = cytanb.MakeSearchPattern({'\t', ' '})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp15)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp15, 0)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp15, 1)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp15, 2)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp15, string.len('\t ') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp15, string.len('\t #') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp15, string.len('\t #伉') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp15, string.len('\t #伉㤠') + 1)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp15, string.len('\t #伉㤠#') + 1)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp15, string.len('\t #伉㤠#\t') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('\t #伉㤠#\t ', sp15, string.len('\t #伉㤠#\t ') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('伉㤠#\t ', sp15)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('伉㤠#\t ', sp15, 0)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('伉㤠#\t ', sp15, 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('伉㤠#\t ', sp15, string.len('伉') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('伉㤠#\t ', sp15, string.len('伉㤠') + 1)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('伉㤠#\t ', sp15, string.len('伉㤠#') + 1)})
+        assert.are.same({true, 1}, {cytanb.StringStartsWith('伉㤠#\t ', sp15, string.len('伉㤠#\t') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('伉㤠#\t ', sp15, string.len('伉㤠#\t ') + 1)})
+
+        local sp50 = cytanb.MakeSearchPattern({'bc'}, 2)
+        assert.are.same({true, 4}, {cytanb.StringStartsWith('bcbcde', sp50)})
+
+        local sp51 = cytanb.MakeSearchPattern({'a', 'bc'}, 2)
+        assert.are.same({true, 2}, {cytanb.StringStartsWith('aaaa', sp51)})
+        assert.are.same({true, 3}, {cytanb.StringStartsWith('abcdefgh', sp51)})
+
+        local sp52 = cytanb.MakeSearchPattern({'a', 'bc', 'def'}, 1, 3)
+        assert.are.same({true, 3}, {cytanb.StringStartsWith('aaaa', sp52)})
+        assert.are.same({true, 6}, {cytanb.StringStartsWith('abcdefgh', sp52)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('789abcdefgh', sp52, 3)})
+        assert.are.same({true, 6}, {cytanb.StringStartsWith('789abcdefgh', sp52, 4)})
+        assert.are.same({true, 5}, {cytanb.StringStartsWith('789abcdefg', sp52, 5)})
+        assert.are.same({false, -1}, {cytanb.StringStartsWith('789abcdefg', sp52, 6)})
+        assert.are.same({true, 3}, {cytanb.StringStartsWith('bcaXYZ', sp52)})
+    end)
+
+    it('StringEndsWith', function ()
+        assert.are.same({false, -1}, {cytanb.StringEndsWith(nil, '')})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('', nil)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith(nil, nil)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith(nil, '', -1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith(nil, '', 0)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('', nil, 1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith(nil, nil, 2)})
+
+        assert.are.same({true, 0}, {cytanb.StringEndsWith('', '')})
+        assert.are.same({true, 0}, {cytanb.StringEndsWith('', '', -1)})
+        assert.are.same({true, 0}, {cytanb.StringEndsWith('', '', 0)})
+        assert.are.same({true, 0}, {cytanb.StringEndsWith('', '', 1)})
+        assert.are.same({true, 0}, {cytanb.StringEndsWith('abcd', '')})
+        assert.are.same({true, 0}, {cytanb.StringEndsWith('abcd', '', -1)})
+        assert.are.same({true, 0}, {cytanb.StringEndsWith('abcd', '', 0)})
+        assert.are.same({true, 0}, {cytanb.StringEndsWith('abcd', '', 1)})
+        assert.are.same({true, 0}, {cytanb.StringEndsWith('abcd', '', 2)})
+        assert.are.same({true, 0}, {cytanb.StringEndsWith('abcd', '', 99)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'a', -2)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'a', -1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'a', 0)})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('abcd', 'a', 1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'zxabcd')})
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('abcd', 'cd')})
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('abcd', 'cd', 5)})
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('abcd', 'cd', 4)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'cd', 3)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'cd', 2)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'cd', 1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'cd', 0)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'cd', -1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'cd', -2)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'bc')})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'bc', 5)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'bc', 4)})
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('abcd', 'bc', 3)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'bc', 2)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'bc', 1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'bc', 0)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'bc', -1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'bc', -2)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'bc', -3)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'bc', -4)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', 'bc', -5)})
+
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('a幡', 'a')})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('a幡', 'a', string.len('a幡'))})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('a幡', 'a', string.len('a'))})
+        assert.are.same({true, string.len('幡')}, {cytanb.StringEndsWith('a幡', '幡')})
+        assert.are.same({true, string.len('幡')}, {cytanb.StringEndsWith('a幡', '幡', string.len('a幡'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('a幡', '幡', string.len('a'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('幡a', '幡')})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('幡a', '幡', string.len('幡a'))})
+        assert.are.same({true, string.len('幡')}, {cytanb.StringEndsWith('幡a', '幡', string.len('幡'))})
+    end)
+
+    it('StringEndsWith - Pattern', function ()
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', cytanb.MakeSearchPattern({}))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', cytanb.MakeSearchPattern({}), 3)})
+
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', cytanb.MakeSearchPattern({'bc', 'ab'}))})
+
+        local sp10 = cytanb.MakeSearchPattern({'bc', 'cd', 'ab'})
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('abcd', sp10)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp10, -1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp10, 0)})
+
+        local sp11 = cytanb.MakeSearchPattern({'c', 'cd', 'ab'})
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('abcd', sp11)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp11, 0)})
+
+        local sp12 = cytanb.MakeSearchPattern({'9a', 'ab', '789'})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp12, -4)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp12, -3)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp12, -2)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp12, -1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp12, 0)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp12, 1)})
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('abcd', sp12, 2)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp12, 3)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp12, 4)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp12, 5)})
+
+        local sp13 = cytanb.MakeSearchPattern({'c', 'ab', '789'})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp13, -4)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp13, -3)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp13, -2)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp13, -1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp13, 0)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp13, 1)})
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('abcd', sp13, 2)})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('abcd', sp13, 3)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp13, 4)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp13, 5)})
+
+        local sp14 = cytanb.MakeSearchPattern({'cd', 'ab', '789'})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp14, -2)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp14, -1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp14, 0)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp14, 1)})
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('abcd', sp14, 2)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp14, 3)})
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('abcd', sp14, 4)})
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('abcd', sp14, 5)})
+
+        local sp15 = cytanb.MakeSearchPattern({'a', '789'})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp15, -2)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp15, -1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp15, 0)})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('abcd', sp15, 1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('abcd', sp15, 2)})
+
+        local sp16 = cytanb.MakeSearchPattern({ '\t', ' '})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t @\t ', sp16)})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t @\t ', sp16, 6)})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t @\t ', sp16, 5)})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t @\t ', sp16, 4)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t @\t ', sp16, 3)})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t @\t ', sp16, 2)})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t @\t ', sp16, 1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t @\t ', sp16, 0)})
+
+        local sp17 = cytanb.MakeSearchPattern({'伉', '㤠'})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp17)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp17, string.len('\t #伉㤠#\t ') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp17, string.len('\t #伉㤠#\t '))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp17, string.len('\t #伉㤠#\t'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp17, string.len('\t #伉㤠#'))})
+        assert.are.same({true, string.len('㤠')}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp17, string.len('\t #伉㤠'))})
+        assert.are.same({true, string.len('伉')}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp17, string.len('\t #伉'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp17, string.len('\t #'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp17, string.len('\t '))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp17, string.len('\t'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp17, 0)})
+        assert.are.same({true, string.len('㤠')}, {cytanb.StringEndsWith('\t #伉㤠', sp17)})
+        assert.are.same({true, string.len('㤠')}, {cytanb.StringEndsWith('\t #伉㤠', sp17, string.len('\t #伉㤠') + 1)})
+        assert.are.same({true, string.len('㤠')}, {cytanb.StringEndsWith('\t #伉㤠', sp17, string.len('\t #伉㤠'))})
+        assert.are.same({true, string.len('伉')}, {cytanb.StringEndsWith('\t #伉㤠', sp17, string.len('\t #伉'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠', sp17, string.len('\t #'))})
+
+        local sp18 = cytanb.MakeSearchPattern({'\t', ' '})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp18)})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp18, string.len('\t #伉㤠#\t ') + 1)})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp18, string.len('\t #伉㤠#\t '))})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp18, string.len('\t #伉㤠#\t'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp18, string.len('\t #伉㤠#'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp18, string.len('\t #伉㤠'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp18, string.len('\t #伉'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp18, string.len('\t #'))})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp18, string.len('\t '))})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp18, string.len('\t'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠#\t ', sp18, 0)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠', sp18)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠', sp18, string.len('\t #伉㤠') + 1)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠', sp18, string.len('\t #伉㤠'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠', sp18, string.len('\t #伉'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠', sp18, string.len('\t #'))})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t #伉㤠', sp18, string.len('\t '))})
+        assert.are.same({true, 1}, {cytanb.StringEndsWith('\t #伉㤠', sp18, string.len('\t'))})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('\t #伉㤠', sp18, 0)})
+
+        local sp50 = cytanb.MakeSearchPattern({'bc'}, 2)
+        assert.are.same({true, 4}, {cytanb.StringEndsWith('78bcbc', sp50)})
+
+        local sp51 = cytanb.MakeSearchPattern({'a', 'bc'}, 2)
+        assert.are.same({true, 2}, {cytanb.StringEndsWith('aaaa', sp51)})
+        assert.are.same({true, 3}, {cytanb.StringEndsWith('789abc', sp51)})
+
+        local sp52 = cytanb.MakeSearchPattern({'a', 'bc', 'def'}, 1, 3)
+        assert.are.same({true, 3}, {cytanb.StringEndsWith('aaaa', sp52)})
+        assert.are.same({true, 6}, {cytanb.StringEndsWith('789abcdef', sp52)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('789abcdefg', sp52, 10)})
+        assert.are.same({true, 6}, {cytanb.StringEndsWith('789abcdefg', sp52, 9)})
+        assert.are.same({false, -1}, {cytanb.StringEndsWith('789abcdefg', sp52, 8)})
+        assert.are.same({true, 3}, {cytanb.StringEndsWith('789bca', sp52)})
+    end)
+
+    it('StringTrimStart', function ()
+        assert.are.same(nil, cytanb.StringTrimStart(nil))
+        assert.are.same('', cytanb.StringTrimStart(''))
+
+        assert.are.same('ab \t cd', cytanb.StringTrimStart('ab \t cd'))
+        assert.are.same('ab ', cytanb.StringTrimStart(' ab '))
+        assert.are.same('a  b  ', cytanb.StringTrimStart('  a  b  '))
+        assert.are.same('ab \t cd \f\r', cytanb.StringTrimStart('\t\n\v ab \t cd \f\r'))
+        assert.are.same('伉弊尋\t\n\v ab \t cd \f\r希怍㤠', cytanb.StringTrimStart('伉弊尋\t\n\v ab \t cd \f\r希怍㤠'))
+
+        assert.are.same('cdabefg', cytanb.StringTrimStart('abcdabefg', cytanb.MakeSearchPattern({'ab'})))
+        assert.are.same('abcdabefg', cytanb.StringTrimStart('abcdabefg', cytanb.MakeSearchPattern({'bc'})))
+        assert.are.same('abcdabefg', cytanb.StringTrimStart('abcdabefg', cytanb.MakeSearchPattern({''})))
+
+        assert.are.same('cdabefg', cytanb.StringTrimStart('abcdabefg', cytanb.MakeSearchPattern({'ab', 'cd'})))
+        assert.are.same('efg', cytanb.StringTrimStart('abcdabefg', cytanb.MakeSearchPattern({'ab', 'cd'}, 1, -1)))
+        assert.are.same('abcdabefg', cytanb.StringTrimStart('abcdabefg', cytanb.MakeSearchPattern({'bc', 'cd'})))
+        assert.are.same('abcdabefg', cytanb.StringTrimStart('abcdabefg', cytanb.MakeSearchPattern({'ab', 'cd', ''})))
+    end)
+
+    it('StringTrimEnd', function ()
+        assert.are.same(nil, cytanb.StringTrimEnd(nil))
+        assert.are.same('', cytanb.StringTrimEnd(''))
+
+        assert.are.same('ab \t cd', cytanb.StringTrimEnd('ab \t cd'))
+        assert.are.same(' ab', cytanb.StringTrimEnd(' ab '))
+        assert.are.same('  a  b', cytanb.StringTrimEnd('  a  b  '))
+        assert.are.same('\t\n\v ab \t cd', cytanb.StringTrimEnd('\t\n\v ab \t cd \f\r'))
+        assert.are.same('伉弊尋\t\n\v ab \t cd \f\r希怍㤠', cytanb.StringTrimEnd('伉弊尋\t\n\v ab \t cd \f\r希怍㤠'))
+
+        assert.are.same('789abcd', cytanb.StringTrimEnd('789abcdab', cytanb.MakeSearchPattern({'ab'})))
+        assert.are.same('abcdabefg', cytanb.StringTrimEnd('abcdabefg', cytanb.MakeSearchPattern({'bc'})))
+        assert.are.same('abcdabefg', cytanb.StringTrimEnd('abcdabefg', cytanb.MakeSearchPattern({''})))
+
+        assert.are.same('789abcd', cytanb.StringTrimEnd('789abcdab', cytanb.MakeSearchPattern({'ab', 'cd'})))
+        assert.are.same('789', cytanb.StringTrimEnd('789abcdab', cytanb.MakeSearchPattern({'ab', 'cd'}, 1, -1)))
+        assert.are.same('abcdabefg', cytanb.StringTrimEnd('abcdabefg', cytanb.MakeSearchPattern({'bc', 'cd'})))
+        assert.are.same('abcdabefg', cytanb.StringTrimEnd('abcdabefg', cytanb.MakeSearchPattern({'ab', 'cd', ''})))
+    end)
+
+    it('StringTrim', function ()
+        assert.are.same('', cytanb.StringTrim(''))
+        assert.are.same('', cytanb.StringTrim(' \t\n\v\f\r'))
+        assert.are.same('|hoge piyo\t  hogepiyo|', cytanb.StringTrim(' \t\n|hoge piyo\t  hogepiyo|\v\f\r'))
+
+        -- ' \t\n\v\f\r' のそれぞれの文字の、上位バイトが異なるものをテスト。
+        assert.are.same('㤠伉弊尋希怍', cytanb.StringTrim('㤠伉弊尋希怍'))
+
+        -- 全角空白など、Unicode の空白は非対応
+        assert.are.same('　', cytanb.StringTrim('　'))
+
+        local sp80 = cytanb.MakeSearchPattern({'伯'})
+        assert.are.same('㌣た⽟千す協㑁低あ', cytanb.StringTrim('伯㌣た⽟千す協㑁低あ', sp80))
+        assert.are.same('伯㌣た⽟千す協㑁低あ', cytanb.StringTrim('伯伯㌣た⽟千す協㑁低あ', sp80))
+        assert.are.same('㌣た⽟千す協㑁低あ', cytanb.StringTrim('伯㌣た⽟千す協㑁低あ伯', sp80))
+        assert.are.same('㌣た⽟千す協㑁低あ伯', cytanb.StringTrim('伯㌣た⽟千す協㑁低あ伯伯', sp80))
+
+        local sp81 = cytanb.MakeSearchPattern({'伯'}, 2, 4)
+        assert.are.same('伯㌣た⽟千す協㑁低あ伯', cytanb.StringTrim('伯㌣た⽟千す協㑁低あ伯', sp81))
+        assert.are.same('㌣た⽟千す協㑁低あ', cytanb.StringTrim('伯伯㌣た⽟千す協㑁低あ伯伯', sp81))
+        assert.are.same('㌣た⽟千す協㑁低あ', cytanb.StringTrim('伯伯伯㌣た⽟千す協㑁低あ伯伯伯', sp81))
+        assert.are.same('㌣た⽟千す協㑁低あ', cytanb.StringTrim('伯伯伯伯㌣た⽟千す協㑁低あ伯伯伯伯', sp81))
+        assert.are.same('伯㌣た⽟千す協㑁低あ伯', cytanb.StringTrim('伯伯伯伯伯㌣た⽟千す協㑁低あ伯伯伯伯伯', sp81))
+
+        local sp82 = cytanb.MakeSearchPattern({'伯', '㌣', '低', 'あ'})
+        assert.are.same('㌣た⽟千す協㑁低', cytanb.StringTrim('伯㌣た⽟千す協㑁低あ', sp82))
+
+        local sp83 = cytanb.MakeSearchPattern({'伯', '㌣', '低', 'あ'}, 2, 4)
+        assert.are.same('㌣た⽟千す協㑁低', cytanb.StringTrim('㌣た⽟千す協㑁低', sp83))
+        assert.are.same('た⽟千す協㑁', cytanb.StringTrim('伯㌣た⽟千す協㑁低あ', sp83))
+        assert.are.same('伯㌣た⽟千す協㑁低あ', cytanb.StringTrim('伯㌣伯㌣伯㌣た⽟千す協㑁低あ低あ低あ', sp83))
+
+        local sp84 = cytanb.MakeSearchPattern({'伯', '㌣た', '㑁低', 'あ'}, 2, 4)
+        assert.are.same('⽟千す協', cytanb.StringTrim('伯㌣た⽟千す協㑁低あ', sp84))
+        assert.are.same('/#__CYTANB伯㌣た⽟千す協㑁低あ/#__CYTANB', cytanb.StringTrim('/#__CYTANB伯㌣た⽟千す協㑁低あ/#__CYTANB', sp84))
+        assert.are.same('⽟千す協㑁低あ/#__CYTANB伯㌣た⽟千す協', cytanb.StringTrim('伯㌣た⽟千す協㑁低あ/#__CYTANB伯㌣た⽟千す協㑁低あ',sp84))
+
+        local sp85 = cytanb.MakeSearchPattern({'伯', '㌣た', '⽟千', 'す', '協', '㑁低', 'あ'}, 2, 4)
+        assert.are.same('/#__CYTANB伯㌣た⽟千す協㑁低あ/#__CYTANB', cytanb.StringTrim('/#__CYTANB伯㌣た⽟千す協㑁低あ/#__CYTANB', sp85))
+        assert.are.same('協㑁低あ/#__CYTANB伯㌣た⽟千', cytanb.StringTrim('伯㌣た⽟千す協㑁低あ/#__CYTANB伯㌣た⽟千す協㑁低あ',sp85))
+    end)
+
+    it('StringReplace', function ()
         assert.are.same('EM', cytanb.StringReplace('', '', 'EM'))
         assert.are.same('EaEbEcEdE', cytanb.StringReplace('abcd', '', 'E'))
         assert.are.same('', cytanb.StringReplace('', 'ab', 'E'))
@@ -653,6 +1135,10 @@ describe('Test cytanb owner user', function ()
         assert.is_nil(cytanb.UUIDFromString('G69f80ac-e66e-448c-b17c-5a54ea94dccc'))
         assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e-448c-b17c-5a54ea94dccc0'))
         assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e-448c-b17c-5a54ea94dcc'))
+        assert.is_nil(cytanb.UUIDFromString('069F8ac-E66e448cb17c5A54ea94dcCc'))
+
+        assert.is_nil(cytanb.UUIDFromString('帰弱怲帳弴崵崶強常弹孡形幣孤履てぁ⽂千恄居商0000000000'))
+        assert.is_nil(cytanb.UUIDFromString('帰弱怲帳弴崵崶強-常弹孡形-幣孤履てЭぁ⽂千恄-居商0000000000'))
 
         local uuidTable = {}
         local samples = {}
@@ -1610,6 +2096,20 @@ describe('Test cytanb owner user', function ()
         local m7, n7 = cytanb.ParseTagString('  #garply=waldo#')
         assert.are.same('  ', n7)
         assert.are.same({ garply = 'waldo'}, m7)
+
+        -- '㌣' は '#' と下位バイトが同じ
+        -- '㌽' は '=' と下位バイトが同じ
+        local m50, n50 = cytanb.ParseTagString('㌣なまえ#garply=waldo㌣孡形幣㌽孤履て#123=_987㌣⽂千恄')
+        assert.are.same('㌣なまえ', n50)
+        assert.are.same({ garply = 'waldo', ['123'] = '_987'}, m50)
+
+        local m51, n51 = cytanb.ParseTagString('なまえ#孡形幣=⽂千恄')
+        assert.are.same('なまえ', n51)
+        assert.are.same({}, m51)
+
+        local m52, n52 = cytanb.ParseTagString('なまえ#ab孡形幣=cd⽂千恄')
+        assert.are.same('なまえ', n52)
+        assert.are.same({ab = 'ab'}, m52)
     end)
 
     it('CalculateSIPrefix', function ()
@@ -1660,58 +2160,6 @@ describe('Test cytanb owner user', function ()
         assert.are.same({1, 'y', -24}, {cytanb.CalculateSIPrefix(1e-24)})
         assert.are.same({0.5, 'y', -24}, {cytanb.CalculateSIPrefix(0.5e-24)})
         assert.are.same({-0.0009765625, 'y', -24}, {cytanb.CalculateSIPrefix(-0.0009765625e-24)})
-    end)
-
-    it('TransformParameters', function ()
-        local p1, r1, s1 = cytanb.RestoreCytanbTransform(
-            {
-                positionX = 123,
-                positionY = -49.75,
-                positionZ = 0,
-                rotationX = -0.109807625412941,
-                rotationY = 0.146410167217255,
-                rotationZ = -0.183012709021568,
-                rotationW = 0.965925812721252,
-                scaleX = 0,
-                scaleY = 0.25,
-                scaleZ = 1.5
-            }
-        )
-        assert.are.equal(Vector3.__new(123, -49.75, 0), p1)
-        assert.are.equal(Quaternion.__new(-0.109807625412941, 0.146410167217255, -0.183012709021568, 0.965925812721252), r1)
-        assert.are.equal(Vector3.__new(0, 0.25, 1.5), s1)
-
-        local p40, r40, s40 = cytanb.RestoreCytanbTransform(
-            {
-                positionX = 123,
-                positionZ = 0,
-                rotationX = -0.109807625412941,
-                rotationY = 0.146410167217255,
-                rotationW = 0.965925812721252,
-                scaleX = 0,
-                scaleZ = 1.5
-            }
-        )
-        assert.is_nil(p40)
-        assert.is_nil(r40)
-        assert.is_nil(s40)
-
-        local p41, r41, s41 = cytanb.RestoreCytanbTransform(
-            {
-                positionX = 0,
-                positionY = 0,
-                positionZ = 0,
-                rotationX = 0,
-                rotationY = 0,
-                rotationZ = 0,
-                rotationW = 1,
-                scaleY = 0.8,
-                scaleZ = 1.5
-            }
-        )
-        assert.are.equal(Vector3.zero, p41)
-        assert.are.equal(Quaternion.identity, r41)
-        assert.is_nil(s41)
     end)
 end)
 

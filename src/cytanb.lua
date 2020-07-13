@@ -8,11 +8,21 @@ local cytanb = (function ()
     --- インスタンス ID の状態変数名。
     local InstanceIDStateName = '__CYTANB_INSTANCE_ID'
 
+    --- 規定のホワイトスペースの検索パターン。
+    local defaultWhiteSpaceSearchPattern
+
+    --- 16 進数の検索パターン。
+    local hexSearchPattern_4
+    local hexSearchPattern_8
+
+    --- タグコンポーネントの検索パターン。
+    local tagComponentSearchPattern
+
+    --- エスケープシーケンスの置換リスト。
+    local escapeSequenceReplacementList
+
     --- 値の変換マップ。
     local valueConversionMap
-
-    --- エスケープシーケンスの置換パターン。
-    local escapeSequenceReplacementPatterns
 
     -- パラメーター値の置換マップ。
     local parameterValueReplacementMap
@@ -33,6 +43,105 @@ local cytanb = (function ()
     local clientID
 
     local cytanb
+
+    local SearchStartsWithPred = function (position, searchLen)
+        local ni = position + searchLen - 1
+        return position, ni, ni + 1
+    end
+
+    local SearchEndsWithPred = function (position, searchLen)
+        local ni = position - searchLen + 1
+        return ni, position, ni - 1
+    end
+
+    local SearchPatternClass = function (str, strLen, searchPattern, position, pred)
+        local searchMap = searchPattern.searchMap
+        for _idx, searchLen in pairs(searchPattern.lengthList) do
+            if searchLen <= 0 then
+                error('SearchPattern: Invalid parameter: searchLen <= 0')
+            else
+                local si, ei, ni = pred(position, searchLen)
+                if si >= 1 and ei <= strLen then
+                    local sub = string.sub(str, si, ei)
+                    if searchMap[sub] then
+                        return true, searchLen, ni
+                    end
+                end
+            end
+        end
+        return false, -1, -1
+    end
+
+    -- 正規表現のパターンマッチングは、Unicode で問題が出るので使わずに実装する。(https://github.com/moonsharp-devs/moonsharp/pull/184)
+    local SearchPatternExec = function (str, searchPattern, position, pred)
+        if str == nil or searchPattern == nil then
+            return false, -1
+        end
+
+        if searchPattern.hasEmptySearch then
+            -- 検索文字列に空文字列が含まれているなら、常に true を返す。
+            return true, 0
+        end
+
+        local strLen = string.len(str)
+        local repeatMin = searchPattern.repeatMin
+        local repeatMax = searchPattern.repeatMax
+        local repeatInfinite = repeatMax < 0
+
+        local pi = position
+        local retLen = 0
+        local repeatN = 0
+        while repeatInfinite or repeatN < repeatMax do
+            local b, ml, ni = SearchPatternClass(str, strLen, searchPattern, pi, pred)
+            if b then
+                if ml <= 0 then
+                    -- searchPattern.hasEmptySearch でリターンしているはずなので、ここに来てはいけない。
+                    error('SearchPattern: Invalid parameter')
+                end
+                pi = ni
+                retLen = retLen + ml
+                repeatN = repeatN + 1
+            else
+                break
+            end
+        end
+
+        if repeatN >= repeatMin then
+            return true, retLen
+        else
+            return false, -1
+        end
+    end
+
+    -- 正規表現のパターンマッチングは、Unicode で問題が出るので使わずに実装する。(https://github.com/moonsharp-devs/moonsharp/pull/184)
+    local StringSearchEdge = function (str, search, position, positionIsEdge, pred, cmp)
+        if str == nil or search == nil then
+            return false, -1
+        end
+
+        local searchLen = string.len(search)
+        if positionIsEdge then
+            -- 端の位置が指定された場合は、そのまま渡す。
+            local b = cmp(str, search)
+            return b, b and searchLen or -1
+        else
+            -- 端の位置以外が指定された場合は、search で指定された文字列の長さ分を切り出して判定する
+            if searchLen == 0 then
+                -- 検索文字列が空文字列であれば、常に true を返す。
+                return true, searchLen
+            end
+
+            local strLen = string.len(str)
+            local si, ei = pred(position, searchLen)
+            if si >= 1 and ei <= strLen then
+                local sub = string.sub(str, si, ei)
+                local b = cmp(sub, search)
+                return b, b and searchLen or -1
+            else
+                return false, -1
+            end
+        end
+    end
 
     local UUIDCompare = function (op1, op2)
         for i = 1, 4 do
@@ -154,10 +263,9 @@ local cytanb = (function ()
     local EscapeForSerialization = function (str)
         -- エスケープタグの文字列を処理したあと、フォワードスラッシュをエスケープする。
         -- [forward slash bug](https://github.com/moonsharp-devs/moonsharp/issues/180)
-        -- [unicode replace string bug](https://github.com/moonsharp-devs/moonsharp/issues/187)
-        return string.gsub(
-            string.gsub(str, cytanb.EscapeSequenceTag, {[cytanb.EscapeSequenceTag] = cytanb.EscapeSequenceTag .. cytanb.EscapeSequenceTag}),
-            '/', {['/'] = cytanb.SolidusTag}
+        return cytanb.StringReplace(
+            cytanb.StringReplace(str, cytanb.EscapeSequenceTag, cytanb.EscapeSequenceTag .. cytanb.EscapeSequenceTag),
+            '/', cytanb.SolidusTag
         )
     end
 
@@ -188,11 +296,11 @@ local cytanb = (function ()
             end
 
             local replaced = false
-            for entryIndex, entry in ipairs(escapeSequenceReplacementPatterns) do
-                local ri, re = string.find(str, entry.pattern, ei)
-                if ri then
+            for entryIndex, entry in ipairs(escapeSequenceReplacementList) do
+                local b = cytanb.StringStartsWith(str, entry.search, ei)
+                if b then
                     buf = buf .. (replacer and replacer(entry.tag) or entry.replacement)
-                    i = re + 1
+                    i = ei + string.len(entry.search)
                     replaced = true
                     break
                 end
@@ -408,32 +516,135 @@ local cytanb = (function ()
             end
         end,
 
+        ---@class cytanb_search_pattern_t 検索パターン。
+
+        --- **EXPERIMENTAL:実験的な機能。検索パターンを作成する。
+        ---@param searchList string[] @検索する文字列のリスト。
+        ---@param optRepeatMin number @繰り返し回数の最小値。ゼロ以上の値を指定する。省略した場合の値は `1`。
+        ---@param optRepeatMax number@繰り返し回数の最大値。optRepeatMin 以上の値を指定する。負の値を指定した場合は、無限大として扱われる。省略した場合の値は `optRepeatMin`。
+        ---@return cytanb_search_pattern_t
+        MakeSearchPattern = function (searchList, optRepeatMin, optRepeatMax)
+            local repeatMin = optRepeatMin and math.floor(optRepeatMin) or 1
+            if repeatMin < 0 then
+                error('SearchPattern: Invalid parameter: optRepeatMin < 0')
+            end
+
+            local repeatMax = optRepeatMax and math.floor(optRepeatMax) or repeatMin
+            -- optRepeatMax に負の値を指定した場合は、無限とする。
+
+            if repeatMax >=0 and repeatMax < repeatMin then
+                error('SearchPattern: Invalid parameter: repeatMax < repeatMin')
+            end
+
+            local hasEmptySearch = repeatMax == 0
+            local searchMap = {}
+            local lengthMap = {}
+            local lengthList = {}
+            local listSize = 0
+            for _key, searchStr in pairs(searchList) do
+                local searchLen = string.len(searchStr)
+                if searchLen == 0 then
+                    hasEmptySearch = true
+                else
+                    searchMap[searchStr] = searchLen
+                    if not lengthMap[searchLen] then
+                        lengthMap[searchLen] = true
+                        listSize = listSize + 1
+                        lengthList[listSize] = searchLen
+                    end
+                end
+            end
+            table.sort(lengthList, function (a, b) return a > b end)
+            return {
+                hasEmptySearch = hasEmptySearch,
+                searchMap = searchMap,
+                lengthList = lengthList,
+                repeatMin = repeatMin,
+                repeatMax = repeatMax
+            }
+        end,
+
+        StringStartsWith = function (str, search, optPosition)
+            local pi = optPosition and math.max(1, math.floor(optPosition)) or 1
+            if type(search) == 'table' then
+                -- **EXPERIMENTAL:実験的な機能として、`search` には、 `MakeSearchPattern` で作成した検索パターンを指定することもできる。
+                return SearchPatternExec(str, search, pi, SearchStartsWithPred)
+            else
+                return StringSearchEdge(str, search, pi, pi == 1, SearchStartsWithPred, string.startsWith)
+            end
+        end,
+
+        StringEndsWith = function (str, search, optLength)
+            if str == nil then
+                return false, -1
+            end
+            local strLen = string.len(str)
+            local pi = optLength and math.min(strLen, math.floor(optLength)) or strLen
+            if type(search) == 'table' then
+                -- **EXPERIMENTAL:実験的な機能として、`search` には、 `MakeSearchPattern` で作成した検索パターンを指定することもできる。
+                return SearchPatternExec(str, search, pi, SearchEndsWithPred)
+            else
+                return StringSearchEdge(str, search, pi, pi == strLen, SearchEndsWithPred, string.endsWith)
+            end
+        end,
+
+        StringTrimStart = function (str, optSearchPattern)
+            if str == nil or str == '' then
+                return str
+            end
+
+            local b, ml = cytanb.StringStartsWith(str, optSearchPattern or defaultWhiteSpaceSearchPattern)
+            if b and ml >= 1 then
+                return string.sub(str, ml + 1)
+            else
+                return str
+            end
+        end,
+
+        StringTrimEnd = function (str, optSearchPattern)
+            if str == nil or str == '' then
+                return str
+            end
+
+            local b, ml = cytanb.StringEndsWith(str, optSearchPattern or defaultWhiteSpaceSearchPattern)
+            if b and ml >= 1 then
+                return string.sub(str, 1, string.len(str) - ml)
+            else
+                return str
+            end
+        end,
+
+        StringTrim = function (str, optSearchPattern)
+            return cytanb.StringTrimEnd(cytanb.StringTrimStart(str, optSearchPattern), optSearchPattern)
+        end,
+
         StringReplace = function (str, target, replacement)
-            local res
+            -- 正規表現のパターンマッチングは、Unicode で問題が出るので使わずに実装する。(https://github.com/moonsharp-devs/moonsharp/pull/184)
+            local ret
             local len = string.len(str)
             if target == '' then
-                res = replacement
+                ret = replacement
                 for i = 1, len do
-                    res = res .. string.sub(str, i, i) .. replacement
+                    ret = ret .. string.sub(str, i, i) .. replacement
                 end
             else
-                res = ''
+                ret = ''
                 local i = 1
                 while true do
                     local si, ei = string.find(str, target, i, true)
                     if si then
-                        res = res .. string.sub(str, i, si - 1) .. replacement
+                        ret = ret .. string.sub(str, i, si - 1) .. replacement
                         i = ei + 1
                         if i > len then
                             break
                         end
                     else
-                        res = i == 1 and str or res .. string.sub(str, i)
+                        ret = i == 1 and str or ret .. string.sub(str, i)
                         break
                     end
                 end
             end
-            return res
+            return ret
         end,
 
         SetConst = function (target, name, value)
@@ -835,45 +1046,46 @@ local cytanb = (function ()
 
         UUIDFromString = function (str)
             local len = string.len(str)
-            if len ~= 32 and len ~= 36 then return nil end
-
-            local reHex = '[0-9a-f-A-F]+'
-            local reHexString = '^(' .. reHex .. ')$'
-            local reHyphenHexString = '^-(' .. reHex .. ')$'
-
-            local mi, mj, token, token2
             if len == 32 then
                 local uuid = cytanb.UUIDFromNumbers(0, 0, 0, 0)
-                local startPos = 1
-                for i, endPos in ipairs({8, 16, 24, 32}) do
-                    mi, mj, token = string.find(string.sub(str, startPos, endPos), reHexString)
-                    if not mi then return nil end
-                    uuid[i] = tonumber(token, 16)
-                    startPos = endPos + 1
+                for i = 1, 4 do
+                    local si = 1 + (i - 1) * 8
+                    if not cytanb.StringStartsWith(str, hexSearchPattern_8, si) then
+                        return nil
+                    end
+                    uuid[i] = tonumber(string.sub(str, si, si + 7), 16)
                 end
                 return uuid
-            else
-                mi, mj, token = string.find(string.sub(str, 1, 8), reHexString)
-                if not mi then return nil end
-                local num1 = tonumber(token, 16)
+            elseif len == 36 then
+                if not cytanb.StringStartsWith(str, hexSearchPattern_8, 1) then
+                    return nil
+                end
+                local num1 = tonumber(string.sub(str, 1, 8), 16)
 
-                mi, mj, token = string.find(string.sub(str, 9, 13), reHyphenHexString)
-                if not mi then return nil end
-                mi, mj, token2 = string.find(string.sub(str, 14, 18), reHyphenHexString)
-                if not mi then return nil end
-                local num2 = tonumber(token .. token2, 16)
+                if not cytanb.StringStartsWith(str, '-', 9) or
+                        not cytanb.StringStartsWith(str, hexSearchPattern_4, 10) or
+                        not cytanb.StringStartsWith(str, '-', 14) or
+                        not cytanb.StringStartsWith(str, hexSearchPattern_4, 15) then
+                    return nil
+                end
+                local num2 = tonumber(string.sub(str, 10, 13) .. string.sub(str, 15, 18), 16)
 
-                mi, mj, token = string.find(string.sub(str, 19, 23), reHyphenHexString)
-                if not mi then return nil end
-                mi, mj, token2 = string.find(string.sub(str, 24, 28), reHyphenHexString)
-                if not mi then return nil end
-                local num3 = tonumber(token .. token2, 16)
+                if not cytanb.StringStartsWith(str, '-', 19) or
+                        not cytanb.StringStartsWith(str, hexSearchPattern_4, 20) or
+                        not cytanb.StringStartsWith(str, '-', 24) or
+                        not cytanb.StringStartsWith(str, hexSearchPattern_4, 25) then
+                    return nil
+                end
+                local num3 = tonumber(string.sub(str, 20, 23) .. string.sub(str, 25, 28), 16)
 
-                mi, mj, token = string.find(string.sub(str, 29, 36), reHexString)
-                if not mi then return nil end
-                local num4 = tonumber(token, 16)
+                if not cytanb.StringStartsWith(str, hexSearchPattern_8, 29) then
+                    return nil
+                end
+                local num4 = tonumber(string.sub(str, 29), 16)
 
                 return cytanb.UUIDFromNumbers(num1, num2, num3, num4)
+            else
+                return nil
             end
         end,
 
@@ -1186,7 +1398,7 @@ local cytanb = (function ()
 
         OnMessage = function (name, callback)
             local f = function (sender, messageName, message)
-                if type(message) == 'string' and message ~= '' and string.sub(message, 1, 1) == '{' then
+                if type(message) == 'string' and string.startsWith(message, '{') then
                     -- JSON デコードを試みる
                     local pcallStatus, serData = pcall(json.parse, message)
                     if pcallStatus and type(serData) == 'table' and serData[cytanb.InstanceIDParameterName] then
@@ -1290,21 +1502,22 @@ local cytanb = (function ()
             pos = pos + 1
             local len = string.len(str)
 
-            local reComponent = '^[A-Za-z0-9_%-.()!~*\'%%]+'
             while pos <= len do
-                local s1, e1 = string.find(str, reComponent, pos)
-                if s1 then
-                    local tagKey = string.sub(str, s1, e1)
+                local b1, t1 = cytanb.StringStartsWith(str, tagComponentSearchPattern, pos)
+                if b1 then
+                    local n1 = pos + t1
+                    local tagKey = string.sub(str, pos, n1 - 1)
                     -- タグの値が指定されない場合は、キー値とする
                     local tagValue = tagKey
-                    pos = e1 + 1
-                    if pos <= len and string.sub(str, pos, pos) == '=' then
+                    pos = n1
+                    if pos <= len and cytanb.StringStartsWith(str, '=', pos) then
                         pos = pos + 1
-                        local s2, e2 = string.find(str, reComponent, pos)
-                        if s2 then
+                        local b2, t2 = cytanb.StringStartsWith(str, tagComponentSearchPattern, pos)
+                        if b2 then
                             -- タグの値が指定された
-                            tagValue = string.sub(str, s2, e2)
-                            pos = e2 + 1
+                            local n2 = pos + t2
+                            tagValue = string.sub(str, pos, n2 - 1)
+                            pos = n2
                         else
                             -- 空のタグの値が指定された
                             tagValue = ''
@@ -2245,23 +2458,6 @@ local cytanb = (function ()
                 scaleY = scale.y,
                 scaleZ = scale.z
             }
-        end,
-
-        -- @deprecated 廃止予定につき使用しないこと。
-        RestoreCytanbTransform = function (transformParameters)
-            local pos = (transformParameters.positionX and transformParameters.positionY and transformParameters.positionZ) and
-                Vector3.__new(transformParameters.positionX, transformParameters.positionY, transformParameters.positionZ) or
-                nil
-
-            local rot = (transformParameters.rotationX and transformParameters.rotationY and transformParameters.rotationZ and transformParameters.rotationW) and
-                Quaternion.__new(transformParameters.rotationX, transformParameters.rotationY, transformParameters.rotationZ, transformParameters.rotationW) or
-                nil
-
-            local scale = (transformParameters.scaleX and transformParameters.scaleY and transformParameters.scaleZ) and
-                Vector3.__new(transformParameters.scaleX, transformParameters.scaleY, transformParameters.scaleZ) or
-                nil
-
-            return pos, rot, scale
         end
     }
 
@@ -2304,20 +2500,40 @@ local cytanb = (function ()
         TraceLogLevel = cytanb.LogLevelTrace     -- @deprecated
     })
 
+    defaultWhiteSpaceSearchPattern = cytanb.MakeSearchPattern({
+        '\t', '\n', '\v', '\f', '\r', ' '
+    }, 1, -1)
+
+    hexSearchPattern_4, hexSearchPattern_8 = (function ()
+        local hexCharactes = {
+            'A', 'B', 'C', 'D', 'E', 'F',
+            'a', 'b', 'c', 'd', 'e', 'f',
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+        }
+        return cytanb.MakeSearchPattern(hexCharactes, 4, 4), cytanb.MakeSearchPattern(hexCharactes, 8, 8)
+    end)()
+
+    tagComponentSearchPattern = cytanb.MakeSearchPattern({
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '_', '-', '.', '(', ')', '!', '~', '*', '\'', '%'
+    }, 1, -1)
+
+    -- タグ文字列の長い順にパターンマッチする必要がある。
+    escapeSequenceReplacementList = {
+        {tag = cytanb.NegativeNumberTag, search = cytanb.NegativeNumberTag, replacement = ''},
+        {tag = cytanb.ArrayNumberTag, search = cytanb.ArrayNumberTag, replacement = ''},
+        {tag = cytanb.SolidusTag, search = cytanb.SolidusTag, replacement = '/'},
+        {tag = cytanb.EscapeSequenceTag, search = cytanb.EscapeSequenceTag .. cytanb.EscapeSequenceTag, replacement = cytanb.EscapeSequenceTag}
+    }
+
     valueConversionMap = {
         [cytanb.ColorTypeName] = {compositionFieldNames = cytanb.ListToMap({'r', 'g', 'b', 'a'}), compositionFieldLength = 4, toTableFunc = cytanb.ColorToTable, fromTableFunc = cytanb.ColorFromTable},
         [cytanb.Vector2TypeName] = {compositionFieldNames = cytanb.ListToMap({'x', 'y'}), compositionFieldLength = 2, toTableFunc = cytanb.Vector2ToTable, fromTableFunc = cytanb.Vector2FromTable},
         [cytanb.Vector3TypeName] = {compositionFieldNames = cytanb.ListToMap({'x', 'y', 'z'}), compositionFieldLength = 3, toTableFunc = cytanb.Vector3ToTable, fromTableFunc = cytanb.Vector3FromTable},
         [cytanb.Vector4TypeName] = {compositionFieldNames = cytanb.ListToMap({'x', 'y', 'z', 'w'}), compositionFieldLength = 4, toTableFunc = cytanb.Vector4ToTable, fromTableFunc = cytanb.Vector4FromTable},
         [cytanb.QuaternionTypeName] = {compositionFieldNames = cytanb.ListToMap({'x', 'y', 'z', 'w'}), compositionFieldLength = 4, toTableFunc = cytanb.QuaternionToTable, fromTableFunc = cytanb.QuaternionFromTable}
-    }
-
-    -- タグ文字列の長い順にパターン配列をセットする
-    escapeSequenceReplacementPatterns = {
-        {tag = cytanb.NegativeNumberTag, pattern = '^' .. cytanb.NegativeNumberTag, replacement = ''},
-        {tag = cytanb.ArrayNumberTag, pattern = '^' .. cytanb.ArrayNumberTag, replacement = ''},
-        {tag = cytanb.SolidusTag, pattern = '^' .. cytanb.SolidusTag, replacement = '/'},
-        {tag = cytanb.EscapeSequenceTag, pattern = '^' .. cytanb.EscapeSequenceTag .. cytanb.EscapeSequenceTag, replacement = cytanb.EscapeSequenceTag}
     }
 
     parameterValueReplacementMap = cytanb.ListToMap({cytanb.NegativeNumberTag, cytanb.ArrayNumberTag})
