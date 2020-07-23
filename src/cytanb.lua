@@ -470,6 +470,33 @@ local cytanb = (function ()
         end
     end
 
+    local EmitDedicatedMessage = function (name, message, senderOverride, defaultSenderType)
+        local defaultSender = {type = defaultSenderType, name = '', commentSource = ''}
+        local parameterMap = {
+            [cytanb.MessageValueParameterName] = tostring(message),
+            [cytanb.MessageSenderOverride] = type(senderOverride) == 'table' and cytanb.Extend(defaultSender, senderOverride, true) or defaultSender
+        }
+        cytanb.EmitMessage(name, parameterMap)
+    end
+
+    local OnDedicatedMessage = function (name, officialName, callback)
+        local r1, r2 = (function ()
+            local f = function (sender, messageName, parameterMap)
+                local message = tostring(parameterMap[cytanb.MessageValueParameterName] or '')
+                callback(sender, officialName, message)
+            end
+            local r1 = cytanb.OnMessage(name, f)
+            local r2 = cytanb.OnMessage(officialName, f)
+            return r1, r2
+        end)()
+        return {
+            Off = function ()
+                r1.Off()
+                r2.Off()
+            end
+        }
+    end
+
     cytanb = {
         InstanceID = function ()
             if instanceID == '' then
@@ -1436,37 +1463,19 @@ local cytanb = (function ()
         end,
 
         EmitCommentMessage = function (message, senderOverride)
-            local defaultSender = {type = 'comment', name = '', commentSource = ''}
-            local parameterMap = {
-                [cytanb.MessageValueParameterName] = tostring(message),
-                [cytanb.MessageSenderOverride] = type(senderOverride) == 'table' and cytanb.Extend(defaultSender, senderOverride, true) or defaultSender
-            }
-            cytanb.EmitMessage('comment', parameterMap)
+            EmitDedicatedMessage(cytanb.DedicatedCommentMessageName, message, senderOverride, 'comment')
         end,
 
         OnCommentMessage = function (callback)
-            local f = function (sender, messageName, parameterMap)
-                local message = tostring(parameterMap[cytanb.MessageValueParameterName] or '')
-                callback(sender, messageName, message)
-            end
-            return cytanb.OnMessage('comment', f)
+            OnDedicatedMessage(cytanb.DedicatedCommentMessageName, 'comment', callback)
         end,
 
         EmitNotificationMessage = function (message, senderOverride)
-            local defaultSender = {type = 'notification', name = '', commentSource = ''}
-            local parameterMap = {
-                [cytanb.MessageValueParameterName] = tostring(message),
-                [cytanb.MessageSenderOverride] = type(senderOverride) == 'table' and cytanb.Extend(defaultSender, senderOverride, true) or defaultSender
-            }
-            cytanb.EmitMessage('notification', parameterMap)
+            EmitDedicatedMessage(cytanb.DedicatedNotificationMessageName, message, senderOverride, 'notification')
         end,
 
         OnNotificationMessage = function (callback)
-            local f = function (sender, messageName, parameterMap)
-                local message = tostring(parameterMap[cytanb.MessageValueParameterName] or '')
-                callback(sender, messageName, message)
-            end
-            return cytanb.OnMessage('notification', f)
+            OnDedicatedMessage(cytanb.DedicatedNotificationMessageName, 'notification', callback)
         end,
 
         GetEffekseerEmitterMap = function (name)
@@ -2487,6 +2496,8 @@ local cytanb = (function ()
         Vector3TypeName = 'Vector3',
         Vector4TypeName = 'Vector4',
         QuaternionTypeName = 'Quaternion',
+        DedicatedCommentMessageName = 'cytanb.comment.a2a6a035-6b8d-4e06-b4f9-07e6209b0639',
+        DedicatedNotificationMessageName = 'cytanb.notification.698ba55f-2b69-47f2-a68d-bc303994cff3',
         LOCAL_SHARED_PROPERTY_EXPIRED_KEY = '__CYTANB_LOCAL_SHARED_PROPERTY_EXPIRED'
     })
 
