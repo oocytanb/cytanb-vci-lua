@@ -1603,6 +1603,8 @@ describe('Test cytanb owner user', function ()
             cb3 = function (sender ,name, parameterMap) end,
             cbMapComment = function (sender, name, parameterMap) end,
             cbMapNotification = function (sender, name, parameterMap) end,
+            cbCytanbComment = function (sender, name, parameterMap) end,
+            cbCytanbNotification = function (sender, name, parameterMap) end,
             cbComment = function (sender, name, message) end,
             cbNotification = function (sender, name, message) end,
         }
@@ -1616,6 +1618,8 @@ describe('Test cytanb owner user', function ()
         cytanb.OnMessage('bar', cbMap.cb3)
         cytanb.OnMessage('comment', cbMap.cbMapComment)
         cytanb.OnMessage('notification', cbMap.cbMapNotification)
+        cytanb.OnMessage(cytanb.DedicatedCommentMessageName, cbMap.cbCytanbComment)
+        cytanb.OnMessage(cytanb.DedicatedNotificationMessageName, cbMap.cbCytanbNotification)
         cytanb.OnCommentMessage(cbMap.cbComment)
         cytanb.OnNotificationMessage(cbMap.cbNotification)
 
@@ -1662,34 +1666,39 @@ describe('Test cytanb owner user', function ()
         assert.stub(cbMap.cb3).was.called_with({type = 'vci', name = 'test-cytanb-module', commentSource = ''}, 'bar', {[cytanb.InstanceIDParameterName] = '', num_cy = 789})
 
         assert.stub(cbMap.cbMapComment).was.called(0)
+        assert.stub(cbMap.cbCytanbComment).was.called(0)
         assert.stub(cbMap.cbComment).was.called(0)
 
         vci.fake.EmitVciNicoliveCommentMessage('TestUser', 'Hello, World!')
         assert.stub(cbMap.cbMapComment).was.called(1)
         assert.stub(cbMap.cbMapComment).was.called_with({type = 'comment', name = 'TestUser', commentSource = 'Nicolive'}, 'comment', {[cytanb.MessageValueParameterName] = 'Hello, World!'})
+        assert.stub(cbMap.cbCytanbComment).was.called(0)
         assert.stub(cbMap.cbComment).was.called(1)
         assert.stub(cbMap.cbComment).was.called_with({type = 'comment', name = 'TestUser', commentSource = 'Nicolive'}, 'comment', 'Hello, World!')
 
         vci.fake.EmitVciTwitterCommentMessage('TwitterUser', '')
         assert.stub(cbMap.cbMapComment).was.called(2)
         assert.stub(cbMap.cbMapComment).was.called_with({type = 'comment', name = 'TwitterUser', commentSource = 'Twitter'}, 'comment', {[cytanb.MessageValueParameterName] = ''})
+        assert.stub(cbMap.cbCytanbComment).was.called(0)
         assert.stub(cbMap.cbComment).was.called(2)
         assert.stub(cbMap.cbComment).was.called_with({type = 'comment', name = 'TwitterUser', commentSource = 'Twitter'}, 'comment', '')
 
         vci.fake.EmitVciShowroomCommentMessage('ShowroomUser', '50')
         assert.stub(cbMap.cbMapComment).was.called(3)
         assert.stub(cbMap.cbMapComment).was.called_with({type = 'comment', name = 'ShowroomUser', commentSource = 'Showroom'}, 'comment', {[cytanb.MessageValueParameterName] = '50'})
+        assert.stub(cbMap.cbCytanbComment).was.called(0)
         assert.stub(cbMap.cbComment).was.called(3)
         assert.stub(cbMap.cbComment).was.called_with({type = 'comment', name = 'ShowroomUser', commentSource = 'Showroom'}, 'comment', '50')
 
         cytanb.EmitCommentMessage('DummyComment sender-omitted')
-        assert.stub(cbMap.cbMapComment).was.called(4)
-        assert.stub(cbMap.cbMapComment).was.called_with({
+        assert.stub(cbMap.cbMapComment).was.called(3)
+        assert.stub(cbMap.cbCytanbComment).was.called(1)
+        assert.stub(cbMap.cbCytanbComment).was.called_with({
             type = 'comment',
             name = '',
             commentSource = '',
             [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
-        }, 'comment', {
+        }, cytanb.DedicatedCommentMessageName, {
             [cytanb.InstanceIDParameterName] = cytanb.InstanceID(),
             [cytanb.MessageSenderOverride] = {type = 'comment', name = '', commentSource = ''},
             [cytanb.MessageValueParameterName] = 'DummyComment sender-omitted'}
@@ -1704,13 +1713,14 @@ describe('Test cytanb owner user', function ()
         }, 'comment', 'DummyComment sender-omitted')
 
         cytanb.EmitCommentMessage('', {name = 'NicoUser', commentSource = 'Nicolive'})
-        assert.stub(cbMap.cbMapComment).was.called(5)
-        assert.stub(cbMap.cbMapComment).was.called_with({
+        assert.stub(cbMap.cbMapComment).was.called(3)
+        assert.stub(cbMap.cbCytanbComment).was.called(2)
+        assert.stub(cbMap.cbCytanbComment).was.called_with({
             type = 'comment',
             name = 'NicoUser',
             commentSource = 'Nicolive',
             [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
-        }, 'comment', {
+        }, cytanb.DedicatedCommentMessageName, {
             [cytanb.InstanceIDParameterName] = cytanb.InstanceID(),
             [cytanb.MessageSenderOverride] = {type = 'comment', name = 'NicoUser', commentSource = 'Nicolive'},
             [cytanb.MessageValueParameterName] = ''}
@@ -1725,13 +1735,14 @@ describe('Test cytanb owner user', function ()
         }, 'comment', '')
 
         cytanb.EmitCommentMessage('{"DummyTwitterComment":""}', {name = 'Twitter user A', commentSource = 'Twitter'})
-        assert.stub(cbMap.cbMapComment).was.called(6)
-        assert.stub(cbMap.cbMapComment).was.called_with({
+        assert.stub(cbMap.cbMapComment).was.called(3)
+        assert.stub(cbMap.cbCytanbComment).was.called(3)
+        assert.stub(cbMap.cbCytanbComment).was.called_with({
             type = 'comment',
             name = 'Twitter user A',
             commentSource = 'Twitter',
             [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
-        }, 'comment', {
+        }, cytanb.DedicatedCommentMessageName, {
             [cytanb.InstanceIDParameterName] = cytanb.InstanceID(),
             [cytanb.MessageSenderOverride] = {type = 'comment', name = 'Twitter user A', commentSource = 'Twitter'},
             [cytanb.MessageValueParameterName] = '{"DummyTwitterComment":""}'}
@@ -1746,13 +1757,14 @@ describe('Test cytanb owner user', function ()
         }, 'comment', '{"DummyTwitterComment":""}')
 
         cytanb.EmitCommentMessage('1', {name = 'SR user C', commentSource = 'Showroom'})
-        assert.stub(cbMap.cbMapComment).was.called(7)
-        assert.stub(cbMap.cbMapComment).was.called_with({
+        assert.stub(cbMap.cbMapComment).was.called(3)
+        assert.stub(cbMap.cbCytanbComment).was.called(4)
+        assert.stub(cbMap.cbCytanbComment).was.called_with({
             type = 'comment',
             name = 'SR user C',
             commentSource = 'Showroom',
             [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
-        }, 'comment', {
+        }, cytanb.DedicatedCommentMessageName, {
             [cytanb.InstanceIDParameterName] = cytanb.InstanceID(),
             [cytanb.MessageSenderOverride] = {type = 'comment', name = 'SR user C', commentSource = 'Showroom'},
             [cytanb.MessageValueParameterName] = '1'}
@@ -1770,7 +1782,7 @@ describe('Test cytanb owner user', function ()
             [cytanb.MessageSenderOverride] = 'invalid-sender',
             [cytanb.MessageValueParameterName] = 'test-invalid-sender-override'
         })
-        assert.stub(cbMap.cbMapComment).was.called(8)
+        assert.stub(cbMap.cbMapComment).was.called(4)
         assert.stub(cbMap.cbMapComment).was.called_with({
             type = 'vci',
             name = 'test-cytanb-module',
@@ -1780,6 +1792,8 @@ describe('Test cytanb owner user', function ()
             [cytanb.MessageSenderOverride] = 'invalid-sender',
             [cytanb.MessageValueParameterName] = 'test-invalid-sender-override'}
         )
+
+        assert.stub(cbMap.cbCytanbComment).was.called(4)
 
         assert.stub(cbMap.cbComment).was.called(8)
         assert.stub(cbMap.cbComment).was.called_with({
@@ -1792,7 +1806,7 @@ describe('Test cytanb owner user', function ()
             [cytanb.MessageSenderOverride] = {type = 123, name = 'loose-sender2', commentSource = true},
             [cytanb.MessageValueParameterName] = 'loose-sender-message2'
         })
-        assert.stub(cbMap.cbMapComment).was.called(9)
+        assert.stub(cbMap.cbMapComment).was.called(5)
         assert.stub(cbMap.cbMapComment).was.called_with({
             type = '123',
             name = 'loose-sender2',
@@ -1803,6 +1817,8 @@ describe('Test cytanb owner user', function ()
             [cytanb.MessageSenderOverride] = {type = 123, name = 'loose-sender2', commentSource = true},
             [cytanb.MessageValueParameterName] = 'loose-sender-message2'}
         )
+
+        assert.stub(cbMap.cbCytanbComment).was.called(4)
 
         assert.stub(cbMap.cbComment).was.called(9)
         assert.stub(cbMap.cbComment).was.called_with({
@@ -1816,7 +1832,7 @@ describe('Test cytanb owner user', function ()
             [cytanb.MessageSenderOverride] = {type = false, unsupportedParameter = 'unsupportedValue'},
             [cytanb.MessageValueParameterName] = 'loose-sender-message3'
         })
-        assert.stub(cbMap.cbMapComment).was.called(10)
+        assert.stub(cbMap.cbMapComment).was.called(6)
         assert.stub(cbMap.cbMapComment).was.called_with({
             type = 'false',
             name = 'test-cytanb-module',
@@ -1828,6 +1844,8 @@ describe('Test cytanb owner user', function ()
             [cytanb.MessageValueParameterName] = 'loose-sender-message3'}
         )
 
+        assert.stub(cbMap.cbCytanbComment).was.called(4)
+
         assert.stub(cbMap.cbComment).was.called(10)
         assert.stub(cbMap.cbComment).was.called_with({
             type = '123',
@@ -1837,13 +1855,14 @@ describe('Test cytanb owner user', function ()
         }, 'comment', 'loose-sender-message2')
 
         cytanb.EmitCommentMessage('{"content":"nested"}', {name = 'NestedTestUser', commentSource = 'BarTV'})
-        assert.stub(cbMap.cbMapComment).was.called(11)
-        assert.stub(cbMap.cbMapComment).was.called_with({
+        assert.stub(cbMap.cbMapComment).was.called(6)
+        assert.stub(cbMap.cbCytanbComment).was.called(5)
+        assert.stub(cbMap.cbCytanbComment).was.called_with({
             type = 'comment',
             name = 'NestedTestUser',
             commentSource = 'BarTV',
             [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
-        }, 'comment', {
+        }, cytanb.DedicatedCommentMessageName, {
             [cytanb.InstanceIDParameterName] = cytanb.InstanceID(),
             [cytanb.MessageSenderOverride] = {type = 'comment', name = 'NestedTestUser', commentSource = 'BarTV'},
             [cytanb.MessageValueParameterName] = '{"content":"nested"}'}
@@ -1861,7 +1880,7 @@ describe('Test cytanb owner user', function ()
             [cytanb.MessageSenderOverride] = {name = 'TestInvalidJsonUser', commentSource = 'BazTV'},
             [cytanb.MessageValueParameterName] = '{invalid json 404}'
         })
-        assert.stub(cbMap.cbMapComment).was.called(12)
+        assert.stub(cbMap.cbMapComment).was.called(7)
         assert.stub(cbMap.cbMapComment).was.called_with({
             type = 'vci',
             name = 'TestInvalidJsonUser',
@@ -1872,6 +1891,8 @@ describe('Test cytanb owner user', function ()
             [cytanb.MessageSenderOverride] = {name = 'TestInvalidJsonUser', commentSource = 'BazTV'},
             [cytanb.MessageValueParameterName] = '{invalid json 404}'}
         )
+
+        assert.stub(cbMap.cbCytanbComment).was.called(5)
 
         assert.stub(cbMap.cbComment).was.called(12)
         assert.stub(cbMap.cbComment).was.called_with({
@@ -1887,23 +1908,26 @@ describe('Test cytanb owner user', function ()
         vci.fake.EmitVciJoinedNotificationMessage('joined-user-d')
         assert.stub(cbMap.cbMapNotification).was.called(1)
         assert.stub(cbMap.cbMapNotification).was.called_with({type = 'notification', name = 'joined-user-d', commentSource = ''}, 'notification', {[cytanb.MessageValueParameterName] = 'joined'})
+        assert.stub(cbMap.cbCytanbNotification).was.called(0)
         assert.stub(cbMap.cbNotification).was.called(1)
         assert.stub(cbMap.cbNotification).was.called_with({type = 'notification', name = 'joined-user-d', commentSource = ''}, 'notification', 'joined')
 
         vci.fake.EmitVciLeftNotificationMessage('left-user-e')
         assert.stub(cbMap.cbMapNotification).was.called(2)
         assert.stub(cbMap.cbMapNotification).was.called_with({type = 'notification', name = 'left-user-e', commentSource = ''}, 'notification', {[cytanb.MessageValueParameterName] = 'left'})
+        assert.stub(cbMap.cbCytanbNotification).was.called(0)
         assert.stub(cbMap.cbNotification).was.called(2)
         assert.stub(cbMap.cbNotification).was.called_with({type = 'notification', name = 'left-user-e', commentSource = ''}, 'notification', 'left')
 
         cytanb.EmitNotificationMessage('DummyNotification sender-omitted')
-        assert.stub(cbMap.cbMapNotification).was.called(3)
-        assert.stub(cbMap.cbMapNotification).was.called_with({
+        assert.stub(cbMap.cbMapNotification).was.called(2)
+        assert.stub(cbMap.cbCytanbNotification).was.called(1)
+        assert.stub(cbMap.cbCytanbNotification).was.called_with({
             type = 'notification',
             name = '',
             commentSource = '',
             [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
-        }, 'notification', {
+        }, cytanb.DedicatedNotificationMessageName, {
             [cytanb.InstanceIDParameterName] = cytanb.InstanceID(),
             [cytanb.MessageSenderOverride] = {type = 'notification', name = '', commentSource = ''},
             [cytanb.MessageValueParameterName] = 'DummyNotification sender-omitted'
@@ -1918,13 +1942,14 @@ describe('Test cytanb owner user', function ()
         }, 'notification', 'DummyNotification sender-omitted')
 
         cytanb.EmitNotificationMessage('joined', {name = 'dummy-joined-user-f'})
-        assert.stub(cbMap.cbMapNotification).was.called(4)
-        assert.stub(cbMap.cbMapNotification).was.called_with({
+        assert.stub(cbMap.cbMapNotification).was.called(2)
+        assert.stub(cbMap.cbCytanbNotification).was.called(2)
+        assert.stub(cbMap.cbCytanbNotification).was.called_with({
             type = 'notification',
             name = 'dummy-joined-user-f',
             commentSource = '',
             [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
-        }, 'notification', {
+        }, cytanb.DedicatedNotificationMessageName, {
             [cytanb.InstanceIDParameterName] = cytanb.InstanceID(),
             [cytanb.MessageSenderOverride] = {type = 'notification', name = 'dummy-joined-user-f', commentSource = ''},
             [cytanb.MessageValueParameterName] = 'joined'
@@ -1939,13 +1964,14 @@ describe('Test cytanb owner user', function ()
         }, 'notification', 'joined')
 
         cytanb.EmitNotificationMessage('left', {name = 'dummy-left-user-g'})
-        assert.stub(cbMap.cbMapNotification).was.called(5)
-        assert.stub(cbMap.cbMapNotification).was.called_with({
+        assert.stub(cbMap.cbMapNotification).was.called(2)
+        assert.stub(cbMap.cbCytanbNotification).was.called(3)
+        assert.stub(cbMap.cbCytanbNotification).was.called_with({
             type = 'notification',
             name = 'dummy-left-user-g',
             commentSource = '',
             [cytanb.MessageOriginalSender] = {type = 'vci', name = 'test-cytanb-module', commentSource = ''}
-        }, 'notification', {
+        }, cytanb.DedicatedNotificationMessageName, {
             [cytanb.InstanceIDParameterName] = cytanb.InstanceID(),
             [cytanb.MessageSenderOverride] = {type = 'notification', name = 'dummy-left-user-g', commentSource = ''},
             [cytanb.MessageValueParameterName] = 'left'
@@ -1962,7 +1988,8 @@ describe('Test cytanb owner user', function ()
         assert.stub(cbMap.cb1).was.called(2)
         assert.stub(cbMap.cb2).was.called(2)
         assert.stub(cbMap.cb3).was.called(4)
-        assert.stub(cbMap.cbMapComment).was.called(12)
+        assert.stub(cbMap.cbMapComment).was.called(7)
+        assert.stub(cbMap.cbCytanbComment).was.called(5)
         assert.stub(cbMap.cbComment).was.called(12)
 
         vci.fake.ClearMessageCallbacks()
@@ -2004,7 +2031,7 @@ describe('Test cytanb owner user', function ()
 
         local looseNotificationSender = nil
         local looseNotificationParameterMap = nil
-        cytanb.OnMessage('notification', function (sender, name, parameterMap)
+        cytanb.OnMessage(cytanb.DedicatedNotificationMessageName, function (sender, name, parameterMap)
             looseNotificationSender = sender
             looseNotificationParameterMap = parameterMap
         end)
