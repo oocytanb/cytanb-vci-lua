@@ -1467,7 +1467,7 @@ local cytanb = (function ()
         end,
 
         OnCommentMessage = function (callback)
-            OnDedicatedMessage(cytanb.DedicatedCommentMessageName, 'comment', callback)
+            return OnDedicatedMessage(cytanb.DedicatedCommentMessageName, 'comment', callback)
         end,
 
         EmitNotificationMessage = function (message, senderOverride)
@@ -1475,7 +1475,7 @@ local cytanb = (function ()
         end,
 
         OnNotificationMessage = function (callback)
-            OnDedicatedMessage(cytanb.DedicatedNotificationMessageName, 'notification', callback)
+            return OnDedicatedMessage(cytanb.DedicatedNotificationMessageName, 'notification', callback)
         end,
 
         GetEffekseerEmitterMap = function (name)
