@@ -85,7 +85,7 @@
 ---@field UUIDFromNumbers fun (...): cytanb_uuid_t @指定した数値で、UUID オブジェクトを生成する。数値引数リストの1番目が最上位 32 bit で、4番目が最下位 32 bit となる。数値引数リストの替わりに数値配列を指定することも可能。
 ---@field UUIDFromString fun (str: string): cytanb_uuid_t @UUID の文字列表現から、UUID オブジェクトを生成する。無効な形式であった場合は nil を返す。
 ---@field CreateCircularQueue fun (capacity: number): cytanb_circular_queue_t @`capacity` で指定した容量の循環キューを作成する。`capacity` に `1` 未満を指定した場合はエラーとなる。
----@field DetectClicks fun (lastClickCount: number, lastTime: TimeSpan, clickTiming: TimeSpan): number, TimeSpan @連続したクリック数を検出する。最後のクリック時間から 'clickTiming' 以内であれば、カウントアップして 1 番目の戻り値として返す。時間が過ぎていれば `1` を返す。この関数を呼び出した時間を 2 番目の戻り値として返す。`lastClickCount` には、この関数からの1番目の戻り値を指定する。初回呼び出し時は `0` を指定する。`lastTime` には、この関数からの2番目の戻り値を指定する。初回呼び出し時は `TimeSpan.Zero` を指定する。`clickTiming` には、連続したクリックとみなす時間を指定する。省略した場合のデフォルト値は 500 ミリ秒。
+---@field DetectClicks fun (lastClickCount: number, lastTime: TimeSpan, clickTiming: TimeSpan): number, TimeSpan @連続したクリック数を検出する。最後のクリック時間から 'clickTiming' 以内であれば、カウントアップして 1 番目の戻り値として返す。時間が過ぎていれば `1` を返す。この関数を呼び出した時間を 2 番目の戻り値として返す。`lastClickCount` には、この関数からの1番目の戻り値を指定する。初回呼び出し時は `0` を指定する。`lastTime` には、この関数からの2番目の戻り値を指定する。初回呼び出し時は `TimeSpan.Zero` を指定する。`clickTiming` には、連続したクリックとみなす時間を指定する。省略した場合の値は 500 ミリ秒。
 ---@field ColorRGBToHSV fun (color: Color): number, number, number @`Color` オブジェクトの RGB 値から HSV 値へ変換する。戻り値の 1 番目に色相、2 番目に彩度、3 番目に明度を返す。
 ---@field ColorFromARGB32 fun (argb32: number): Color @ARGB 32 bit 値から、`Color` オブジェクトへ変換する。
 ---@field ColorToARGB32 fun (color: Color): number @`Color` オブジェクトから ARGB 32 bit 値へ変換する。

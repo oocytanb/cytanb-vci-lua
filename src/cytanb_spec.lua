@@ -576,10 +576,8 @@ describe('Test cytanb owner user', function ()
     end)
 
     it('StringEachCode', function ()
-        local CodeAccumulator = function (mutableList)
-            return function (code, startPos, endPos)
-                table.insert(mutableList, {code, startPos, endPos})
-            end
+        local CodeAccumulator = function (codeString, index, cbArg, beginPos, endPos)
+            table.insert(cbArg, {codeString, index, beginPos, endPos})
         end
 
         local SpriteFilterAccumulator = function (mutableList)
@@ -590,62 +588,68 @@ describe('Test cytanb owner user', function ()
         end
 
         local ea1 = {}
-        local ec1 = {cytanb.StringEachCode('', CodeAccumulator(ea1))}
+        local ec1 = {cytanb.StringEachCode('', CodeAccumulator, ea1)}
         assert.are.same({0, 0, 0}, ec1)
         assert.are.same({}, ea1)
 
         local ea2 = {}
-        local ec2 = {cytanb.StringEachCode('a9', CodeAccumulator(ea2))}
+        local ec2 = {cytanb.StringEachCode('a9', CodeAccumulator, ea2)}
         assert.are.same({2, 1, 2}, ec2)
         assert.are.same({
-            {'a', 1, 1},
-            {'9', 2, 2}
+            {'a', 1, 1, 1},
+            {'9', 2, 2, 2}
         }, ea2)
 
         local ea3 = {}
-        local ec3 = {cytanb.StringEachCode('abc789', CodeAccumulator(ea3), 3, 4)}
+        local ec3 = {cytanb.StringEachCode('abc789', CodeAccumulator, ea3, 3, 4)}
         assert.are.same({2, 3, 4}, ec3)
         assert.are.same({
-            {'c', 3, 3},
-            {'7', 4, 4}
+            {'c', 1, 3, 3},
+            {'7', 2, 4, 4}
         }, ea3)
 
         local ea4 = {}
         local eb4 = 0
-        local ec4 = {cytanb.StringEachCode('abc789', function (code, startPos, endPos)
-            table.insert(ea4, {code, startPos, endPos})
+        local ec4 = {cytanb.StringEachCode('abc789', function (codeString, index, cbArg, beginPos, endPos)
+            table.insert(cbArg, {codeString, index, beginPos, endPos})
             eb4 = eb4 + 1
             if eb4 >= 2 then
                 return false
             end
-        end, 2, 6)}
+        end, ea4, 2, 6)}
         assert.are.same({2, 2, 3}, ec4)
         assert.are.same({
-            {'b', 2, 2},
-            {'c', 3, 3}
+            {'b', 1, 2, 2},
+            {'c', 2, 3, 3}
         }, ea4)
 
-        assert.are.same({3, 2, 4}, {cytanb.StringEachCode('abc789', nil, 2, 4)})
-        assert.are.same({1, 6, 6}, {cytanb.StringEachCode('abc789', nil, 6, 6)})
+        assert.are.same({3, 2, 4}, {cytanb.StringEachCode('abc789', nil, nil, 2, 4)})
+        assert.are.same({1, 6, 6}, {cytanb.StringEachCode('abc789', nil, nil, 6, 6)})
 
-        assert.has_error(function () cytanb.StringEachCode('abc789', nil, 0, 4) end)
-        assert.has_error(function () cytanb.StringEachCode('abc789', nil, 2, 1) end)
-        assert.has_error(function () cytanb.StringEachCode('abc789', nil, 7, 7) end)
+        assert.has_error(function () cytanb.StringEachCode('abc789', nil, nil, 0, 4) end)
+        assert.has_error(function () cytanb.StringEachCode('abc789', nil, nil, 2, 1) end)
+        assert.has_error(function () cytanb.StringEachCode('abc789', nil, nil, 7, 7) end)
+
+        local ea49 = {}
+        local ec49 = {cytanb.StringEachCode('<sprite=0>', CodeAccumulator, ea49)}
+        assert.are.same({10, 1, 10}, ec49)
+        assert.are.same(10, #ea49)
+        assert.are.same({'<', 1, 1, 1}, ea49[1])
 
         local ea50 = {}
-        local ec50 = {cytanb.StringEachCode('<sprite=0>', CodeAccumulator(ea50), nil, nil, true)}
+        local ec50 = {cytanb.StringEachCode('<sprite=0>', CodeAccumulator, ea50, nil, nil, true)}
         assert.are.same({1, 1, 10}, ec50)
         assert.are.same({
-            {'<sprite=0>', 1, 10}
+            {'<sprite=0>', 1, 1, 10}
         }, ea50)
 
         local ea51 = {}
         local ef51 = {}
-        local ec51 = {cytanb.StringEachCode('<SPRITEsprite=0><SPRITE=3182><SPRITE=3183><sprite=dame><sprite=<sprite=0001>>', CodeAccumulator(ea51), nil, nil, true, SpriteFilterAccumulator(ef51))}
+        local ec51 = {cytanb.StringEachCode('<SPRITEsprite=0><SPRITE=3182><SPRITE=3183><sprite=dame><sprite=<sprite=0001>>', CodeAccumulator, ea51, nil, nil, true, SpriteFilterAccumulator(ef51))}
         assert.are.same({77 + (- 13 + 1) * 2, 1, 77}, ec51)
         assert.are.same(77 + (- 13 + 1) * 2, #ea51)
-        assert.are.same({'<SPRITE=3182>', 17, 29}, ea51[17])
-        assert.are.same({'<sprite=0001>', 64, 76}, ea51[64 - 13 + 1])
+        assert.are.same({'<SPRITE=3182>', 17, 17, 29}, ea51[17])
+        assert.are.same({'<sprite=0001>', 64 - 13 + 1, 64, 76}, ea51[64 - 13 + 1])
         assert.are.same({
             {3182},
             {1}
@@ -653,19 +657,19 @@ describe('Test cytanb owner user', function ()
 
         local ea52 = {}
         local ef52 = {}
-        local ec52 = {cytanb.StringEachCode('<sprite=0><sprite=1><sprite=2><sprite=3><sprite=4><sprite=5><sprite=6><sprite=7>', CodeAccumulator(ea52), 10, 77, true, function (spriteIndex)
+        local ec52 = {cytanb.StringEachCode('<sprite=0><sprite=1><sprite=2><sprite=3><sprite=4><sprite=5><sprite=6><sprite=7>', CodeAccumulator, ea52, 10, 77, true, function (spriteIndex)
             table.insert(ef52, {spriteIndex})
             return spriteIndex ~= 3
         end, 5)}
         assert.are.same({1 + 10 * 2 + 4 + 7, 10, 77}, ec52)
         assert.are.same(1 + 10 * 2 + 4 + 7, #ea52)
-        assert.are.same({'<sprite=1>', 11, 20}, ea52[2])
-        assert.are.same({'<sprite=2>', 21, 30}, ea52[3])
-        assert.are.same({'<', 31, 31}, ea52[4])
-        assert.are.same({'<sprite=4>', 41, 50}, ea52[14])
-        assert.are.same({'<sprite=5>', 51, 60}, ea52[15])
-        assert.are.same({'<', 61, 61}, ea52[16])
-        assert.are.same({'<', 71, 71}, ea52[26])
+        assert.are.same({'<sprite=1>', 2, 11, 20}, ea52[2])
+        assert.are.same({'<sprite=2>', 3, 21, 30}, ea52[3])
+        assert.are.same({'<', 4, 31, 31}, ea52[4])
+        assert.are.same({'<sprite=4>', 14, 41, 50}, ea52[14])
+        assert.are.same({'<sprite=5>', 15, 51, 60}, ea52[15])
+        assert.are.same({'<', 16, 61, 61}, ea52[16])
+        assert.are.same({'<', 26, 71, 71}, ea52[26])
         assert.are.same({
             {1},
             {2},
@@ -676,14 +680,14 @@ describe('Test cytanb owner user', function ()
 
         -- @TODO support unicode
         -- local ea70 = {}
-        -- local ec70 = {cytanb.StringEachCode('aあ😀#㌣', CodeAccumulator(ea70))}
+        -- local ec70 = {cytanb.StringEachCode('aあ😀#㌣', CodeAccumulator, ea70)}
         -- assert.are.same({5, 1, string.len('aあ😀#㌣')}, ec70)
         -- assert.are.same({
-        --     {'a', 1, string.len('a')},
-        --     {'あ', string.len('a') + 1, string.len('aあ')},
-        --     {'😀', string.len('aあ') + 1, string.len('aあ😀')},
-        --     {'#', string.len('aあ😀') + 1, string.len('aあ😀#')},
-        --     {'㌣', string.len('aあ😀#') + 1, string.len('aあ😀#㌣')}
+        --     {'a', 1, 1, string.len('a')},
+        --     {'あ', 2, string.len('a') + 1, string.len('aあ')},
+        --     {'😀', 3, string.len('aあ') + 1, string.len('aあ😀')},
+        --     {'#', 4, string.len('aあ😀') + 1, string.len('aあ😀#')},
+        --     {'㌣', 5, string.len('aあ😀#') + 1, string.len('aあ😀#㌣')}
         -- }, ea70)
     end)
 

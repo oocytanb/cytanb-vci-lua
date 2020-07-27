@@ -722,31 +722,32 @@ local cytanb = (function ()
             return ret
         end,
 
-        --- **EXPERIMENTAL:実験的な機能。文字列の各コードごとに、処理を行う。**
+        --- **EXPERIMENTAL:実験的な機能。文字列をコードポイントごとに処理する。**
         ---@param str string @対象の文字列を指定する。
-        ---@param callback fun(code: string, startPos: number, endPos: number): nil | boolean @各コードごと呼び出されるコールバック関数。コールバック関数が `false` を返した場合は、処理を終了する。
+        ---@param callback fun(codeString: string, index: number, cbArg: any, beginPos: number, endPos: number): boolean | nil @コードポイントごとに呼び出されるコールバック関数(省略可能)。`codeString` には、コードポイントの文字列が渡される。`index` には、コードポイントのインデックスが渡される。`cbArg` には、関数呼び出し時に指定された値が渡される。`beginPos` には、コードポイントの開始位置が渡される。`endPos` には、コードポイントの終了位置が渡される。コールバック関数が `false` を返した場合は、処理を終了する。
+        ---@param cbArg any @コールバック関数に渡される引数を指定する(省略可能)。
         ---@param i number @開始位置を指定する。省略した場合の値は `1`。
         ---@param j number @終了位置を指定する。省略した場合の値は文字列長。
-        ---@param optTmpSpriteEnabled boolean @TextMesh Pro の `sprite` タグを、コードとして処理するかを指定する。`<sprite=index>` 形式のみサポートする。省略した場合の値は `false`。
-        ---@param optTmpSpriteFilter fun(spriteIndex: number): boolean @TextMesh Pro の `sprite` タグを、フィルターするための関数を指定する。フィルターが `true` を返した場合は、 `sprite` タグがコードとして処理される。(省略可能)
-        ---@param optTmpSpriteMaxIndex number @TextMesh Pro の `sprite` の最大インデックスを指定する。省略した場合の値は `3182`。
-        ---@return number, number, number @戻り値の1番目に処理したコードの数を、2番目に開始位置を、3番目に終了位置を返す。
-        StringEachCode = function (str, callback, i, j, optTmpSpriteEnabled, optTmpSpriteFilter, optTmpSpriteMaxIndex)
+        ---@param optTmpSpriteEnabled boolean @TextMesh Pro の `sprite` タグを、コードポイントとして処理するかを指定する。`<sprite=index>` 形式のみサポートする。省略した場合の値は `false`。
+        ---@param optTmpSpriteFilter fun(spriteIndex: number): boolean @TextMesh Pro の `sprite` タグを、フィルターするための関数を指定する(省略可能)。フィルターが `true` を返した場合は、 `sprite` タグがコードポイントとして処理される。
+        ---@param optTmpSpriteMaxIndex number @TextMesh Pro の `sprite` の最大インデックスを指定する。省略した場合の値は、現在のところ `3182`。アップデートにより変更される可能性がある。
+        ---@return number, number, number @戻り値の1番目に処理したコードポイントの数を、2番目に開始位置を、3番目に終了位置を返す。
+        StringEachCode = function (str, callback, cbArg, i, j, optTmpSpriteEnabled, optTmpSpriteFilter, optTmpSpriteMaxIndex)
             local len = string.len(str)
             if len == 0 then
                 return 0, 0, 0
             end
 
-            local startPos = i and math.floor(i) or 1
+            local beginPos = i and math.floor(i) or 1
             local endPos = j and math.floor(j) or len
             local tmpSpriteMaxIndex = math.min(optTmpSpriteMaxIndex or 3182, 0x1FFFFF)
 
-            if startPos <= 0 or endPos > len or startPos > endPos then
+            if beginPos <= 0 or endPos > len or beginPos > endPos then
                 error('StringEachCode: invalid range')
             end
 
             local count = 0
-            local pos = startPos
+            local pos = beginPos
             local definitePos = pos
             while pos <= endPos do
                 local si = pos
@@ -768,14 +769,14 @@ local cytanb = (function ()
                 count = count + 1
                 definitePos = pos
 
-                if callback and callback(string.sub(str, si, pos), si, pos) == false then
+                if callback and callback(string.sub(str, si, pos), count, cbArg, si, pos) == false then
                     break
                 end
 
                 pos = pos + 1
             end
 
-            return count, startPos, definitePos
+            return count, beginPos, definitePos
         end,
 
         SetConst = function (target, name, value)
