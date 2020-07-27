@@ -602,6 +602,11 @@ return (function ()
 
                 local i = string.find(str1, str2, - len2, true)
                 return i ~= nil
+            end,
+
+            unicode = function (str, i, j)
+                -- @TODO implement Unicode conversion
+                return string.byte(str, i, j)
             end
         },
 

@@ -11,6 +11,12 @@ local cytanb = (function ()
     --- 規定のホワイトスペースの検索パターン。
     local defaultWhiteSpaceSearchPattern
 
+    --- TMP Sprite のノード名の検索パターン。
+    local tmpSpriteNodeNamePattern
+
+    --- TMP Sprite のインデックスの検索パターン。
+    local tmpSpriteIndexPattern
+
     --- 16 進数の検索パターン。
     local hexSearchPattern_4
     local hexSearchPattern_8
@@ -141,6 +147,48 @@ local cytanb = (function ()
                 return false, -1
             end
         end
+    end
+
+    --- Unicode のサロゲートペアを処理する。
+    ---@param secondPos number @ハイサロゲートに続く、2番目の位置を指定する。
+    ---@param endPos number @終了位置を指定する。
+    ---@return boolean, number, number | nil @1番目にマッチしたか、2番目にマッチした場合の終了位置、3番目にマッチした場合のローサロゲート値を返す。
+    local ParseSurrogatePart = function (str, secondPos, endPos)
+        if secondPos <= endPos then
+            local c = string.unicode(str, secondPos, secondPos)
+            if c >= 0xDC00 or c <= 0xDFFF then
+                -- ローサロゲートペアにマッチした
+                return true, 1, c
+            end
+        end
+        return false, -1, nil
+    end
+
+    --- TextMesh Pro の `sprite` タグを処理する。`<sprite=index>` 形式のみサポートする。
+    ---@param secondPos number @`<` に続く、2番目の位置を指定する。
+    ---@param endPos number @終了位置を指定する。
+    ---@param tmpSpriteMaxIndex number @スプライトの最大インデックスを指定する。
+    ---@return boolean, number, number | nil @1番目にマッチしたか、2番目にマッチした場合の終了位置、3番目にマッチした場合のスプライトインデックス値を返す。
+    local ParseTmpSpritePart = function (str, secondPos, endPos, tmpSpriteMaxIndex)
+        if secondPos <= endPos then
+            local bNodeName, mlNodeName = cytanb.StringStartsWith(str, tmpSpriteNodeNamePattern, secondPos)
+            if bNodeName then
+                local indexPos = secondPos + mlNodeName
+                if indexPos <= endPos then
+                    local bIndex, mlIndex = cytanb.StringStartsWith(str, tmpSpriteIndexPattern, indexPos)
+                    if bIndex then
+                        local gtPos = indexPos + mlIndex
+                        if gtPos <= endPos and string.unicode(str, gtPos, gtPos) == 0x3E then
+                            local spriteIndex = tonumber(string.sub(str, indexPos, indexPos + mlIndex - 1))
+                            if spriteIndex <= tmpSpriteMaxIndex then
+                                return true, gtPos - secondPos + 1, spriteIndex
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        return false, -1, nil
     end
 
     local UUIDCompare = function (op1, op2)
@@ -672,6 +720,62 @@ local cytanb = (function ()
                 end
             end
             return ret
+        end,
+
+        --- **EXPERIMENTAL:実験的な機能。文字列の各コードごとに、処理を行う。**
+        ---@param str string @対象の文字列を指定する。
+        ---@param callback fun(code: string, startPos: number, endPos: number): nil | boolean @各コードごと呼び出されるコールバック関数。コールバック関数が `false` を返した場合は、処理を終了する。
+        ---@param i number @開始位置を指定する。省略した場合の値は `1`。
+        ---@param j number @終了位置を指定する。省略した場合の値は文字列長。
+        ---@param optTmpSpriteEnabled boolean @TextMesh Pro の `sprite` タグを、コードとして処理するかを指定する。`<sprite=index>` 形式のみサポートする。省略した場合の値は `false`。
+        ---@param optTmpSpriteFilter fun(spriteIndex: number): boolean @TextMesh Pro の `sprite` タグを、フィルターするための関数を指定する。フィルターが `true` を返した場合は、 `sprite` タグがコードとして処理される。(省略可能)
+        ---@param optTmpSpriteMaxIndex number @TextMesh Pro の `sprite` の最大インデックスを指定する。省略した場合の値は `3182`。
+        ---@return number, number, number @戻り値の1番目に処理したコードの数を、2番目に開始位置を、3番目に終了位置を返す。
+        StringEachCode = function (str, callback, i, j, optTmpSpriteEnabled, optTmpSpriteFilter, optTmpSpriteMaxIndex)
+            local len = string.len(str)
+            if len == 0 then
+                return 0, 0, 0
+            end
+
+            local startPos = i and math.floor(i) or 1
+            local endPos = j and math.floor(j) or len
+            local tmpSpriteMaxIndex = math.min(optTmpSpriteMaxIndex or 3182, 0x1FFFFF)
+
+            if startPos <= 0 or endPos > len or startPos > endPos then
+                error('StringEachCode: invalid range')
+            end
+
+            local count = 0
+            local pos = startPos
+            local definitePos = pos
+            while pos <= endPos do
+                local si = pos
+                local c = string.unicode(str, pos, pos)
+                if c >= 0xD800 and c <= 0xDBFF then
+                    -- サロゲートペアを処理する。
+                    local b, ml = ParseSurrogatePart(str, pos + 1, endPos)
+                    if b then
+                        pos = pos + ml
+                    end
+                elseif optTmpSpriteEnabled and c == 0x3C then
+                    -- `sprite` タグを処理する。
+                    local b, ml, spriteIndex = ParseTmpSpritePart(str, pos + 1, endPos, tmpSpriteMaxIndex)
+                    if b and (not optTmpSpriteFilter or optTmpSpriteFilter(spriteIndex)) then
+                        pos = pos + ml
+                    end
+                end
+
+                count = count + 1
+                definitePos = pos
+
+                if callback and callback(string.sub(str, si, pos), si, pos) == false then
+                    break
+                end
+
+                pos = pos + 1
+            end
+
+            return count, startPos, definitePos
         end,
 
         SetConst = function (target, name, value)
@@ -2514,6 +2618,14 @@ local cytanb = (function ()
     defaultWhiteSpaceSearchPattern = cytanb.MakeSearchPattern({
         '\t', '\n', '\v', '\f', '\r', ' '
     }, 1, -1)
+
+    tmpSpriteNodeNamePattern = cytanb.MakeSearchPattern({
+        'sprite=', 'SPRITE='
+    })
+
+    tmpSpriteIndexPattern = cytanb.MakeSearchPattern({
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+    }, 1, 9)
 
     hexSearchPattern_4, hexSearchPattern_8 = (function ()
         local hexCharactes = {
