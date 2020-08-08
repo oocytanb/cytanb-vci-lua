@@ -49,8 +49,8 @@
 ---@field NillableValueOrDefault fun (nillable: any, defaultValue: any): any @`nillable` の値を返す。`nillable` が `nil` の場合は、`defaultValue` で指定した値を返す。`defaultValue` が `nil` の場合は、エラーを発生させる。
 ---@field NillableIfHasValue fun (nillable: any, callback: fun(value: any)) @`nillable` の値が `nil` ではない場合は、`callback` を実行する。`value` に `nillable` の値が渡される。
 ---@field NillableIfHasValueOrElse fun (nillable: any, callback: fun(value: any), emptyCallback: fun()): any @`nillable` の値が `nil` ではない場合は `callback` を実行する。`value` に `nillable` の値が渡される。`nillable` の値が `nil` の場合は `emptyCallback` を実行する。コールバック関数の実行結果を返す。
----@field StringStartsWith fun (str: string, search: string, optPosition: number): string @`str` の文字列が `search` に指定した文字列で始まるかを調べる。`optPosition` に、検索開始位置を指定することもできる (省略可能)。
----@field StringEndsWith fun (str: string, search: string, optLength: number): string @`str` の文字列が `search` に指定した文字列で終わるかを調べる。`optLength` に、検索開始位置を指定することもできる (省略可能)。
+---@field StringStartsWith fun (str: string, search: string, optPosition: number): boolean @`str` の文字列が `search` に指定した文字列で始まるかを調べる。`optPosition` に、検索開始位置を指定することもできる (省略可能)。
+---@field StringEndsWith fun (str: string, search: string, optLength: number): boolean @`str` の文字列が `search` に指定した文字列で終わるかを調べる。`optLength` に、検索開始位置を指定することもできる (省略可能)。
 ---@field StringTrimStart fun (str: string): string @`str` の文字列から、 先頭の空白を取り除いた文字列を返す。`StringTrim` も参照のこと。
 ---@field StringTrimEnd fun (str: string): string @`str` の文字列から、 末尾の空白を取り除いた文字列を返す。`StringTrim` も参照のこと。
 ---@field StringTrim fun (str: string): string @`str` の文字列から、 先頭と末尾の空白 ('\t', '\n', '\v', '\f', '\r', ' ') を取り除いた文字列を返す。
