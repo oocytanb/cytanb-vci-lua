@@ -1,17 +1,38 @@
 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2019 oO (https://github.com/oocytanb)
 
+describe('Test non-module', function ()
+    local module
+    setup(function ()
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
+        module = require('cytanb')
+    end)
+
+    teardown(function ()
+        package.loaded['cytanb'] = nil
+        vci.fake.Teardown(_G)
+    end)
+
+    it('Module has not impl', function ()
+        -- モジュールが `nil` を返した場合は、`package.loaded[modname]` に `true` が格納される。`require` の戻り値として、`true` が返される。
+        assert.is_true(module)
+        assert.is_true(package.loaded['cytanb'])
+    end)
+end)
+
 describe('Test cytanb owner user', function ()
     ---@type cytanb
     local cytanb
 
     setup(function ()
         require('cytanb_fake_vci').vci.fake.Setup(_G)
-        cytanb = require('cytanb')
+        _G.__CYTANB_EXPORT_MODULE = true
+        cytanb = require('cytanb')(_ENV)
     end)
 
     teardown(function ()
         package.loaded['cytanb'] = nil
+        _G.__CYTANB_EXPORT_MODULE = nil
         vci.fake.Teardown(_G)
     end)
 
@@ -2324,11 +2345,13 @@ describe('Test cytanb guest user', function ()
         require('cytanb_fake_vci').vci.fake.Setup(_G)
         vci.fake.SetAssetsIsMine(false)
 
-        cytanb = require('cytanb')
+        _G.__CYTANB_EXPORT_MODULE = true
+        cytanb = require('cytanb')(_ENV)
     end)
 
     teardown(function ()
         package.loaded['cytanb'] = nil
+        _G.__CYTANB_EXPORT_MODULE = nil
         vci.fake.Teardown(_G)
     end)
 

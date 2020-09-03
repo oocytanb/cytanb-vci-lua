@@ -6,16 +6,17 @@ describe('Test cytanb_min', function ()
 
     setup(function ()
         require('cytanb_fake_vci').vci.fake.Setup(_G)
-
-        min = require('cytanb_min') and package.loaded['cytanb']
+        _G.__CYTANB_EXPORT_MODULE = true
+        min = require('cytanb_min')(_ENV)
         package.loaded['cytanb'] = nil
         package.loaded['cytanb_min'] = nil
-        full = require('cytanb')
+        full = require('cytanb')(_ENV)
     end)
 
     teardown(function ()
         package.loaded['cytanb'] = nil
         package.loaded['cytanb_min'] = nil
+        _G.__CYTANB_EXPORT_MODULE = nil
         vci.fake.Teardown(_G)
     end)
 
