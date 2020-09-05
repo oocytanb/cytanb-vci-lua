@@ -1676,6 +1676,28 @@ local cytanb = (function ()
                 end
             end)(),
 
+            --- **EXPERIMENTAL:実験的な機能。** 協定世界時 (UTC) の 1970-01-01T00:00:00Z から指定した時刻までの経過時間を、秒単位の数値で返す。
+            --- 閏秒が含まれるかはシステム依存。
+            --- `os.time` の戻り値の意味は実装依存であり、直接その値を計算に使うことができないため、`os.difftime` を利用することで、秒数を取得している。
+            ---@param optTime number @`os.time` 関数で得られる時刻を指定する。省略した場合は、引数なしの `os.time()` で得られる現在時刻となる。
+            ---@return number @1970-01-01T00:00:00Z から指定した時刻までの経過時間を、秒単位の数値で返す。
+            UnixTime = (function ()
+                -- `os.time(table)` の結果が負の値になるような場合は、`nil` が返されることがあるため、`day = 2` を基準にする。
+                -- `os.time(table)` へ渡した日付時刻データが、UTC かローカルタイムの、いずれとして扱われるかは実装依存。
+                local baseTime = os.time({year = 1970, month = 1, day = 2, hour = 0, min = 0, sec = 0, isdst = false})
+                if not baseTime then
+                    error('unexpected')
+                end
+
+                local baseUtcDate = os.date('!*t', baseTime)
+                local offset = (((baseUtcDate.day - 1) * 24 + baseUtcDate.hour) * 60 + baseUtcDate.min) * 60 + baseUtcDate.sec
+
+                return function (optTime)
+                    local time = optTime and optTime or os.time()
+                    return os.difftime(time, baseTime) + offset
+                end
+            end)(),
+
             ---@class cytanb_local_shared_properties_t ローカルの共有プロパティ
 
             --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** ローカルの共有プロパティを作成する。
@@ -2720,8 +2742,8 @@ local cytanb = (function ()
 
     if __CYTANB_EXPORT_MODULE then
         return setmetatable({}, {
-            __call = function (self, env)
-                return makeImpl(env)
+            __call = function (self, _ENV)
+                return makeImpl(_ENV)
             end
         })
     else

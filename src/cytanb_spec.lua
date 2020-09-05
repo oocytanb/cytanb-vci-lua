@@ -2335,6 +2335,13 @@ describe('Test cytanb owner user', function ()
         assert.are.same({0.5, 'y', -24}, {cytanb.CalculateSIPrefix(0.5e-24)})
         assert.are.same({-0.0009765625, 'y', -24}, {cytanb.CalculateSIPrefix(-0.0009765625e-24)})
     end)
+
+    it('UnixTime', function ()
+        local now = os.time()
+        assert.are.same(now, cytanb.UnixTime())
+        assert.are.same(now, cytanb.UnixTime(now))
+        assert.are.same(0, cytanb.UnixTime(0))
+    end)
 end)
 
 describe('Test cytanb guest user', function ()
