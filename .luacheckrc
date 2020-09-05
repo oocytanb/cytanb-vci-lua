@@ -26,7 +26,8 @@ globals = {
     "onCollisionExit",
     "onGrab",
     "onUngrab",
-    "__CYTANB_EXPORT_MODULE"
+    "__CYTANB_EXPORT_MODULE",
+    "cytanb"
 }
 
 self = false
