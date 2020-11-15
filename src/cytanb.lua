@@ -19,6 +19,10 @@ local cytanb = (function ()
         --- インスタンス ID の状態変数名。
         local InstanceIDStateName = '__CYTANB_INSTANCE_ID'
 
+        --- **将来的には廃止する予定**
+        local InstanceIDStatePatching = true
+        local initialInstanceIDQueried = false
+
         --- 規定のホワイトスペースの検索パターン。
         local defaultWhiteSpaceSearchPattern
 
@@ -560,6 +564,11 @@ local cytanb = (function ()
             InstanceID = function ()
                 if instanceID == '' then
                     instanceID = vci.state.Get(InstanceIDStateName) or ''
+                    if InstanceIDStatePatching and not initialInstanceIDQueried and instanceID == '' then
+                        -- InstanceID が同期されていない場合の対策
+                        initialInstanceIDQueried = true
+                        vci.message.Emit(cytanb.InstanceIDStatePatchingMessageName, '')
+                    end
                 end
                 return instanceID
             end,
@@ -2088,10 +2097,11 @@ local cytanb = (function ()
             --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。アップデートルーチンを作成する。`updateAll` 関数で、作成したルーチンを呼び出すこと。
             ---@param updateCallback fun(deltaTime: TimeSpan, unscaledDeltaTime: TimeSpan) @毎フレーム呼び出されるコールバック関数。
             ---@param nillableFirstTimeCallback fun() @初回のアップデート時に、一度だけ呼び出されるコールバック関数。省略可能。
-            CreateUpdateRoutine = function (updateCallback, nillableFirstTimeCallback)
+            ---@param errorCallback fun(reason: string) @エラーの発生時に、呼び出されるコールバック関数。省略可能。
+            CreateUpdateRoutine = function (updateCallback, nillableFirstTimeCallback, errorCallback)
                 return coroutine.wrap(function ()
                     -- InstanceID を取得できるまで待つ。
-                    local MaxWaitTime = TimeSpan.FromSeconds(30)
+                    local MaxWaitTime = TimeSpan.FromSeconds(60)
                     local unscaledStartTime = vci.me.UnscaledTime
                     local unscaledLastTime = unscaledStartTime
                     local lastTime = vci.me.Time
@@ -2104,7 +2114,11 @@ local cytanb = (function ()
 
                         local unscaledNow = vci.me.UnscaledTime
                         if unscaledNow - MaxWaitTime > unscaledStartTime then
-                            cytanb.LogError('TIMEOUT: Could not receive Instance ID.')
+                            local reason = 'TIMEOUT: Could not receive Instance ID.'
+                            cytanb.LogError(reason)
+                            if errorCallback then
+                                errorCallback(reason)
+                            end
                             return -1
                         end
 
@@ -2636,6 +2650,7 @@ local cytanb = (function ()
             QuaternionTypeName = 'Quaternion',
             DedicatedCommentMessageName = 'cytanb.comment.a2a6a035-6b8d-4e06-b4f9-07e6209b0639',
             DedicatedNotificationMessageName = 'cytanb.notification.698ba55f-2b69-47f2-a68d-bc303994cff3',
+            InstanceIDStatePatchingMessageName = 'cytanb.instance_id_state_patching.08504824-2041-42a2-9b2a-97448b4418b0',
             LOCAL_SHARED_PROPERTY_EXPIRED_KEY = '__CYTANB_LOCAL_SHARED_PROPERTY_EXPIRED'
         })
 
@@ -2736,6 +2751,15 @@ local cytanb = (function ()
 
             return rInstanceID, rClientID
         end)()
+
+        if InstanceIDStatePatching then
+            -- InstanceID が同期されていない場合の対策
+            vci.message.On(cytanb.InstanceIDStatePatchingMessageName, function (sender, messageName, message)
+                if vci.assets.IsMine and instanceID ~= '' then
+                    vci.state.Set(InstanceIDStateName, instanceID)
+                end
+            end)
+        end
 
         return cytanb
     end
