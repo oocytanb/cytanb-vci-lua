@@ -41,8 +41,14 @@ describe('Test cytanb owner user', function ()
     end)
 
     it('owner InstanceID', function ()
+        local cb = spy.new(function (sender, messageName, message) end)
+        vci.message.On(cytanb.InstanceIDStatePatchingMessageName, cb)
+
+        assert.spy(cb).was.called(0)
         assert.are.same(36, #cytanb.InstanceID())
+        assert.spy(cb).was.called(0)
         assert.is_truthy(cytanb.UUIDFromString(cytanb.InstanceID()))
+        assert.spy(cb).was.called(0)
     end)
 
     it('ClientID', function ()
@@ -2363,8 +2369,16 @@ describe('Test cytanb guest user', function ()
     end)
 
     it('guest InstanceID', function ()
+        local cb = spy.new(function (sender, messageName, message)
+            vci.state.Set('__CYTANB_INSTANCE_ID', '12345678-90ab-cdef-1234-567890abcdef')
+        end)
+
+        vci.message.On(cytanb.InstanceIDStatePatchingMessageName, cb)
+
+        assert.spy(cb).was.called(0)
         assert.are.same('', cytanb.InstanceID())
-        vci.state.Set('__CYTANB_INSTANCE_ID', '12345678-90ab-cdef-1234-567890abcdef')
+        assert.spy(cb).was.called(1)
         assert.are.same('12345678-90ab-cdef-1234-567890abcdef', cytanb.InstanceID())
+        assert.spy(cb).was.called(1)
     end)
 end)
