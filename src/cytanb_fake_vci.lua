@@ -624,7 +624,7 @@ return (function ()
                 return dkjson.encode(table)
             end,
 
-            isNull = function (val)
+            isnull = function (val)
                 return val == dkjson.null
             end,
 
