@@ -4,7 +4,7 @@
 -- **EXPERIMENTAL:実験的な機能。** `cytanb.lua` をモジュールとして利用する場合は、以下の通り。
 --   1. このスクリプトファイルにある `local __CYTANB_EXPORT_MODULE = true` の行を有効にする。
 --   2. `VCI Object` コンポーンネントの `Scripts` に、`cytanb.lua` をモジュール名 `cytanb` として追加設定する。
---   3. VCAS@1.7.0a で追加された `require` 関数を `main.lua` スクリプトの先頭で、 `local cytanb = require('cytanb')(_ENV)` として 1 度だけ呼び出す。
+--   3. VCAS@1.7.0a で追加された `require` 関数を `main.lua` スクリプトの先頭で、 `cytanb = cytanb or require('cytanb')(_ENV)` として 1 度だけ呼び出す。
 
 -- **`cytanb.lua` をモジュールとして利用する場合は、次の行を有効にすること。**
 -- local __CYTANB_EXPORT_MODULE = true

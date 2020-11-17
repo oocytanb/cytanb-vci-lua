@@ -61,25 +61,85 @@ describe('Test cytanb_fake_vci', function ()
     it('json', function ()
         local table1 = {foo = "apple"}
         local table2 = {bar = 1234.5}
-        local table3 = {baz = json.null()}
-        local table4 = {qux = true, quux = table1}
+        local table3 = {qux = true, quux = table1}
+        local table4 = {baz = nil}
+        local table5 = {baz = json.null()}
+        local table20 = {negativeNumber = -567}
+        local table21 = {[-90] = "negativeNumberIndex"}
+        local table22 = {[92] = "someNumberIndex"}
+
+        local arr40 = {arr = {100, 200, 300}}
+        local arr41 = {arr = {{101, 102}}}
+        local arr42 = {arr = {{{111, 112}}}}
+        local arr43 = {arr = {100, {201, 202}}}
+        local arr44 = {arr = {100, {{211, 212}, 202}}}
+        local arr45 = {arr = {100, {201, {{2111}}, 203}}}
+        local arr46 = {arr = {100, {201, {211, {2111}}, 203}}}
+        local arr47 = {arr = {[1] = 100, [2] = 200, [4040] = 4040}}
+        local arr48 = {arr = {[1] = 100, [2] = 200, foo = "apple"}}
+        local arr49 = {arr = {[0] = 0, [1] = 100, [2] = 200}}
 
         local jstr1 = json.serialize(table1)
         local jstr2 = json.serialize(table2)
         local jstr3 = json.serialize(table3)
         local jstr4 = json.serialize(table4)
+        local jstr5 = json.serialize(table5)
+        local jstr20 = json.serialize(table20)
+        local jstr21 = json.serialize(table21)
+        local jstr22 = json.serialize(table22)
 
-        assert.is_true(json.isNull(json.null()))
-        assert.is_false(json.isNull(nil))
+        local jarr40 = json.serialize(arr40)
+        local jarr41 = json.serialize(arr41)
+        local jarr42 = json.serialize(arr42)
+        local jarr43 = json.serialize(arr43)
+        local jarr44 = json.serialize(arr44)
+        local jarr45 = json.serialize(arr45)
+        local jarr46 = json.serialize(arr46)
+        local jarr47 = json.serialize(arr47)
+        local jarr48 = json.serialize(arr48)
+        local jarr49 = json.serialize(arr49)
+
+        assert.is_true(json.isnull(json.null()))
+        assert.is_false(json.isnull(nil))
 
         assert.are.same('{"foo":"apple"}', jstr1)
         assert.are.same('{"bar":1234.5}', jstr2)
-        assert.are.same('{"baz":null}', jstr3)
+        -- assert.are.same('{"baz":null}', jstr4)                               -- VCAS 2.0.0a
+        assert.are.same('{"baz":null}', jstr5)
+        assert.are.same('{"negativeNumber":-567}', jstr20)
+        assert.are.same('{"-90":"negativeNumberIndex"}', jstr21)                -- VCAS 2.0.0a: '{}'
+        assert.are.same('{"92":"someNumberIndex"}', jstr22)                     -- VCAS 2.0.0a: '{}'
+
+        assert.are.same('{"arr":[100,200,300]}', jarr40)
+        assert.are.same('{"arr":[[101,102]]}', jarr41)
+        assert.are.same('{"arr":[[[111,112]]]}', jarr42)
+        assert.are.same('{"arr":[100,[201,202]]}', jarr43)
+        assert.are.same('{"arr":[100,[[211,212],202]]}', jarr44)
+        assert.are.same('{"arr":[100,[201,[[2111]],203]]}', jarr45)
+        assert.are.same('{"arr":[100,[201,[211,[2111]],203]]}', jarr46)
+        -- assert.are.same('{"arr":{"1":100,"2":200,"4040":4040}}', jarr47)     -- VCAS 2.0.0a: '{"arr":[100,200]}'
+        -- assert.are.same('{"arr":{"1":100,"2":200,"foo":"apple"}}', jarr48)   -- VCAS 2.0.0a: '{"arr":[100,200]}'
+        -- assert.are.same('{"arr":{"0":0,"1":100,"2":200}}', jarr49)           -- VCAS 2.0.0a: '{"arr":[100,200]}'
 
         assert.are.same(table1, json.parse(jstr1))
         assert.are.same(table2, json.parse(jstr2))
         assert.are.same(table3, json.parse(jstr3))
         assert.are.same(table4, json.parse(jstr4))
+        assert.are.same(table20, json.parse(jstr20))
+        assert.are.same({["-90"] = "negativeNumberIndex"}, json.parse(jstr21))
+        assert.are.same({["92"] = "someNumberIndex"}, json.parse(jstr22))
+        assert.are.same({solidas = "/"}, json.parse('{"solidas":"\\/"}'))
+
+        assert.are.same(arr40, json.parse(jarr40))
+        assert.are.same(arr41, json.parse(jarr41))
+        assert.are.same(arr42, json.parse(jarr42))
+        assert.are.same(arr43, json.parse(jarr43))
+        assert.are.same(arr44, json.parse(jarr44))
+        assert.are.same(arr45, json.parse(jarr45))
+        assert.are.same(arr46, json.parse(jarr46))
+        assert.are.same({["1"] = 100, ["2"] = 200, ["4040"] = 4040}, json.parse(jarr47).arr)
+        assert.are.same({["1"] = 100, ["2"] = 200, foo = "apple"}, json.parse(jarr48).arr)
+        assert.are.same({["0"] = 0, ["1"] = 100, ["2"] = 200}, json.parse(jarr49).arr)
     end)
 
     it('Vector2', function ()
