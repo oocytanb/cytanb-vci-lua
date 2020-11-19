@@ -4,7 +4,7 @@
 -- **EXPERIMENTAL:実験的な機能。** `cytanb.lua` をモジュールとして利用する場合は、以下の通り。
 --   1. このスクリプトファイルにある `local __CYTANB_EXPORT_MODULE = true` の行を有効にする。
 --   2. `VCI Object` コンポーンネントの `Scripts` に、`cytanb.lua` をモジュール名 `cytanb` として追加設定する。
---   3. VCAS@1.7.0a で追加された `require` 関数を `main.lua` スクリプトの先頭で、 `cytanb = cytanb or require('cytanb')(_ENV)` として 1 度だけ呼び出す。
+--   3. VCI の `require` 関数を `main.lua` スクリプトから `cytanb = cytanb or require('cytanb')(_ENV)` として呼び出す。
 
 -- **`cytanb.lua` をモジュールとして利用する場合は、次の行を有効にすること。**
 -- local __CYTANB_EXPORT_MODULE = true
@@ -2096,28 +2096,24 @@ local cytanb = (function ()
 
             --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。アップデートルーチンを作成する。`updateAll` 関数で、作成したルーチンを呼び出すこと。
             ---@param updateCallback fun(deltaTime: TimeSpan, unscaledDeltaTime: TimeSpan) @毎フレーム呼び出されるコールバック関数。
-            ---@param nillableFirstTimeCallback fun() @初回のアップデート時に、一度だけ呼び出されるコールバック関数。省略可能。
-            ---@param errorCallback fun(reason: string) @エラーの発生時に、呼び出されるコールバック関数。省略可能。
-            CreateUpdateRoutine = function (updateCallback, nillableFirstTimeCallback, errorCallback)
+            ---@param optFirstTimeCallback fun() @初回のアップデート時に、一度だけ呼び出されるコールバック関数。省略可能。
+            ---@param optErrorCallback fun(reason: string) @エラーの発生時に、呼び出されるコールバック関数。省略可能。
+            ---@param optMaxWaitTime TimeSpan @同期が完了するまでの、最大の待ち時間。省略した場合の規定値は 60 秒。
+            CreateUpdateRoutine = function (updateCallback, optFirstTimeCallback, optErrorCallback, optMaxWaitTime)
                 return coroutine.wrap(function ()
                     -- InstanceID を取得できるまで待つ。
-                    local MaxWaitTime = TimeSpan.FromSeconds(60)
+                    local maxWaitTime = optMaxWaitTime or TimeSpan.FromSeconds(60)
                     local unscaledStartTime = vci.me.UnscaledTime
                     local unscaledLastTime = unscaledStartTime
                     local lastTime = vci.me.Time
                     local needWaiting = true
-                    while true do
-                        local id = cytanb.InstanceID()
-                        if id ~= '' then
-                            break
-                        end
-
+                    while cytanb.InstanceID() == '' do
                         local unscaledNow = vci.me.UnscaledTime
-                        if unscaledNow - MaxWaitTime > unscaledStartTime then
+                        if unscaledNow - maxWaitTime > unscaledStartTime then
                             local reason = 'TIMEOUT: Could not receive Instance ID.'
                             cytanb.LogError(reason)
-                            if errorCallback then
-                                errorCallback(reason)
+                            if optErrorCallback then
+                                optErrorCallback(reason)
                             end
                             return -1
                         end
@@ -2136,9 +2132,9 @@ local cytanb = (function ()
                     end
 
                     -- ロード完了。
-                    cytanb.NillableIfHasValue(nillableFirstTimeCallback, function (cb)
-                        cb()
-                    end)
+                    if optFirstTimeCallback then
+                        optFirstTimeCallback()
+                    end
 
                     while true do
                         local now = vci.me.Time
