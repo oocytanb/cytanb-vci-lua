@@ -48,6 +48,8 @@ return (function ()
         rawset(table, key, v)
     end
 
+    local cytanb_g_lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
+
     local cytanb
     cytanb = {
         SetConst = function (target, name, value)
@@ -1548,6 +1550,8 @@ return (function ()
             -- fake module
             fake = {
                 Setup = function (target)
+                    _G[cytanb_g_lspid] = nil
+
                     for k, v in pairs(fakeModule) do
                         if moonsharpAdditions[k] then
                             if target[k] == nil then
@@ -1581,6 +1585,7 @@ return (function ()
                     end
 
                     package.loaded[ModuleName] = nil
+                    _G[cytanb_g_lspid] = nil
                 end,
 
                 Round = function (num, decimalPlaces)

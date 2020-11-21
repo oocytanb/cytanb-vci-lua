@@ -1,8 +1,8 @@
 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2019 oO (https://github.com/oocytanb)
 
--- **EXPERIMENTAL:実験的な機能。** `cytanb.lua` をモジュールとして利用する場合は、以下の通り。
---   1. このスクリプトファイルにある `local __CYTANB_EXPORT_MODULE = true` の行を有効にする。
+-- `cytanb.lua` をモジュールとして利用する場合は、以下の通り。
+--   1. この手順の説明の下にある `local __CYTANB_EXPORT_MODULE = true` の行を有効にする。
 --   2. `VCI Object` コンポーンネントの `Scripts` に、`cytanb.lua` をモジュール名 `cytanb` として追加設定する。
 --   3. VCI の `require` 関数を `main.lua` スクリプトから `cytanb = cytanb or require('cytanb')(_ENV)` として呼び出す。
 
@@ -23,7 +23,7 @@ local cytanb = (function ()
         local InstanceIDStatePatching = true
         local initialInstanceIDQueried = false
 
-        --- 規定のホワイトスペースの検索パターン。
+        --- 既定のホワイトスペースの検索パターン。
         local defaultWhiteSpaceSearchPattern
 
         --- TMP Sprite のノード名の検索パターン。
@@ -288,6 +288,10 @@ local cytanb = (function ()
         end
 
         local TestValueFromTable = function (tbl, typeName)
+            if not tbl then
+                return false, false
+            end
+
             local nillableType = tbl[cytanb.TypeParameterName]
             if cytanb.NillableHasValue(nillableType) and cytanb.NillableValue(nillableType) ~= typeName then
                 -- 型が一致していない
@@ -571,6 +575,10 @@ local cytanb = (function ()
                     end
                 end
                 return instanceID
+            end,
+
+            ClientID = function ()
+                return clientID
             end,
 
             NillableHasValue = function (nillable)
@@ -940,6 +948,22 @@ local cytanb = (function ()
                     return '(' .. t .. ') ' .. tostring(v)
                 end
             end,
+
+            PosixTime = (function ()
+                -- `os.time(table)` の結果が負の値になるような場合は、`nil` が返されることがあるため、`day = 2` を基準にする。
+                -- `os.time(table)` へ渡した日付時刻データが、UTC かローカルタイムの、いずれとして扱われるかは実装依存。
+                local baseTime = os.time({year = 1970, month = 1, day = 2, hour = 0, min = 0, sec = 0, isdst = false})
+                if not baseTime then
+                    error('unexpected')
+                end
+
+                local baseUtcDate = os.date('!*t', baseTime)
+                local offset = (((baseUtcDate.day - 1) * 24 + baseUtcDate.hour) * 60 + baseUtcDate.min) * 60 + baseUtcDate.sec
+
+                return function (optTime)
+                    return os.difftime(optTime or os.time(), baseTime) + offset
+                end
+            end)(),
 
             GetLogLevel = function ()
                 return logLevel
@@ -1469,7 +1493,7 @@ local cytanb = (function ()
             end,
 
             ColorToTable = function (color)
-                return {[cytanb.TypeParameterName] = cytanb.ColorTypeName, r = color.r, g = color.g, b = color.b, a = color.a}
+                return color and {[cytanb.TypeParameterName] = cytanb.ColorTypeName, r = color.r, g = color.g, b = color.b, a = color.a} or nil
             end,
 
             ColorFromTable = function (tbl)
@@ -1478,7 +1502,7 @@ local cytanb = (function ()
             end,
 
             Vector2ToTable = function (value)
-                return {[cytanb.TypeParameterName] = cytanb.Vector2TypeName, x = value.x, y = value.y}
+                return value and {[cytanb.TypeParameterName] = cytanb.Vector2TypeName, x = value.x, y = value.y} or nil
             end,
 
             Vector2FromTable = function (tbl)
@@ -1487,7 +1511,7 @@ local cytanb = (function ()
             end,
 
             Vector3ToTable = function (value)
-                return {[cytanb.TypeParameterName] = cytanb.Vector3TypeName, x = value.x, y = value.y, z = value.z}
+                return value and {[cytanb.TypeParameterName] = cytanb.Vector3TypeName, x = value.x, y = value.y, z = value.z} or nil
             end,
 
             Vector3FromTable = function (tbl)
@@ -1496,7 +1520,7 @@ local cytanb = (function ()
             end,
 
             Vector4ToTable = function (value)
-                return {[cytanb.TypeParameterName] = cytanb.Vector4TypeName, x = value.x, y = value.y, z = value.z, w = value.w}
+                return value and {[cytanb.TypeParameterName] = cytanb.Vector4TypeName, x = value.x, y = value.y, z = value.z, w = value.w} or nil
             end,
 
             Vector4FromTable = function (tbl)
@@ -1505,7 +1529,7 @@ local cytanb = (function ()
             end,
 
             QuaternionToTable = function (value)
-                return {[cytanb.TypeParameterName] = cytanb.QuaternionTypeName, x = value.x, y = value.y, z = value.z, w = value.w}
+                return value and {[cytanb.TypeParameterName] = cytanb.QuaternionTypeName, x = value.x, y = value.y, z = value.z, w = value.w} or nil
             end,
 
             QuaternionFromTable = function (tbl)
@@ -1544,7 +1568,11 @@ local cytanb = (function ()
                         return {}
                     end
                 )
-                serData[cytanb.InstanceIDParameterName] = cytanb.InstanceID()
+                local id = cytanb.InstanceID()
+                if id == '' then
+                    cytanb.LogWarn('EmitMessage: InstanceID is empty. Consider using the CreateUpdateRoutine function.')
+                end
+                serData[cytanb.InstanceIDParameterName] = id
                 vci.message.Emit(name, json.serialize(serData))
             end,
 
@@ -1616,12 +1644,6 @@ local cytanb = (function ()
                 return map
             end,
 
-            --- **EXPERIMENTAL:実験的な機能。** クライアント ID を取得する。
-            ---@return string
-            ClientID = function ()
-                return clientID
-            end,
-
             --- **EXPERIMENTAL:実験的な機能。** タグ文字列をパースする。文字列全体の書式は、ベース名に 0 個以上のタグが続く。`basename#tag1#tag2...#tagN` タグの書式は、ハッシュ記号 `#` にタグ名、省略可能な値の指定が続く。`#name[=value]` 値を省略した場合は、タグ名が値となる。タグ名と値に使用可能な文字は、`A-Z a-z 0-9 _ - .` および、予約文字として `( ) ! ~ * ' %` となっている。(例: `foo#bar#baz=123`)
             ---@return table<string, string>, string @戻り値の1番目にタグのマップを、2番目にベース名を返す。
             ParseTagString = function (str)
@@ -1685,28 +1707,6 @@ local cytanb = (function ()
                 end
             end)(),
 
-            --- **EXPERIMENTAL:実験的な機能。** 協定世界時 (UTC) の 1970-01-01T00:00:00Z から指定した時刻までの経過時間を、秒単位の数値で返す。
-            --- 閏秒が含まれるかはシステム依存。
-            --- `os.time` の戻り値の意味は実装依存であり、直接その値を計算に使うことができないため、`os.difftime` を利用することで、秒数を取得している。
-            ---@param optTime number @`os.time` 関数で得られる時刻を指定する。省略した場合は、引数なしの `os.time()` で得られる現在時刻となる。
-            ---@return number @1970-01-01T00:00:00Z から指定した時刻までの経過時間を、秒単位の数値で返す。
-            UnixTime = (function ()
-                -- `os.time(table)` の結果が負の値になるような場合は、`nil` が返されることがあるため、`day = 2` を基準にする。
-                -- `os.time(table)` へ渡した日付時刻データが、UTC かローカルタイムの、いずれとして扱われるかは実装依存。
-                local baseTime = os.time({year = 1970, month = 1, day = 2, hour = 0, min = 0, sec = 0, isdst = false})
-                if not baseTime then
-                    error('unexpected')
-                end
-
-                local baseUtcDate = os.date('!*t', baseTime)
-                local offset = (((baseUtcDate.day - 1) * 24 + baseUtcDate.hour) * 60 + baseUtcDate.min) * 60 + baseUtcDate.sec
-
-                return function (optTime)
-                    local time = optTime and optTime or os.time()
-                    return os.difftime(time, baseTime) + offset
-                end
-            end)(),
-
             ---@class cytanb_local_shared_properties_t ローカルの共有プロパティ
 
             --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** ローカルの共有プロパティを作成する。
@@ -1752,7 +1752,7 @@ local cytanb = (function ()
 
                     --- プロパティの値を取得する。
                     ---@param key string @プロパティのキー値を指定する。
-                    ---@param defaultValue any @プロパティ値が `nil` であった場合の規定値を指定する。
+                    ---@param defaultValue any @プロパティ値が `nil` であった場合の既定値を指定する。
                     ---@return any @取得したプロパティ値。
                     GetProperty = function (key, defaultValue)
                         local value = pmap[key]
@@ -1835,7 +1835,7 @@ local cytanb = (function ()
 
                 local acceleration = 1000.0
 
-                -- 規定値は 0.02 sec とする。
+                -- 既定値は 0.02 sec とする。
                 local timestep = TimeSpan.FromSeconds(0.02)
 
                 local timestepPrecision = 0xFFFF
@@ -2098,7 +2098,7 @@ local cytanb = (function ()
             ---@param updateCallback fun(deltaTime: TimeSpan, unscaledDeltaTime: TimeSpan) @毎フレーム呼び出されるコールバック関数。
             ---@param optFirstTimeCallback fun() @初回のアップデート時に、一度だけ呼び出されるコールバック関数。省略可能。
             ---@param optErrorCallback fun(reason: string) @エラーの発生時に、呼び出されるコールバック関数。省略可能。
-            ---@param optMaxWaitTime TimeSpan @同期が完了するまでの、最大の待ち時間。省略した場合の規定値は 60 秒。
+            ---@param optMaxWaitTime TimeSpan @同期が完了するまでの、最大の待ち時間。省略した場合の既定値は 60 秒。
             CreateUpdateRoutine = function (updateCallback, optFirstTimeCallback, optErrorCallback, optMaxWaitTime)
                 return coroutine.wrap(function ()
                     -- InstanceID を取得できるまで待つ。
@@ -2598,6 +2598,11 @@ local cytanb = (function ()
                 return self
             end,
 
+            -- @deprecated
+            UnixTime = function (optTime)
+                return cytanb.PosixTime(optTime)
+            end,
+
             -- @deprecated この関数のかわりに、`Vector3ToTable/QuaternionToTable` を使用すること。
             GetSubItemTransform = function (subItem)
                 local position = subItem.GetPosition()
@@ -2727,7 +2732,7 @@ local cytanb = (function ()
             -- set random seed
             local seed = pmap.randomSeedValue
             if not seed then
-                seed = os.time() - os.clock() * 10000
+                seed = cytanb.PosixTime() - os.clock() * 10000
                 pmap.randomSeedValue = seed
                 math.randomseed(seed)
             end
@@ -2762,8 +2767,8 @@ local cytanb = (function ()
 
     if __CYTANB_EXPORT_MODULE then
         return setmetatable({}, {
-            __call = function (self, _ENV)
-                return makeImpl(_ENV)
+            __call = function (self, main_env)
+                return makeImpl(main_env)
             end
         })
     else

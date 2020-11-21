@@ -28,10 +28,10 @@
 ---@field LogLevelDebug number @デバッグレベルのログを表す定数値。
 ---@field LogLevelTrace number @トレースレベルのログを表す定数値。
 ---@field LogLevelAll number @すべてのログ出力を行うことを表す定数値。
----@field ColorHueSamples number @デフォルトの色相のサンプル数。
----@field ColorSaturationSamples number @デフォルトの彩度のサンプル数。
----@field ColorBrightnessSamples number @デフォルトの明度のサンプル数。
----@field ColorMapSize number @デフォルトのカラーマップのサイズ。
+---@field ColorHueSamples number @既定の色相のサンプル数。
+---@field ColorSaturationSamples number @既定の彩度のサンプル数。
+---@field ColorBrightnessSamples number @既定の明度のサンプル数。
+---@field ColorMapSize number @既定のカラーマップのサイズ。
 ---@field EscapeSequenceTag string @負の数値を示すタグ。
 ---@field SolidusTag string @フォワードスラッシュ '/' を示すタグ。
 ---@field NegativeNumberTag string @負の数値を示すタグ。
@@ -44,6 +44,7 @@
 ---@field Vector3TypeName string @`Vector3` のタイプ名。
 ---@field QuaternionTypeName string @`Quaternion` のタイプ名。
 ---@field InstanceID fun (): string @インスタンス ID を取得する。VCI を設置したユーザー以外では、同期完了前は空文字列を返す。
+---@field ClientID fun (): string @クライアント ID を取得する。ユーザーローカルで生成される。
 ---@field NillableHasValue fun (nillable: any): boolean @`nillable` が `nil` 以外の値であるかを調べる。
 ---@field NillableValue fun (nillable: any): any @`nillable` の値を返す。`nillable` が `nil` の場合は、エラーを発生させる。
 ---@field NillableValueOrDefault fun (nillable: any, defaultValue: any): any @`nillable` の値を返す。`nillable` が `nil` の場合は、`defaultValue` で指定した値を返す。`defaultValue` が `nil` の場合は、エラーを発生させる。
@@ -59,7 +60,8 @@
 ---@field SetConstEach fun (target: table, entries: table<string, any>): table @`entries` のそれぞれの要素について `SetConst` を行い、target 自身を返す。
 ---@field Extend fun (target: table, source: table, deep: boolean, omitMetaTable: boolean): table @`target` のテーブルフィールドを `source` のテーブルフィールドで拡張し、その結果を返す。`deep` に `true` を指定した場合は、ディープコピーを行う(省略するか `false` を指定した場合は、シャローコピーを行う)。`omitMetaTable` に 'true' を指定した場合は、メタテーブルをコピーしない。ただし、シャローコピーした場合は下位のテーブルの参照値がそのままコピーされる。(省略するか `false` を指定した場合は、コピーする)。
 ---@field Vars fun (v: any, padding: string): string @変数の情報を文字列で返す。`padding` は省略可能。`padding` に '__NOLF' を指定した場合は、インデントおよび改行を行わない。
----@field GetLogLevel fun (): number @現在のログレベルを取得する。デフォルト値は `LogLevelInfo`。
+---@field PosixTime fun (optTime: number): number @協定世界時 (UTC) の 1970-01-01T00:00:00Z から、指定した時刻までの経過時間を、秒単位の数値で返す。閏秒が含まれるかはシステム依存。`os.time` の戻り値の意味は実装依存であり、直接その値を計算に使うことができないため、`os.difftime` を利用することで、秒数を取得している。`optTime` には `os.time` 関数で得られる時刻を指定する。省略した場合は、引数なしの `os.time()` で得られる現在時刻となる。
+---@field GetLogLevel fun (): number @現在のログレベルを取得する。既定値は `LogLevelInfo`。
 ---@field SetLogLevel fun (level: number) @ログレベルを設定する。
 ---@field IsOutputLogLevelEnabled fun (): boolean @ログレベルの文字列を出力するかを取得する。
 ---@field SetOutputLogLevelEnabled fun (enabled: boolean) @ログレベルの文字列を出力するかを設定する。

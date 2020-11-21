@@ -829,6 +829,13 @@ describe('Test cytanb owner user', function ()
         assert.are.same('(number) -123.45', cytanb.Vars(-123.45))
     end)
 
+    it('PosixTime', function ()
+        local now = os.time()
+        assert.are.same(now, cytanb.PosixTime())
+        assert.are.same(now, cytanb.PosixTime(now))
+        assert.are.same(0, cytanb.PosixTime(0))
+    end)
+
     it('LogLevel', function ()
         assert.are.same(cytanb.LogLevelOff, 0)
         assert.is_true(cytanb.LogLevelFatal > cytanb.LogLevelOff)
@@ -1547,6 +1554,8 @@ describe('Test cytanb owner user', function ()
     end)
 
     it('ValueTableConversion', function ()
+        assert.is_nil(cytanb.ColorToTable(nil))
+        assert.is_nil(cytanb.ColorFromTable(nil))
         local v100 = Color.__new(0, 0.75, 1.25, 0.5)
         local t100 = {__CYTANB_TYPE = 'Color', r = 0, g = 0.75, b = 1.25, a = 0.5}
         assert.are.same(t100, cytanb.ColorToTable(v100))
@@ -1566,6 +1575,8 @@ describe('Test cytanb owner user', function ()
         assert.is_nil(cytanb.ColorFromTable({__CYTANB_TYPE = 'INVALID_TYPE', r = 0, g = 0.75, b = 1.25, a = 0.5}))
         assert.is_nil(cytanb.ColorFromTable({__CYTANB_TYPE = 'Vector4', x = 0, y = 0, z = 0, w = 1}))
 
+        assert.is_nil(cytanb.Vector2ToTable(nil))
+        assert.is_nil(cytanb.Vector2FromTable(nil))
         local v200 = Vector2.__new(123, -49.75)
         local t200 = {__CYTANB_TYPE = 'Vector2', x = 123, y = -49.75}
         assert.are.same(t200, cytanb.Vector2ToTable(v200))
@@ -1585,6 +1596,8 @@ describe('Test cytanb owner user', function ()
         assert.is_nil(cytanb.Vector2FromTable({__CYTANB_TYPE = 'INVALID_TYPE', x = 123, y = -49.75}))
         assert.is_nil(cytanb.Vector2FromTable({__CYTANB_TYPE = 'Quaternion', x = 0, y = 0, z = 0, w = 1}))
 
+        assert.is_nil(cytanb.Vector3ToTable(nil))
+        assert.is_nil(cytanb.Vector3FromTable(nil))
         local v300 = Vector3.__new(123, -49.75, 0)
         local t300 = {__CYTANB_TYPE = 'Vector3', x = 123, y = -49.75, z = 0}
         assert.are.same(t300, cytanb.Vector3ToTable(v300))
@@ -1604,6 +1617,8 @@ describe('Test cytanb owner user', function ()
         assert.is_nil(cytanb.Vector3FromTable({__CYTANB_TYPE = 'INVALID_TYPE', x = 123, y = -49.75, z = 0}))
         assert.is_nil(cytanb.Vector3FromTable({__CYTANB_TYPE = 'Quaternion', x = 0, y = 0, z = 0, w = 1}))
 
+        assert.is_nil(cytanb.Vector4ToTable(nil))
+        assert.is_nil(cytanb.Vector4FromTable(nil))
         local v400 = Vector4.__new(123, -49.75, 0, 0.25)
         local t400 = {__CYTANB_TYPE = 'Vector4', x = 123, y = -49.75, z = 0, w = 0.25}
         assert.are.same(t400, cytanb.Vector4ToTable(v400))
@@ -1623,6 +1638,8 @@ describe('Test cytanb owner user', function ()
         assert.is_nil(cytanb.Vector4FromTable({__CYTANB_TYPE = 'INVALID_TYPE', x = 123, y = -49.75, z = 0, w = 0.25}))
         assert.is_nil(cytanb.Vector4FromTable({__CYTANB_TYPE = 'Quaternion', x = 0, y = 0, z = 0, w = 1}))
 
+        assert.is_nil(cytanb.QuaternionToTable(nil))
+        assert.is_nil(cytanb.QuaternionFromTable(nil))
         local v500 = Quaternion.__new(-0.109807625412941, 0.146410167217255, -0.183012709021568, 0.965925812721252)
         local t500 = {__CYTANB_TYPE = 'Quaternion', x = -0.109807625412941, y = 0.146410167217255, z = -0.183012709021568, w = 0.965925812721252}
         assert.are.same(t500, cytanb.QuaternionToTable(v500))
@@ -2341,13 +2358,6 @@ describe('Test cytanb owner user', function ()
         assert.are.same({0.5, 'y', -24}, {cytanb.CalculateSIPrefix(0.5e-24)})
         assert.are.same({-0.0009765625, 'y', -24}, {cytanb.CalculateSIPrefix(-0.0009765625e-24)})
     end)
-
-    it('UnixTime', function ()
-        local now = os.time()
-        assert.are.same(now, cytanb.UnixTime())
-        assert.are.same(now, cytanb.UnixTime(now))
-        assert.are.same(0, cytanb.UnixTime(0))
-    end)
 end)
 
 describe('Test cytanb guest user', function ()
@@ -2369,17 +2379,118 @@ describe('Test cytanb guest user', function ()
     end)
 
     it('guest InstanceID', function ()
-        local cb = spy.new(function (sender, messageName, message) end)
+        local cbMap = {
+            cbID = function (sender ,name, parameterMap) end,
+            cbEmpty = function (sender ,name, parameterMap) end
+        }
 
-        vci.message.On(cytanb.InstanceIDStatePatchingMessageName, cb)
+        for key, val in pairs(cbMap) do
+            spy.on(cbMap, key)
+        end
 
-        assert.spy(cb).was.called(0)
+        vci.message.On(cytanb.InstanceIDStatePatchingMessageName, cbMap.cbID)
+
+        cytanb.OnMessage('empty-InstanceID', cbMap.cbEmpty)
+
+        assert.spy(cbMap.cbID).was.called(0)
         assert.are.same('', cytanb.InstanceID())
-        assert.spy(cb).was.called(1)
+        assert.spy(cbMap.cbID).was.called(1)
         assert.are.same('', cytanb.InstanceID())
-        assert.spy(cb).was.called(1)
+        assert.spy(cbMap.cbID).was.called(1)
+
+        assert.spy(cbMap.cbEmpty).was.called(0)
+        stub(cytanb, 'Log')
+        cytanb.EmitMessage('empty-InstanceID', {label = 'id-is-empty'})
+        assert.stub(cytanb.Log).was.called_with(cytanb.LogLevelWarn, 'EmitMessage: InstanceID is empty. Consider using the CreateUpdateRoutine function.')
+        assert.spy(cbMap.cbEmpty).was.called(1)
+        assert.spy(cbMap.cbID).was.called(1)
+
         vci.state.Set('__CYTANB_INSTANCE_ID', '12345678-90ab-cdef-1234-567890abcdef')
         assert.are.same('12345678-90ab-cdef-1234-567890abcdef', cytanb.InstanceID())
-        assert.spy(cb).was.called(1)
+        assert.spy(cbMap.cbID).was.called(1)
+
+        cytanb.EmitMessage('empty-InstanceID', {label = 'id-is-not-empty'})
+        assert.spy(cbMap.cbEmpty).was.called(2)
+        cytanb.Log:revert()
+
+        for key, val in pairs(cbMap) do
+            cbMap[key]:revert()
+        end
+    end)
+end)
+
+describe('Complex-require', function ()
+    local sleep = function (sec)
+        local startTime = os.clock()
+        if os.execute() ~= 0 then
+            local osVar = os.getenv('OS') or ''
+            if string.find(osVar, 'Windows', 1, true) then
+                os.execute('timeout /T ' .. sec .. ' > NUL 2>&1')
+            else
+                os.execute('sleep ' .. sec .. ' > /dev/null 2>&1')
+            end
+        end
+
+        while os.clock() - startTime <= sec do end
+    end
+
+    it('Comprex-require', function ()
+        local cytanb_g_lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
+
+        ---@type cytanb
+        local cytanb
+
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
+        _G.__CYTANB_EXPORT_MODULE = true
+        cytanb = require('cytanb')(_ENV)
+        local firstPmap = _G[cytanb_g_lspid]
+        local firstPosixTime = cytanb.PosixTime()
+        local firstSeed = firstPmap.randomSeedValue
+        local firstClientId = firstPmap.clientID
+
+        assert.are.same('number', type(firstSeed))
+        assert.are.same('string', type(firstClientId))
+
+        package.loaded['cytanb'] = nil
+        _G.__CYTANB_EXPORT_MODULE = nil
+        vci.fake.Teardown(_G)
+
+        sleep(1)
+
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
+        _G.__CYTANB_EXPORT_MODULE = true
+        cytanb = require('cytanb')(_ENV)
+        local secondPmap = _G[cytanb_g_lspid]
+        local secondPosixTime = cytanb.PosixTime()
+        local secondSeed = secondPmap.randomSeedValue
+        local secondClientId = secondPmap.clientID
+
+        assert.are.same('number', type(secondSeed))
+        assert.are.same('string', type(secondClientId))
+
+        assert.are_not.same(firstPmap, secondPmap)
+        assert.are_not.same(firstSeed, secondSeed)
+        assert.are_not.same(firstClientId, secondClientId)
+
+        assert.is_true(firstPosixTime < secondPosixTime)
+
+        package.loaded['cytanb'] = nil
+        _G.__CYTANB_EXPORT_MODULE = nil
+        vci.fake.Teardown(_G)
+
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
+        _G[cytanb_g_lspid] = firstPmap
+        _G.__CYTANB_EXPORT_MODULE = true
+        cytanb = require('cytanb')(_ENV)
+        local thirdPmap = _G[cytanb_g_lspid]
+        local thirdPosixTime = cytanb.PosixTime()
+        local thirdSeed = thirdPmap.randomSeedValue
+        local thirdClientId = thirdPmap.clientID
+
+        assert.are.same(firstPmap, thirdPmap)
+        assert.are.same(firstSeed, thirdSeed)
+        assert.are.same(firstClientId, thirdClientId)
+
+        assert.is_true(firstPosixTime < thirdPosixTime)
     end)
 end)
