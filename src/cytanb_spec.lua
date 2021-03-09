@@ -4,6 +4,7 @@
 describe('Test non-module', function ()
     local module
     setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
         require('cytanb_fake_vci').vci.fake.Setup(_G)
         module = require('cytanb')
     end)
@@ -24,7 +25,10 @@ describe('Test cytanb owner user', function ()
     ---@type cytanb
     local cytanb
 
+    local calcUUIDVariance = false
+
     setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
         require('cytanb_fake_vci').vci.fake.Setup(_G)
         _G.__CYTANB_EXPORT_MODULE = true
         cytanb = require('cytanb')(_ENV)
@@ -41,14 +45,8 @@ describe('Test cytanb owner user', function ()
     end)
 
     it('owner InstanceID', function ()
-        local cb = spy.new(function (sender, messageName, message) end)
-        vci.message.On(cytanb.InstanceIDStatePatchingMessageName, cb)
-
-        assert.spy(cb).was.called(0)
         assert.are.same(36, #cytanb.InstanceID())
-        assert.spy(cb).was.called(0)
         assert.is_truthy(cytanb.UUIDFromString(cytanb.InstanceID()))
-        assert.spy(cb).was.called(0)
     end)
 
     it('ClientID', function ()
@@ -1293,7 +1291,7 @@ describe('Test cytanb owner user', function ()
         local uuidTable = {}
         local samples = {}
         local sampleSize = 16
-        for i = 1, 128 do
+        for i = 1, 256 do
             local uuidN = cytanb.RandomUUID()
             assert.are.same(4, #uuidN)
             assert.are.same(4, bit32.band(bit32.rshift(uuidN[2], 12), 0xF))
@@ -1316,8 +1314,7 @@ describe('Test cytanb owner user', function ()
             end
         end
 
-        local calcVariance = false
-        if calcVariance then
+        if calcUUIDVariance then
             print('---- UUID Random Variance ----')
             local sum = 0
             for i = 1, sampleSize do
@@ -2365,6 +2362,7 @@ describe('Test cytanb guest user', function ()
     local cytanb
 
     setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
         require('cytanb_fake_vci').vci.fake.Setup(_G)
         vci.fake.SetAssetsIsMine(false)
 
@@ -2380,7 +2378,6 @@ describe('Test cytanb guest user', function ()
 
     it('guest InstanceID', function ()
         local cbMap = {
-            cbID = function (sender ,name, parameterMap) end,
             cbEmpty = function (sender ,name, parameterMap) end
         }
 
@@ -2388,26 +2385,16 @@ describe('Test cytanb guest user', function ()
             spy.on(cbMap, key)
         end
 
-        vci.message.On(cytanb.InstanceIDStatePatchingMessageName, cbMap.cbID)
-
         cytanb.OnMessage('empty-InstanceID', cbMap.cbEmpty)
 
-        assert.spy(cbMap.cbID).was.called(0)
-        assert.are.same('', cytanb.InstanceID())
-        assert.spy(cbMap.cbID).was.called(1)
-        assert.are.same('', cytanb.InstanceID())
-        assert.spy(cbMap.cbID).was.called(1)
+        local instanceId = cytanb.InstanceID()
+        assert.is_truthy(cytanb.UUIDFromString(instanceId))
+        assert.are.same(instanceId, cytanb.InstanceID())
 
         assert.spy(cbMap.cbEmpty).was.called(0)
         stub(cytanb, 'Log')
         cytanb.EmitMessage('empty-InstanceID', {label = 'id-is-empty'})
-        assert.stub(cytanb.Log).was.called_with(cytanb.LogLevelWarn, 'EmitMessage: InstanceID is empty. Consider using the CreateUpdateRoutine function.')
         assert.spy(cbMap.cbEmpty).was.called(1)
-        assert.spy(cbMap.cbID).was.called(1)
-
-        vci.state.Set('__CYTANB_INSTANCE_ID', '12345678-90ab-cdef-1234-567890abcdef')
-        assert.are.same('12345678-90ab-cdef-1234-567890abcdef', cytanb.InstanceID())
-        assert.spy(cbMap.cbID).was.called(1)
 
         cytanb.EmitMessage('empty-InstanceID', {label = 'id-is-not-empty'})
         assert.spy(cbMap.cbEmpty).was.called(2)
@@ -2445,10 +2432,8 @@ describe('Complex-require', function ()
         cytanb = require('cytanb')(_ENV)
         local firstPmap = _G[cytanb_g_lspid]
         local firstPosixTime = cytanb.PosixTime()
-        local firstSeed = firstPmap.randomSeedValue
         local firstClientId = firstPmap.clientID
 
-        assert.are.same('number', type(firstSeed))
         assert.are.same('string', type(firstClientId))
 
         package.loaded['cytanb'] = nil
@@ -2462,14 +2447,11 @@ describe('Complex-require', function ()
         cytanb = require('cytanb')(_ENV)
         local secondPmap = _G[cytanb_g_lspid]
         local secondPosixTime = cytanb.PosixTime()
-        local secondSeed = secondPmap.randomSeedValue
         local secondClientId = secondPmap.clientID
 
-        assert.are.same('number', type(secondSeed))
         assert.are.same('string', type(secondClientId))
 
         assert.are_not.same(firstPmap, secondPmap)
-        assert.are_not.same(firstSeed, secondSeed)
         assert.are_not.same(firstClientId, secondClientId)
 
         assert.is_true(firstPosixTime < secondPosixTime)
@@ -2484,11 +2466,9 @@ describe('Complex-require', function ()
         cytanb = require('cytanb')(_ENV)
         local thirdPmap = _G[cytanb_g_lspid]
         local thirdPosixTime = cytanb.PosixTime()
-        local thirdSeed = thirdPmap.randomSeedValue
         local thirdClientId = thirdPmap.clientID
 
         assert.are.same(firstPmap, thirdPmap)
-        assert.are.same(firstSeed, thirdSeed)
         assert.are.same(firstClientId, thirdClientId)
 
         assert.is_true(firstPosixTime < thirdPosixTime)

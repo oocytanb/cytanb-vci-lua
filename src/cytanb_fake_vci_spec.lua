@@ -20,6 +20,7 @@ describe('Test cytanb_fake_vci', function ()
     end
 
     setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
         require('cytanb_fake_vci').vci.fake.Setup(_G)
     end)
 

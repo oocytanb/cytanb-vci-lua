@@ -5,6 +5,7 @@ describe('Test cytanb_min as non-module', function ()
     local min
 
     setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
         require('cytanb_fake_vci').vci.fake.Setup(_G)
         min = require('cytanb_min')
     end)
