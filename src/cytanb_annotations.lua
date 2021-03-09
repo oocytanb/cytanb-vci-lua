@@ -43,7 +43,7 @@
 ---@field TypeParameterName string @タイプのパラーメーター名。
 ---@field Vector3TypeName string @`Vector3` のタイプ名。
 ---@field QuaternionTypeName string @`Quaternion` のタイプ名。
----@field InstanceID fun (): string @インスタンス ID を取得する。VCI を設置したユーザー以外では、同期完了前は空文字列を返す。
+---@field InstanceID fun (): string @`vci.assets.GetInstanceId()` の値を返す。
 ---@field ClientID fun (): string @クライアント ID を取得する。ユーザーローカルで生成される。
 ---@field NillableHasValue fun (nillable: any): boolean @`nillable` が `nil` 以外の値であるかを調べる。
 ---@field NillableValue fun (nillable: any): any @`nillable` の値を返す。`nillable` が `nil` の場合は、エラーを発生させる。

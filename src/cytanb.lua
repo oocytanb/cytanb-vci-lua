@@ -16,13 +16,6 @@ local cytanb = (function ()
             error('Invalid _ENV: Enable `__CYTANB_EXPORT_MODULE = true` line and pass valid _ENV of VCI-main if use cytanb.lua as module.', 3)
         end
 
-        --- インスタンス ID の状態変数名。
-        local InstanceIDStateName = '__CYTANB_INSTANCE_ID'
-
-        --- **将来的には廃止する予定**
-        local InstanceIDStatePatching = true
-        local initialInstanceIDQueried = false
-
         --- 既定のホワイトスペースの検索パターン。
         local defaultWhiteSpaceSearchPattern
 
@@ -56,9 +49,6 @@ local cytanb = (function ()
 
         --- ログレベルの文字列マップ。
         local logLevelStringMap
-
-        --- インスタンス ID の文字列。
-        local instanceID
 
         --- クライアント ID の文字列。
         local clientID
@@ -566,15 +556,7 @@ local cytanb = (function ()
 
         cytanb = {
             InstanceID = function ()
-                if instanceID == '' then
-                    instanceID = vci.state.Get(InstanceIDStateName) or ''
-                    if InstanceIDStatePatching and not initialInstanceIDQueried and instanceID == '' then
-                        -- InstanceID が同期されていない場合の対策
-                        initialInstanceIDQueried = true
-                        vci.message.Emit(cytanb.InstanceIDStatePatchingMessageName, '')
-                    end
-                end
-                return instanceID
+                return vci.assets.GetInstanceId() or ''
             end,
 
             ClientID = function ()
@@ -1180,7 +1162,7 @@ local cytanb = (function ()
 
             Random32 = function ()
                 -- MoonSharp では整数値の場合 32bit int 型にキャストされ、2147483646 が渡すことのできる最大値。
-                return bit32.band(math.random(-2147483648, 2147483646), 0xFFFFFFFF)
+                return bit32.band(math.random(-2147483648, 2147483646) + 2147483648, 0xFFFFFFFF)
             end,
 
             RandomUUID = function ()
@@ -2721,20 +2703,12 @@ local cytanb = (function ()
             [cytanb.LogLevelTrace] = 'TRACE'
         }
 
-        instanceID, clientID = (function ()
+        clientID = (function ()
             local lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
             local pmap = _G[lspid]
             if not pmap then
                 pmap = {}
                 _G[lspid] = pmap
-            end
-
-            -- set random seed
-            local seed = pmap.randomSeedValue
-            if not seed then
-                seed = cytanb.PosixTime() - os.clock() * 10000
-                pmap.randomSeedValue = seed
-                math.randomseed(seed)
             end
 
             local rClientID = pmap.clientID
@@ -2743,24 +2717,8 @@ local cytanb = (function ()
                 pmap.clientID = rClientID
             end
 
-            local rInstanceID = vci.state.Get(InstanceIDStateName) or ''
-            if rInstanceID == '' and vci.assets.IsMine then
-                -- vci.state に ID が設定されていない場合は生成する。
-                rInstanceID = tostring(cytanb.RandomUUID())
-                vci.state.Set(InstanceIDStateName, rInstanceID)
-            end
-
-            return rInstanceID, rClientID
+            return rClientID
         end)()
-
-        if InstanceIDStatePatching then
-            -- InstanceID が同期されていない場合の対策
-            vci.message.On(cytanb.InstanceIDStatePatchingMessageName, function (sender, messageName, message)
-                if vci.assets.IsMine and instanceID ~= '' then
-                    vci.state.Set(InstanceIDStateName, instanceID)
-                end
-            end)
-        end
 
         return cytanb
     end

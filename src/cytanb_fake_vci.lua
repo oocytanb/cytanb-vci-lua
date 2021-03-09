@@ -19,6 +19,56 @@ return (function ()
 
     local ConstVariablesFieldName = '__CYTANB_CONST_VARIABLES'
 
+    local UUIDCompare = function (op1, op2)
+        for i = 1, 4 do
+            local diff = op1[i] - op2[i]
+            if diff ~= 0 then
+                return diff
+            end
+        end
+        return 0
+    end
+
+    local UUIDMetatable
+    UUIDMetatable = {
+        __eq = function (op1, op2)
+            return op1[1] == op2[1] and op1[2] == op2[2] and op1[3] == op2[3] and op1[4] == op2[4]
+        end,
+
+        __lt = function (op1, op2)
+            return UUIDCompare(op1, op2) < 0
+        end,
+
+        __le = function (op1, op2)
+            return UUIDCompare(op1, op2) <= 0
+        end,
+
+        __tostring = function (value)
+            local second = value[2] or 0
+            local third = value[3] or 0
+            return string.format(
+                '%08x-%04x-%04x-%04x-%04x%08x',
+                bit32.band(value[1] or 0, 0xFFFFFFFF),
+                bit32.band(bit32.rshift(second, 16), 0xFFFF),
+                bit32.band(second, 0xFFFF),
+                bit32.band(bit32.rshift(third, 16), 0xFFFF),
+                bit32.band(third, 0xFFFF),
+                bit32.band(value[4] or 0, 0xFFFFFFFF)
+            )
+        end,
+
+        __concat = function (op1, op2)
+            local meta1 = getmetatable(op1)
+            local c1 = meta1 == UUIDMetatable or (type(meta1) == 'table' and meta1.__concat == UUIDMetatable.__concat)
+            local meta2 = getmetatable(op2)
+            local c2 = meta2 == UUIDMetatable or (type(meta2) == 'table' and meta2.__concat == UUIDMetatable.__concat)
+            if not c1 and not c2 then
+                error('UUID: attempt to concatenate illegal values', 2)
+            end
+            return (c1 and UUIDMetatable.__tostring(op1) or op1) .. (c2 and UUIDMetatable.__tostring(op2) or op2)
+        end
+    }
+
     local ConstIndexHandler = function (table, key)
         local meta = getmetatable(table)
         if meta then
@@ -49,6 +99,7 @@ return (function ()
     end
 
     local cytanb_g_lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
+    local instanceId = ''
 
     local cytanb
     cytanb = {
@@ -109,6 +160,43 @@ return (function ()
             else
                 return a + (b - a) * t
             end
+        end,
+
+        Random32 = function ()
+            -- MoonSharp では整数値の場合 32bit int 型にキャストされ、2147483646 が渡すことのできる最大値。
+            return bit32.band(math.random(-2147483648, 2147483646) + 2147483648, 0xFFFFFFFF)
+        end,
+
+        RandomUUID = function ()
+            return cytanb.UUIDFromNumbers(
+                cytanb.Random32(),
+                bit32.bor(0x4000, bit32.band(cytanb.Random32(), 0xFFFF0FFF)),
+                bit32.bor(0x80000000, bit32.band(cytanb.Random32(), 0x3FFFFFFF)),
+                cytanb.Random32()
+            )
+        end,
+
+        UUIDFromNumbers = function (...)
+            local first = ...
+            local t = type(first)
+            local num1, num2, num3, num4
+            if t == 'table' then
+                num1 = first[1]
+                num2 = first[2]
+                num3 = first[3]
+                num4 = first[4]
+            else
+                num1, num2, num3, num4 = ...
+            end
+
+            local uuid = {
+                bit32.band(num1 or 0, 0xFFFFFFFF),
+                bit32.band(num2 or 0, 0xFFFFFFFF),
+                bit32.band(num3 or 0, 0xFFFFFFFF),
+                bit32.band(num4 or 0, 0xFFFFFFFF)
+            }
+            setmetatable(uuid, UUIDMetatable)
+            return uuid
         end
     }
 
@@ -1428,7 +1516,11 @@ return (function ()
 
         -- [VirtualCast Official Wiki](https://virtualcast.jp/wiki/)
         vci = {
-            assets = {},
+            assets = {
+                GetInstanceId = function ()
+                    return instanceId
+                end
+            },
 
             state = {
                 Set = function (name, value)
@@ -1568,6 +1660,8 @@ return (function ()
                         end
                     end
 
+                    instanceId = tostring(cytanb.RandomUUID())
+
                     package.loaded[ModuleName] = fakeModule
                 end,
 
@@ -1583,6 +1677,8 @@ return (function ()
                             target[StringModuleName][k] = nil
                         end
                     end
+
+                    instanceId = ''
 
                     package.loaded[ModuleName] = nil
                     _G[cytanb_g_lspid] = nil
