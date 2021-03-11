@@ -1,5 +1,6 @@
 std = "lua52"
 files["src/**/*_spec.lua"].std = "+busted"
+files["src/cytanb_min.lua"] = { ignore = { "211" } }
 
 max_line_length = false
 
