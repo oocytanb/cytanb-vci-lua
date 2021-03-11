@@ -1369,30 +1369,7 @@ local cytanb = (function ()
             end,
 
             ColorRGBToHSV = function (color)
-                local r = math.max(0.0, math.min(color.r, 1.0))
-                local g = math.max(0.0, math.min(color.g, 1.0))
-                local b = math.max(0.0, math.min(color.b, 1.0))
-                local max = math.max(r, g, b)
-                local min = math.min(r, g, b)
-
-                local d = max - min
-                local h
-                if d == 0.0 then
-                    h = 0.0
-                elseif max == r then
-                    h = (g - b) / d / 6.0
-                elseif max == g then
-                    h = (2.0 + (b - r) / d) / 6.0
-                else
-                    h = (4.0 + (r - g) / d) / 6.0
-                end
-
-                if h < 0.0 then
-                    h = h + 1.0
-                end
-
-                local s = max == 0.0 and d or d / max
-                local v = max
+                local _, h, s, v = Color.RGBToHSV(color)
                 return h, s, v
             end,
 
