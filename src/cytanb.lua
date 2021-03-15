@@ -1787,83 +1787,127 @@ local cytanb = (function ()
                 return self
             end,
 
+            ---@class cytanb_estimate_fixed_timestep_parameters_t `EstimateFixedTimestep` のオプションのパラメーターテーブル。
+            ---@field mass number @質量。省略した場合は `1`。
+            ---@field acceleration number @加速度。省略した場合は `1000`。
+            ---@field startCalcTime TimeSpan @計算を開始する時間。省略した場合は 5 秒。
+            ---@field stopCalcTime TimeSpan @計算を終了する時間。省略した場合は 30 秒。
+            ---@field minCalcInterval TimeSpan @計算を行う最小インターバール。省略した場合は `TimeSpan.MaxValue`。
+            ---@field maxCalcInterval TimeSpan @計算を行う最大インターバール。省略した場合は `TimeSpan.MaxValue`。
+            ---@field defaultTimestep number @既定の Timestep。省略した場合は `0.02`。
+            ---@field queueSize number @既定のキューのサイズ。省略した場合は `64`。
+
             --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** 物理演算の実行間隔を推定する。`updateAll` 関数から呼び出して使う。`physicalObject` に `AddForce` し、オブジェクトの時間当たりの移動量から計算を行う。`physicalObject` は `Rigidbody` コンポーネントを設定 (`Mass: 1`, `Drag: 0`, `Use Gravity: OFF`, `Is Kinematic: OFF`, `Interpolate: None`, `Freeze Position: OFF`) したオブジェクト。`Collider` や `VCI Sub Item` コンポーネントをセットしてはいけない。
-            EstimateFixedTimestep = function (physicalObject)
-                -- mass は 1.0 固定とする。
-                local mass = 1.0
+            ---@param options cytanb_estimate_fixed_timestep_parameters_t オプションのパラメーター。省略可能。
+            EstimateFixedTimestep = function (physicalObject, options)
+                local opt = options or {}
 
-                local acceleration = 1000.0
+                local mass = opt.mass or 1
+                if mass <= 0 then
+                    error('EstimateFixedTimestep: Invalid argument: mass <= 0', 2)
+                end
 
-                -- 既定値は 0.02 sec とする。
-                local timestep = TimeSpan.FromSeconds(0.02)
+                local acceleration = opt.acceleration or 1000
+                if acceleration <= 0 then
+                    error('EstimateFixedTimestep: Invalid argument: acceleration <= 0', 2)
+                end
 
-                local timestepPrecision = 0xFFFF
-                local timestepQueue = cytanb.CreateCircularQueue(64)
+                local startCalcTime = opt.startCalcTime or TimeSpan.FromSeconds(5)
 
-                -- キューを使った計算を開始する時間。
-                local minTime = TimeSpan.FromSeconds(5)
+                local stopCalcTime = opt.stopCalcTime or TimeSpan.FromSeconds(30)
+                if startCalcTime < TimeSpan.Zero or startCalcTime > stopCalcTime then
+                    error('EstimateFixedTimestep: Invalid argument: startCalcTime < Zero or startCalcTime > stopCalcTime', 2)
+                end
 
-                -- キューを使った計算を終了する時間。
-                local maxTime = TimeSpan.FromSeconds(30)
+                local minCalcInterval = opt.minCalcInterval or TimeSpan.MaxValue
 
-                local finished = false
+                local maxCalcInterval = opt.maxCalcInterval or TimeSpan.MaxValue
+                if minCalcInterval <= TimeSpan.Zero or minCalcInterval > maxCalcInterval then
+                    error('EstimateFixedTimestep: Invalid argument: minCalcInterval <= Zero or minCalcInterval > maxCalcInterval', 2)
+                end
+
+                local calcInterval = minCalcInterval
+                local calcIntervalEnabled = minCalcInterval < TimeSpan.MaxValue
+
+                local timestep = opt.defaultTimestep or TimeSpan.FromSeconds(0.02)
+                local interimTimestep = timestep
+                if timestep <= TimeSpan.Zero then
+                    error('EstimateFixedTimestep: Invalid argument: timestep <= Zero', 2)
+                end
+
+                local defaultTimestepPrecision = 0xFFFF
+                local timestepPrecision = defaultTimestepPrecision
+                local interimTimestepPrecision = defaultTimestepPrecision
+
+                local timestepQueue = cytanb.CreateCircularQueue(opt.queueSize or 64)
+                if timestepQueue.MaxSize() <= 1 then
+                    error('EstimateFixedTimestep: Invalid argument: queueSize <= 1', 2)
+                end
 
                 local startTime = vci.me.Time
+                local updateTime = startTime
+
+                local prevTime = startTime
 
                 -- 開始位置の X, Y 座標はランダムに、Z 座標はゼロとする。
                 local rnd32 = cytanb.Random32()
                 local startPosition = Vector3.__new(
-                    bit32.bor(0x400, bit32.band(rnd32, 0x1FFF)),
-                    bit32.bor(0x400, bit32.band(bit32.rshift(rnd32, 16), 0x1FFF)),
-                    0.0
+                    bit32.bor(0x100, bit32.band(rnd32, 0x3F)),
+                    bit32.bor(0x100, bit32.band(bit32.rshift(rnd32, 8), 0x3F)),
+                    0
                 )
 
-                physicalObject.SetPosition(startPosition)
-                physicalObject.SetRotation(Quaternion.identity)
-                physicalObject.SetVelocity(Vector3.zero)
-                physicalObject.SetAngularVelocity(Vector3.zero)
+                local stage = 1
 
-                -- Z 軸方向に力を加える。
-                physicalObject.AddForce(Vector3.__new(0.0, 0.0, mass * acceleration))
+                local nextCalcInterval = function (min, max)
+                    local mr = min == minCalcInterval and 120 or 1200
+                    local st = min.TotalSeconds
+                    return TimeSpan.FromSeconds(
+                        math.min(
+                            st + math.random() * math.min(mr, max.TotalSeconds - st),
+                            TimeSpan.MaxValue.TotalSeconds - 1
+                        )
+                    )
+                end
 
-                local self = {
-                    --- 推定した物理演算の実行間隔を返す。
-                    Timestep = function ()
+                local stageFunctions = {
+                    function ()
+                        timestepQueue.Clear()
+                        physicalObject.SetPosition(startPosition)
+                        physicalObject.SetRotation(Quaternion.identity)
+                        physicalObject.SetVelocity(Vector3.zero)
+                        physicalObject.SetAngularVelocity(Vector3.zero)
+                        stage = stage + 1
                         return timestep
                     end,
 
-                    --- 推定した timestep の精度を返す。
-                    Precision = function ()
-                        return timestepPrecision
+                    function ()
+                        -- Z 軸方向に力を加える。
+                        physicalObject.AddForce(Vector3.__new(0.0, 0.0, mass * acceleration))
+                        startTime = vci.me.Time
+                        prevTime = startTime
+                        stage = stage + 1
+                        return timestep
                     end,
 
-                    --- 計算が完了したかを返す。
-                    IsFinished = function ()
-                        return finished
-                    end,
-
-                    --- `updateAll` 関数で、この関数を呼び出すこと。timestep を計算し、その値を返す。`IsFinish` が `true` を返したら、それ以上は呼び出す必要はない。
-                    Update = function ()
-                        if finished then
-                            return timestep
-                        end
-
-                        local elapsedTime = vci.me.Time - startTime
+                    function ()
+                        local currTime = prevTime
+                        prevTime = vci.me.Time
+                        local elapsedTime = currTime - startTime
                         local dt = elapsedTime.TotalSeconds
-                        if dt <= Vector3.kEpsilon then
+                        if dt <= 1E-10 then
                             return timestep
                         end
 
                         local dz = physicalObject.GetPosition().z - startPosition.z
-                        local vz = dz / dt
-                        local ts = vz / acceleration
-                        if ts <= Vector3.kEpsilon then
+                        local ts = dz / dt / acceleration
+                        if ts <= 1E-10 then
                             return timestep
                         end
 
                         timestepQueue.Offer(ts)
                         local queueSize = timestepQueue.Size()
-                        if queueSize >= 2 and elapsedTime >= minTime then
+                        if queueSize >= 2 and elapsedTime >= startCalcTime then
                             -- 平均と分散を計算する
                             local sum = 0.0
                             for i = 1, queueSize do
@@ -1877,26 +1921,75 @@ local cytanb = (function ()
                             end
                             local variance = vSum / queueSize
 
-                            if variance < timestepPrecision then
+                            if variance < interimTimestepPrecision then
                                 -- 分散が小さければ採用する
-                                timestepPrecision = variance
-                                timestep = TimeSpan.FromSeconds(average)
+                                interimTimestepPrecision = variance
+                                interimTimestep = TimeSpan.FromSeconds(average)
+                                updateTime = currTime
                             end
 
-                            if elapsedTime > maxTime then
-                                -- 最大時間を超えたら計算終了
-                                finished = true
+                            if elapsedTime > stopCalcTime then
+                                -- 計算終了
+                                if math.abs((interimTimestep - timestep).TotalSeconds) >= 0.001 or interimTimestepPrecision < timestepPrecision then
+                                    -- timestep の変化が大きいか、新しい値のほうが精度が高い場合は更新する
+                                    timestep = interimTimestep
+                                    timestepPrecision = interimTimestepPrecision
+                                end
+
+                                updateTime = currTime
+                                if calcInterval < TimeSpan.MaxValue then
+                                    calcInterval = nextCalcInterval(calcInterval, maxCalcInterval)
+                                end
 
                                 physicalObject.SetPosition(startPosition)
                                 physicalObject.SetRotation(Quaternion.identity)
                                 physicalObject.SetVelocity(Vector3.zero)
                                 physicalObject.SetAngularVelocity(Vector3.zero)
+                                stage = stage + 1
                             end
                         else
-                            timestep = TimeSpan.FromSeconds(ts)
+                            interimTimestep = TimeSpan.FromSeconds(ts)
+                            updateTime = currTime
+                        end
+
+                        if timestepPrecision >= defaultTimestepPrecision then
+                            timestepPrecision = interimTimestepPrecision
+                            timestep = interimTimestep
                         end
 
                         return timestep
+                    end,
+
+                    function ()
+                        prevTime = vci.me.Time
+                        return timestep
+                    end,
+                }
+
+                local stageSize = #stageFunctions
+
+                local self = {
+                    --- 推定した物理演算の実行間隔を返す。
+                    Timestep = function ()
+                        return timestep
+                    end,
+
+                    --- 推定した timestep の精度を返す。
+                    Precision = function ()
+                        return timestepPrecision
+                    end,
+
+                    -- @deprecated 非推奨。計算が完了したかを返す。
+                    IsFinished = function ()
+                        return stage == stageSize
+                    end,
+
+                    --- `updateAll` 関数で、この関数を呼び出すこと。timestep を計算し、その値を返す。
+                    Update = function ()
+                        if calcIntervalEnabled and stage == stageSize and prevTime - calcInterval >= updateTime then
+                            stage = 1
+                        end
+                        return stageFunctions[stage]()
                     end
                 }
                 return self
