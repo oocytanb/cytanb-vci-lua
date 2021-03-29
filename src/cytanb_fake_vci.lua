@@ -99,7 +99,7 @@ return (function ()
     end
 
     local cytanb_g_lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
-    local instanceId = ''
+    local instanceID = ''
 
     local cytanb
     cytanb = {
@@ -1547,7 +1547,7 @@ return (function ()
         vci = {
             assets = {
                 GetInstanceId = function ()
-                    return instanceId
+                    return instanceID
                 end
             },
 
@@ -1646,13 +1646,13 @@ return (function ()
                     messageCallbackMap[messageName][callback] = true
                 end,
 
-                Emit = function (messageName, ...)
+                EmitWithId = function (messageName, ...)
                     if select('#', ...) < 1 then
                         -- value 引数が指定されない場合は、処理しない。
                         return
                     end
 
-                    local value = ...
+                    local value, targetID = ...
                     local nv
                     local t = type(value)
                     if (t == 'number' or t == 'string' or t == 'boolean') then
@@ -1664,7 +1664,17 @@ return (function ()
                         return
                     end
 
-                    vci.fake.EmitVciMessage(currentVciName, messageName, nv)
+                    vci.fake.EmitVciMessageTo(currentVciName, messageName, nv, targetID)
+                end,
+
+                Emit = function (messageName, ...)
+                    if select('#', ...) < 1 then
+                        -- value 引数が指定されない場合は、処理しない。
+                        return
+                    end
+
+                    local value = ...
+                    vci.message.EmitWithId(messageName, value)
                 end
             },
 
@@ -1689,7 +1699,7 @@ return (function ()
                         end
                     end
 
-                    instanceId = tostring(cytanb.RandomUUID())
+                    instanceID = tostring(cytanb.RandomUUID())
 
                     package.loaded[ModuleName] = fakeModule
                 end,
@@ -1707,7 +1717,7 @@ return (function ()
                         end
                     end
 
-                    instanceId = ''
+                    instanceID = ''
 
                     package.loaded[ModuleName] = nil
                     _G[cytanb_g_lspid] = nil
@@ -1759,13 +1769,23 @@ return (function ()
                     studioSharedCallbackMap = {}
                 end,
 
-                EmitRawMessage = function (sender, messageName, value)
-                    local cbMap = messageCallbackMap[messageName]
-                    if cbMap then
-                        for cb, v in pairs(cbMap) do
-                            cb(sender, messageName, value)
+                EmitRawMessageTo = function (sender, messageName, value, targetID)
+                    if targetID == instanceID or targetID == '' or targetID == nil then
+                        local cbMap = messageCallbackMap[messageName]
+                        if cbMap then
+                            for cb, v in pairs(cbMap) do
+                                cb(sender, messageName, value)
+                            end
                         end
                     end
+                end,
+
+                EmitRawMessage = function (sender, messageName, value)
+                    vci.fake.EmitRawMessageTo(sender, messageName, value, nil)
+                end,
+
+                EmitVciMessageTo = function (vciName, messageName, value, targetID)
+                    vci.fake.EmitRawMessageTo({type = 'vci', name = vciName, commentSource = ''}, messageName, value, targetID)
                 end,
 
                 EmitVciMessage = function (vciName, messageName, value)
