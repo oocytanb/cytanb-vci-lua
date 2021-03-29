@@ -1755,9 +1755,9 @@ describe('Test cytanb owner user', function ()
         vci.fake.SetVciName('test-cytanb-module')
 
         local cbMap = {
-            cb1 = function (sender ,name, parameterMap) end,
-            cb2 = function (sender ,name, parameterMap) end,
-            cb3 = function (sender ,name, parameterMap) end,
+            cb1 = function (sender, name, parameterMap) end,
+            cb2 = function (sender, name, parameterMap) end,
+            cb3 = function (sender, name, parameterMap) end,
             cbMapComment = function (sender, name, parameterMap) end,
             cbMapNotification = function (sender, name, parameterMap) end,
             cbCytanbComment = function (sender, name, parameterMap) end,
@@ -2227,8 +2227,8 @@ describe('Test cytanb owner user', function ()
         vci.fake.SetVciName('test-instance-module')
 
         local cbMap = {
-            cb1 = function (sender ,name, parameterMap) end,
-            cb2 = function (sender ,name, parameterMap) end
+            cb1 = function (sender, name, parameterMap) end,
+            cb2 = function (sender, name, parameterMap) end
         }
 
         for key, val in pairs(cbMap) do
@@ -2254,6 +2254,74 @@ describe('Test cytanb owner user', function ()
         assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-instance-module', commentSource = ''}, 'foo', {[cytanb.InstanceIDParameterName] = '12345678-1234-1234-1234-123456789abc', num = 256})
 
         vci.fake.ClearMessageCallbacks()
+
+        for key, val in pairs(cbMap) do
+            cbMap[key]:revert()
+        end
+
+        vci.fake.SetVciName(lastVciName)
+    end)
+
+    it('MessageTo', function ()
+        local lastVciName = vci.fake.GetVciName()
+        vci.fake.SetVciName('test-message-to-module')
+
+        local cbMap = {
+            cb1 = function (sender, name, parameterMap) end,
+            cb2 = function (sender, name, parameterMap) end
+        }
+
+        for key, val in pairs(cbMap) do
+            stub(cbMap, key)
+        end
+
+        stub(cytanb, 'Log')
+
+        cytanb.OnInstanceMessage('foo', cbMap.cb1)
+        cytanb.OnMessage('foo', cbMap.cb2)
+
+        cytanb.EmitInstanceMessage('foo')
+        assert.stub(cbMap.cb1).was.called(1)
+        assert.stub(cbMap.cb1).was.called_with({type = 'vci', name = 'test-message-to-module', commentSource = ''}, 'foo', {[cytanb.InstanceIDParameterName] = cytanb.InstanceID()})
+        assert.stub(cbMap.cb2).was.called(1)
+
+        cytanb.EmitInstanceMessage('foo', {hoge = 123.45, piyo = 'abc', fuga = true, hogera = {hogehoge = -9876.5, piyopiyo = false}})
+        assert.stub(cbMap.cb1).was.called(2)
+        assert.stub(cbMap.cb2).was.called(2)
+        assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-message-to-module', commentSource = ''}, 'foo', {[cytanb.InstanceIDParameterName] = cytanb.InstanceID(), hoge = 123.45, piyo = 'abc', fuga = true, hogera = {hogehoge = -9876.5, piyopiyo = false}})
+
+        cytanb.EmitMessageTo('foo', { num = 256 }, cytanb.InstanceID())
+        assert.stub(cbMap.cb1).was.called(3)
+        assert.stub(cbMap.cb2).was.called(3)
+        assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-message-to-module', commentSource = ''}, 'foo', {[cytanb.InstanceIDParameterName] = cytanb.InstanceID(), num = 256})
+
+        vci.fake.EmitVciMessageTo('test-message-to-module', 'foo', '{"__CYTANB_INSTANCE_ID":"12345678-1234-1234-1234-123456789abc","num":256}', cytanb.InstanceID())
+        assert.stub(cbMap.cb1).was.called(3)
+        assert.stub(cbMap.cb2).was.called(4)
+        assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-message-to-module', commentSource = ''}, 'foo', {[cytanb.InstanceIDParameterName] = '12345678-1234-1234-1234-123456789abc', num = 256})
+
+        cytanb.EmitMessageTo('foo', { num = 500 }, '')
+        assert.stub(cbMap.cb1).was.called(3)
+        assert.stub(cbMap.cb2).was.called(4)
+        assert.stub(cytanb.Log).was.called(1)
+        assert.stub(cytanb.Log).was.called_with(cytanb.LogLevelWarn, 'EmitMessageTo: targetID is not specified: ')
+
+        cytanb.EmitMessageTo('foo', { num = 501 }, nil)
+        assert.stub(cbMap.cb1).was.called(3)
+        assert.stub(cbMap.cb2).was.called(4)
+        assert.stub(cytanb.Log).was.called(2)
+        assert.stub(cytanb.Log).was.called_with(cytanb.LogLevelWarn, 'EmitMessageTo: targetID is not specified: nil')
+
+        cytanb.EmitMessageTo('foo', { num = 502 }, 'INVALID_ID')
+        cytanb.EmitMessageTo('foo', { num = 503 }, false)
+
+        assert.stub(cbMap.cb1).was.called(3)
+        assert.stub(cbMap.cb2).was.called(4)
+        assert.stub(cytanb.Log).was.called(2)
+
+        vci.fake.ClearMessageCallbacks()
+
+        cytanb.Log:revert()
 
         for key, val in pairs(cbMap) do
             cbMap[key]:revert()

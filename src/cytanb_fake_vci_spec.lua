@@ -1015,6 +1015,30 @@ describe('Test cytanb_fake_vci', function ()
         assert.stub(cbMap.cb1).was.called(3)
         assert.stub(cbMap.cb2).was.called(5)
         assert.stub(cbMap.cb3).was.called(1)
+        assert.stub(cbMap.cb3).was.called_with({type = 'vci', name = 'test-msg-vci', commentSource = ''}, 'bar', 100)
+
+        vci.message.EmitWithId('bar', 200, vci.assets.GetInstanceId())
+        assert.stub(cbMap.cb1).was.called(3)
+        assert.stub(cbMap.cb2).was.called(5)
+        assert.stub(cbMap.cb3).was.called(2)
+        assert.stub(cbMap.cb3).was.called_with({type = 'vci', name = 'test-msg-vci', commentSource = ''}, 'bar', 200)
+
+        vci.message.EmitWithId('bar', 300, '')
+        assert.stub(cbMap.cb3).was.called(3)
+        assert.stub(cbMap.cb3).was.called_with({type = 'vci', name = 'test-msg-vci', commentSource = ''}, 'bar', 300)
+
+        vci.message.EmitWithId('bar', 400, nil)
+        assert.stub(cbMap.cb3).was.called(4)
+        assert.stub(cbMap.cb3).was.called_with({type = 'vci', name = 'test-msg-vci', commentSource = ''}, 'bar', 400)
+
+        vci.message.EmitWithId('bar', 502, 'INVALID_ID')
+        assert.stub(cbMap.cb3).was.called(4)
+
+        vci.message.EmitWithId('bar', 503, false)
+        assert.stub(cbMap.cb3).was.called(4)
+
+        vci.message.EmitWithId('bar', 504, 0)
+        assert.stub(cbMap.cb3).was.called(4)
 
         assert.stub(cbMap.cbComment).was.called(0)
 
@@ -1050,13 +1074,13 @@ describe('Test cytanb_fake_vci', function ()
 
         assert.stub(cbMap.cb1).was.called(3)
         assert.stub(cbMap.cb2).was.called(5)
-        assert.stub(cbMap.cb3).was.called(1)
+        assert.stub(cbMap.cb3).was.called(4)
         assert.stub(cbMap.cbComment).was.called(4)
 
         vci.fake.ClearMessageCallbacks()
 
         vci.message.Emit('bar', 404)
-        assert.stub(cbMap.cb3).was.called(1)
+        assert.stub(cbMap.cb3).was.called(4)
         assert.stub(cbMap.cb3).was_not.called_with(404)
 
         for key, val in pairs(cbMap) do

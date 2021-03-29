@@ -527,6 +527,27 @@ local cytanb = (function ()
             end
         end
 
+        local MakeMessageData = function (parameterMap)
+            local serData = cytanb.NillableIfHasValueOrElse(
+                parameterMap,
+                function (data)
+                    if type(data) ~= 'table' then
+                        error('MakeMessageData: Invalid argument: table expected', 4)
+                    end
+                    return cytanb.TableToSerializable(data)
+                end,
+                function ()
+                    return {}
+                end
+            )
+            local id = cytanb.InstanceID()
+            if id == '' then
+                cytanb.LogWarn('MakeMessageData: InstanceID is empty.')
+            end
+            serData[cytanb.InstanceIDParameterName] = id
+            return json.serialize(serData)
+        end
+
         local EmitDedicatedMessage = function (name, message, senderOverride, defaultSenderType)
             local defaultSender = {type = defaultSenderType, name = '', commentSource = ''}
             local parameterMap = {
@@ -1515,24 +1536,21 @@ local cytanb = (function ()
             end,
 
             EmitMessage = function (name, parameterMap)
-                local serData = cytanb.NillableIfHasValueOrElse(
-                    parameterMap,
-                    function (data)
-                        if type(data) ~= 'table' then
-                            error('EmitMessage: Invalid argument: table expected', 3)
-                        end
-                        return cytanb.TableToSerializable(data)
-                    end,
-                    function ()
-                        return {}
-                    end
-                )
-                local id = cytanb.InstanceID()
-                if id == '' then
-                    cytanb.LogWarn('EmitMessage: InstanceID is empty. Consider using the CreateUpdateRoutine function.')
+                vci.message.Emit(name, MakeMessageData(parameterMap))
+            end,
+
+            --- **EXPERIMENTAL:実験的な機能。`targetID` で指定された ID で `vci.message.EmitWithId` を呼び出す。その他の事項については `EmitMessage` を参照。
+            EmitMessageTo = function (name, parameterMap, targetID)
+                if targetID ~= nil and targetID ~= '' then
+                    vci.message.EmitWithId(name, MakeMessageData(parameterMap), targetID)
+                else
+                    cytanb.LogWarn('EmitMessageTo: targetID is not specified: ' .. tostring(targetID))
                 end
-                serData[cytanb.InstanceIDParameterName] = id
-                vci.message.Emit(name, json.serialize(serData))
+            end,
+
+            --- **EXPERIMENTAL:実験的な機能。`cytanb.EmitMessageTo(name, parameterMap, cytanb.InstanceID())` と等価。
+            EmitInstanceMessage = function (name, parameterMap)
+                cytanb.EmitMessageTo(name, parameterMap, cytanb.InstanceID())
             end,
 
             OnMessage = function (name, callback)
