@@ -1,6 +1,6 @@
 # cytanb-vci-lua
 
-[![Build Status](https://travis-ci.org/oocytanb/cytanb-vci-lua.svg?branch=master)](https://travis-ci.org/oocytanb/cytanb-vci-lua)
+![busted](https://github.com/oocytanb/cytanb-vci-lua/workflows/busted/badge.svg)
 
 VCI のスクリプトから利用できる Lua のモジュール群です。
 
@@ -14,9 +14,9 @@ VCI のスクリプトから利用できる Lua のモジュール群です。
 - [Lua](https://www.lua.org/) 5.2
 - [MoonSharp](https://www.moonsharp.org/) 2.0.0.0
 - [LuaRocks](https://luarocks.org/)
-- [hererocks](https://github.com/mpeterv/hererocks)
+- [hererocks](https://github.com/luarocks/hererocks)
 - [busted](https://olivinelabs.com/busted/)
-- [luacheck](https://github.com/mpeterv/luacheck)
+- [luacheck](https://github.com/luarocks/luacheck)
 - [dkjson](http://dkolf.de/src/dkjson-lua.fsl/)
 
 ## Git
@@ -93,13 +93,13 @@ VCI のスクリプトから利用できる Lua のモジュール群です。
 
 ## Unit testing
 
-- [Travis CI](https://travis-ci.org/) により、リポジトリに Push すると自動テストが行われます。
+- リポジトリに Push すると自動テストが行われます。
 
 - テスティングフレームワークとして、[busted](https://olivinelabs.com/busted/) を導入しています。
 
 - ローカル環境でテストを実行するには、[LuaRocks](https://luarocks.org/) とともにインストールします。
 
-- Lua 環境を構築する方法として、[hererocks](https://github.com/mpeterv/hererocks) を利用することができます。
+- Lua 環境を構築する方法として、[hererocks](https://github.com/luarocks/hererocks) を利用することができます。
 
 - Windows 環境では以下の手順になります。
     1. [python](https://www.python.org/) をインストールします。
@@ -112,9 +112,9 @@ VCI のスクリプトから利用できる Lua のモジュール群です。
 
         ```
         set LUAENV=%LOCALAPPDATA%\luaenv
-        python -m pip install hererocks --user
+        python -m pip install git+https://github.com/luarocks/hererocks --user
         set PATH=%APPDATA%\Python\Scripts;%PATH%
-        hererocks "%LUAENV%" --lua 5.2 -rlatest
+        hererocks "%LUAENV%" -l 5.2 -r latest
         set PATH=%LUAENV%\bin;%PATH%
         luarocks install busted
         luarocks install dkjson
@@ -138,7 +138,6 @@ VCI のスクリプトから利用できる Lua のモジュール群です。
 
 - アセット等に適用するライセンスは、制作者の著作権表示とその成果物をオープンで自由に利用できることを明示する目的で、主に以下のものから選択しています。
     - [MIT License](https://opensource.org/licenses/MIT)
-    - [ISC License](https://opensource.org/licenses/ISC)
     - [BSD 2-Clause License](https://opensource.org/licenses/BSD-2-Clause)
     - [Apache License, Version 2.0](https://opensource.org/licenses/Apache-2.0)
     - [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
