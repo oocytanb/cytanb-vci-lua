@@ -323,13 +323,17 @@ return (function ()
     local moonsharpAdditions = {_MOONSHARP = true, json = true}
 
     local currentVciName = ModuleName
+    local firstUserName = 'cytanb_fake_user'
     local stateMap = {}
     local studioSharedMap = {}
     local studioSharedCallbackMap = {}
 
     local messageCallbackMap = {}
+    local nillableLocalAvatar = nil
+    local nillableOwnerAvatar = nil
+    local studioAvatarMap = {}
 
-    local fakeModule, Vector2, Vector3, Vector4, Quaternion, Matrix4x4, Color, vci
+    local fakeModule, Vector2, Vector3, Vector4, Quaternion, Matrix4x4, Color, ExportAvatar, vci
 
     local Vector2IndexMap = {'x', 'y'}
 
@@ -638,6 +642,20 @@ return (function ()
             else
                 error('Cannot access field "' .. key .. '"')
             end
+        end,
+
+        __newindex = function (table, key, v)
+            error('Cannot assign to field "' .. key .. '"')
+        end,
+
+        __tostring = function (value)
+            return value.ToString()
+        end
+    }
+
+    local ExportAvatarMetatable = {
+        __index = function (table, key)
+            error('Cannot access field "' .. key .. '"')
         end,
 
         __newindex = function (table, key, v)
@@ -1580,6 +1598,24 @@ return (function ()
             },
 
             studio = {
+                GetLocalAvatar = function ()
+                    return nillableLocalAvatar
+                end,
+
+                GetOwner = function ()
+                    return nillableOwnerAvatar
+                end,
+
+                GetAvatars = function ()
+                    local avatars = {}
+                    local i = 1
+                    for _, ava in pairs(studioAvatarMap) do
+                        avatars[i] = ava
+                        i = i + 1
+                    end
+                    return avatars
+                end,
+
                 shared = {
                     Set = function (name, value)
                         local nv
@@ -1701,6 +1737,17 @@ return (function ()
 
                     instanceID = tostring(cytanb.RandomUUID())
 
+                    nillableLocalAvatar = ExportAvatar.__new(
+                        tostring(cytanb.RandomUUID()),
+                        firstUserName
+                    )
+
+                    nillableOwnerAvatar = nillableLocalAvatar
+
+                    studioAvatarMap = {
+                        [nillableLocalAvatar.GetId()] = nillableLocalAvatar
+                    }
+
                     package.loaded[ModuleName] = fakeModule
                 end,
 
@@ -1718,6 +1765,10 @@ return (function ()
                     end
 
                     instanceID = ''
+
+                    nillableLocalAvatar = nil
+                    nillableOwnerAvatar = nil
+                    studioAvatarMap = {}
 
                     package.loaded[ModuleName] = nil
                     _G[cytanb_g_lspid] = nil
@@ -1741,12 +1792,20 @@ return (function ()
                     return dot < 1.0 + 1E-06 and dot > 1.0 - 1E-06
                 end,
 
+                GetVciName = function ()
+                    return currentVciName
+                end,
+
                 SetVciName = function (name)
                     currentVciName = tostring(name)
                 end,
 
-                GetVciName = function ()
-                    return currentVciName
+                GetFirstUserName = function ()
+                    return firstUserName
+                end,
+
+                SetFirstUserName = function (name)
+                    firstUserName = tostring(name)
                 end,
 
                 SetAssetsIsMine = function (mine)
@@ -1829,7 +1888,42 @@ return (function ()
 
                 ClearMessageCallbacks = function ()
                     messageCallbackMap = {}
-                end
+                end,
+
+                SetOwnerUser = function (userID)
+                    local ava_ = studioAvatarMap[userID]
+                    if ava_ then
+                        nillableOwnerAvatar = ava_
+                    else
+                        error('User not found: ID = "' .. tostring(userID) .. '"')
+                    end
+                end,
+
+                JoinUser = function (userID, userName)
+                    local ava_ = studioAvatarMap[userID]
+                    if ava_ then
+                        error('User is already joined: ID = "' .. tostring(userID) .. '"')
+                    else
+                        local newAva = ExportAvatar.__new(userID, userName)
+                        studioAvatarMap[userID] = newAva
+                        vci.fake.EmitVciJoinedNotificationMessage(userName)
+                        return newAva
+                    end
+                end,
+
+                LeaveUser = function (userID)
+                    local ava_ = studioAvatarMap[userID]
+                    if ava_ then
+                        if nillableOwnerAvatar == ava_ then
+                            nillableOwnerAvatar = nil
+                        end
+
+                        studioAvatarMap[userID] = nil
+                        vci.fake.EmitVciLeftNotificationMessage(ava_.GetName())
+                    else
+                        error('User not found: ID = "' .. tostring(userID) .. '"')
+                    end
+                end,
             }
         }
     }
@@ -1889,6 +1983,126 @@ return (function ()
         grey = function() return Color.__new(0.5, 0.5, 0.5, 1) end,
         clear = function() return Color.__new(0, 0, 0, 0) end
     })
+
+    ExportAvatar = {
+        __new = function (id_, name_)
+            local id = id_ or ''
+            local name = name_ or ''
+            local position_ = nil
+            local rotation_ = nil
+            local boneTransformMap = {}
+
+            local self
+            self = {
+                GetName = function ()
+                    return name
+                end,
+
+                GetId = function ()
+                    return id
+                end,
+
+                IsOwner = function ()
+                    return self == nillableOwnerAvatar
+                end,
+
+                GetLocalPosition = function ()
+                    error('!!NOT IMPLEMENTED!!')
+                end,
+
+                GetPosition = function ()
+                    return position_
+                end,
+
+                SetPosition = function (position)
+                    position_ = position
+                end,
+
+                GetLocalRotation = function ()
+                    error('!!NOT IMPLEMENTED!!')
+                end,
+
+                GetRotation = function ()
+                    return rotation_
+                end,
+
+                SetRotation = function (rotation)
+                    rotation_ = rotation
+                end,
+
+                GetLocalScale = function ()
+                    error('!!NOT IMPLEMENTED!!')
+                end,
+
+                GetRight = function ()
+                    if rotation_ then
+                        return rotation_ * Vector3.right
+                    else
+                        return nil
+                    end
+                end,
+
+                GetUp = function ()
+                    if rotation_ then
+                        return rotation_ * Vector3.up
+                    else
+                        return nil
+                    end
+                end,
+
+                GetForward = function ()
+                    if rotation_ then
+                        return rotation_ * Vector3.forward
+                    else
+                        return nil
+                    end
+                end,
+
+                GetLocalToWorldMatrix = function ()
+                    error('!!NOT IMPLEMENTED!!')
+                end,
+
+                GetBoneTransform = function (boneName)
+                    return boneTransformMap[boneName]
+                end,
+
+                SetBoneTransform = function (boneName, boneTransform)
+                    if boneTransform == nil then
+                        boneTransformMap[boneName] = nil
+                    else
+                        if type(boneTransform) ~= 'table' then
+                            error('Invalid argument: boneTransform is not table')
+                        end
+
+                        local pos = boneTransform.position
+                        if getmetatable(pos) ~= Vector3Metatable then
+                            error('Invalid argument: boneTransform.position is not Vector3')
+                        end
+
+                        local rot = boneTransform.rotation
+                        if getmetatable(rot) ~= QuaternionMetatable then
+                            error('Invalid argument: boneTransform.rotation is not Quaternion')
+                        end
+
+                        boneTransformMap[boneName] = {
+                            position = pos,
+                            rotation = rot
+                        }
+                    end
+                end,
+
+                ToString = function ()
+                    return 'VCIEmbedded.LuaMoonSharp.ExportAvatar'
+                end,
+
+                GetHashCode = function ()
+                    error('!!NOT IMPLEMENTED!!')
+                end
+            }
+            setmetatable(self, ExportAvatarMetatable)
+            return self
+        end,
+    }
 
     vci = fakeModule.vci
 

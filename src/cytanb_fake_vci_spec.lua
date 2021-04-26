@@ -1091,6 +1091,118 @@ describe('Test cytanb_fake_vci', function ()
     end)
 end)
 
+describe('Test Avatar', function ()
+    setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
+    end)
+
+    teardown(function ()
+        vci.fake.Teardown(_G)
+    end)
+
+    it('vci.studio.GetLocalAvatar', function ()
+        local ava = vci.studio.GetLocalAvatar()
+        assert.is_true(0 < string.len(ava.GetId()))
+        assert.are.equal('cytanb_fake_user', ava.GetName())
+        assert.is_true(ava.IsOwner())
+        assert.is_nil(ava.GetPosition())
+        assert.is_nil(ava.GetRotation())
+        assert.is_nil(ava.GetRight())
+        assert.is_nil(ava.GetUp())
+        assert.is_nil(ava.GetForward())
+        assert.is_nil(ava.GetBoneTransform('Hips'))
+        assert.is_true(0 < string.len(tostring(ava.IsOwner)))
+
+        ava.SetPosition(Vector3.one)
+        assert.are.equal(Vector3.one, ava.GetPosition())
+
+        local rot = Quaternion.AngleAxis(30, Vector3.__new(1, 1, 1))
+        ava.SetRotation(rot)
+        assert.are.equal(rot, ava.GetRotation())
+
+        assert.are.equal(ava.GetRight(), rot * Vector3.right)
+        assert.are.equal(ava.GetUp(), rot * Vector3.up)
+        assert.are.equal(ava.GetForward(), rot * Vector3.forward)
+
+        ava.SetBoneTransform('Hips', {
+            position = Vector3.__new(0, 1, 0),
+            rotation = Quaternion.identity
+        })
+
+        assert.are.same(
+            {
+                position = Vector3.__new(0, 1, 0),
+                rotation = Quaternion.identity
+            },
+            ava.GetBoneTransform('Hips')
+        )
+    end)
+
+    it('vci.studio.GetOwner', function ()
+        local ava = vci.studio.GetOwner()
+        assert.is_true(ava.IsOwner())
+
+        local la = vci.studio.GetLocalAvatar()
+        assert.are.equal(la.GetId(), ava.GetId())
+    end)
+
+    it('vci.studio.GetAvatars', function ()
+        local cb = spy.new(function (sender, name, message) end)
+        vci.message.On('notification', cb)
+
+        local avatars = vci.studio.GetAvatars()
+        assert.are.same(1, #avatars)
+
+        local la = vci.studio.GetLocalAvatar()
+        assert.are.same(la.GetId(), avatars[1].GetId())
+        assert.are.same(la.GetName(), avatars[1].GetName())
+        assert.are.equal(la.GetId(), vci.studio.GetOwner().GetId())
+
+        assert.spy(cb).was.called(0)
+
+        vci.fake.JoinUser('80801002', 'GuestB')
+
+        assert.spy(cb).was.called(1)
+        assert.spy(cb).was.called_with({type = 'notification', name = 'GuestB', commentSource = ''}, 'notification', 'joined')
+
+        local avatarsB = vci.studio.GetAvatars()
+        assert.are.same(2, #avatarsB)
+
+        for k, ava in pairs(avatarsB) do
+            assert.are.same('number', type(k))
+            assert.is_true(k >= 1 and k <= 2)
+
+            local id = ava.GetId()
+            local name = ava.GetName()
+            if id == '80801002' then
+                assert.are.same('GuestB', name)
+                assert.is_false(ava.IsOwner())
+            else
+                assert.are.same(la.GetId(), id)
+                assert.are.same(la.GetName(), name)
+                assert.is_true(ava.IsOwner())
+            end
+        end
+
+        vci.fake.LeaveUser(la.GetId())
+
+        assert.spy(cb).was.called(2)
+        assert.spy(cb).was.called_with({type = 'notification', name = la.GetName(), commentSource = ''}, 'notification', 'left')
+
+        assert.is_false(la.IsOwner())
+        assert.is_nil(vci.studio.GetOwner())
+
+        local avatarsC = vci.studio.GetAvatars()
+        assert.are.same(1, #avatarsC)
+        local b = avatarsC[1]
+        assert.are.same('80801002', b.GetId())
+        assert.are.same('GuestB', b.GetName())
+
+        vci.fake.ClearMessageCallbacks()
+    end)
+end)
+
 describe('Test cytanb_fake_vci setup and teardown', function ()
     it('Setup/Teardown', function ()
         assert.is.falsy(package.loaded['cytanb_fake_vci'])

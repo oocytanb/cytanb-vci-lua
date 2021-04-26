@@ -49,6 +49,12 @@ describe('Test cytanb owner user', function ()
         assert.is_truthy(cytanb.UUIDFromString(cytanb.InstanceID()))
     end)
 
+    it('OwnID', function ()
+        local id = cytanb.OwnID()
+        assert.is_true(0 < #id)
+        assert.is_equal(id, vci.studio.GetLocalAvatar().GetId())
+    end)
+
     it('ClientID', function ()
         assert.are.same(36, #cytanb.ClientID())
         assert.is_truthy(cytanb.UUIDFromString(cytanb.ClientID()))
