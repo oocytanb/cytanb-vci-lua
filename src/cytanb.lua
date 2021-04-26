@@ -50,6 +50,9 @@ local cytanb = (function ()
         --- ログレベルの文字列マップ。
         local logLevelStringMap
 
+        --- 自身の ID の文字列。
+        local ownID = ''
+
         --- クライアント ID の文字列。
         local clientID
 
@@ -580,6 +583,20 @@ local cytanb = (function ()
                 return vci.assets.GetInstanceId() or ''
             end,
 
+            --- **EXPERIMENTAL:実験的な機能。`vci.studio.GetLocalAvatar()` で得られるアバターの ID を取得する。ID を得られない場合は、空文字列を返す。
+            ---@return string
+            OwnID = function ()
+                if ownID == '' then
+                    local ava_ = vci.studio.GetLocalAvatar()
+                    if ava_ then
+                        ownID = ava_.GetId() or ''
+                    end
+                end
+                return ownID
+            end,
+
+            --- クライアント ID を取得する。ユーザーローカルで生成される。
+            -- @deprecated
             ClientID = function ()
                 return clientID
             end,
@@ -2171,16 +2188,17 @@ local cytanb = (function ()
             ---@param optMaxWaitTime TimeSpan @同期が完了するまでの、最大の待ち時間。省略した場合の既定値は 60 秒。
             CreateUpdateRoutine = function (updateCallback, optFirstTimeCallback, optErrorCallback, optMaxWaitTime)
                 return coroutine.wrap(function ()
-                    -- InstanceID を取得できるまで待つ。
+                    -- InstanceID と OwnID を取得できるまで待つ。
                     local maxWaitTime = optMaxWaitTime or TimeSpan.FromSeconds(60)
                     local unscaledStartTime = vci.me.UnscaledTime
                     local unscaledLastTime = unscaledStartTime
                     local lastTime = vci.me.Time
                     local needWaiting = true
-                    while cytanb.InstanceID() == '' do
+                    while cytanb.InstanceID() == '' or cytanb.OwnID() == '' do
                         local unscaledNow = vci.me.UnscaledTime
                         if unscaledNow - maxWaitTime > unscaledStartTime then
-                            local reason = 'TIMEOUT: Could not receive Instance ID.'
+                            local reason = 'TIMEOUT: Could not get ' ..
+                                (cytanb.InstanceID() == '' and 'Instance ID' or 'Own ID')
                             cytanb.LogError(reason)
                             if optErrorCallback then
                                 optErrorCallback(reason)
@@ -2489,22 +2507,31 @@ local cytanb = (function ()
                     --- `updateAll` 関数で、この関数を呼び出すこと。
                     Update = function ()
                         if grabbed then
-                            local dp = colliderItem.GetPosition() - baseItem.GetPosition()
-                            local tv = knobItem.GetRotation() * tickVector
-                            local pv = Vector3.Project(dp, tv)
-                            local mv = (Vector3.Dot(tv, pv) >= 0 and 1 or -1) * (pv.magnitude / tickMagnitude) + grabbedDeltaTicks
-                            -- 中央値を基準位置の原点として計算する
-                            local fv = (snapToTick and cytanb.Round(mv) or mv) * tickFrequency + halfValue
-                            local newValue = cytanb.Clamp(fv, minValue, maxValue)
-                            -- cytanb.LogTrace('SlideSwitch: ', colliderItem.GetName() , ': newValue = ', newValue, ', mv = ', mv, ', fv = ', fv)
-                            if newValue ~= value then
-                                propertySetter(newValue)
+                            if colliderItem.IsMine then
+                                local dp = colliderItem.GetPosition() - baseItem.GetPosition()
+                                local tv = knobItem.GetRotation() * tickVector
+                                local pv = Vector3.Project(dp, tv)
+                                local mv = (Vector3.Dot(tv, pv) >= 0 and 1 or -1) * (pv.magnitude / tickMagnitude) + grabbedDeltaTicks
+                                -- 中央値を基準位置の原点として計算する
+                                local mhv = mv + halfValue / tickFrequency
+                                local fv = (snapToTick and cytanb.Round(mhv) or mhv) * tickFrequency
+                                local newValue = cytanb.Clamp(fv, minValue, maxValue)
+                                -- cytanb.LogTrace('SlideSwitch: ', colliderItem.GetName() , ': newValue = ', newValue, ', mv = ', mv, ', fv = ', fv)
+                                if newValue ~= value then
+                                    propertySetter(newValue)
+                                end
+                            else
+                                grabbed = false
                             end
                         elseif gripPressed then
-                            -- 長押し状態であれば、値を進める。
-                            local unow = vci.me.UnscaledTime
-                            if unow >= gripStartTime + gripWaitTime and unow >= gripChangeTime + gripTickPeriod then
-                                NextTickByUse()
+                            if colliderItem.IsMine then
+                                -- 長押し状態であれば、値を進める。
+                                local unow = vci.me.UnscaledTime
+                                if unow >= gripStartTime + gripWaitTime and unow >= gripChangeTime + gripTickPeriod then
+                                    NextTickByUse()
+                                end
+                            else
+                                gripPressed = false
                             end
                         elseif colliderItem.IsMine then
                             cytanb.AlignSubItemOrigin(baseItem, colliderItem)
