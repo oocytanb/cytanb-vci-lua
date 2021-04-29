@@ -115,8 +115,7 @@ VCI のスクリプトから利用できる Lua のモジュール群です。
         ```
         set LUAENV=%LOCALAPPDATA%\luaenv
         python3 -m pip install git+https://github.com/luarocks/hererocks --user
-        set PATH=%APPDATA%\Python\Scripts;%PATH%
-        hererocks "%LUAENV%" -l 5.2 -r latest
+        python3 -m hererocks "%LUAENV%" -l 5.2 -r latest
         set PATH=%LUAENV%\bin;%PATH%
         luarocks install busted
         luarocks install dkjson
