@@ -1638,6 +1638,17 @@ local cytanb = (function ()
                 return map
             end,
 
+            --- **EXPERIMENTAL:実験的な機能。** `ExportTransform.GetAudioSources` で取得したリストを、`ClipName` をキーとするマップにして返す。
+            ---@param item ExportTransform @`AudioSource` コンポーネントが設定されている、オブジェクトを指定する。
+            ---@return table<string, ExportAudioSource> @戻り値の1番目にタグのマップを、2番目にベース名を返す。
+            GetAudioSourceMap = function (item)
+                local map = {}
+                for _, audio in pairs(item.GetAudioSources() or {}) do
+                    map[audio.ClipName or ''] = audio
+                end
+                return map
+            end,
+
             --- **EXPERIMENTAL:実験的な機能。** タグ文字列をパースする。文字列全体の書式は、ベース名に 0 個以上のタグが続く。`basename#tag1#tag2...#tagN` タグの書式は、ハッシュ記号 `#` にタグ名、省略可能な値の指定が続く。`#name[=value]` 値を省略した場合は、タグ名が値となる。タグ名と値に使用可能な文字は、`A-Z a-z 0-9 _ - .` および、予約文字として `( ) ! ~ * ' %` となっている。(例: `foo#bar#baz=123`)
             ---@return table<string, string>, string @戻り値の1番目にタグのマップを、2番目にベース名を返す。
             ParseTagString = function (str)

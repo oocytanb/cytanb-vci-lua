@@ -1,6 +1,6 @@
 # cytanb-vci-lua
 
-![busted](https://github.com/oocytanb/cytanb-vci-lua/workflows/busted/badge.svg)
+[![busted](https://github.com/oocytanb/cytanb-vci-lua/actions/workflows/busted.yml/badge.svg)](https://github.com/oocytanb/cytanb-vci-lua/actions/workflows/busted.yml)
 
 VCI のスクリプトから利用できる Lua のモジュール群です。
 
@@ -108,11 +108,13 @@ VCI のスクリプトから利用できる Lua のモジュール群です。
     1. コンパイラーとして [Visual Studio](https://visualstudio.microsoft.com/) をインストールします。
     (もしくは [gcc](https://gcc.gnu.org/) を利用することも可能です。)
 
-    1. Visual Studio の `Command Prompt` を開き、以下のコマンドを実行します。ここでは、`%LOCALAPPDATA%\luaenv` ディレクトリに Lua 環境をインストールしています。
+    1. Visual Studio の `Command Prompt` を開き、以下のコマンドを実行します。
+    ここでは、`%LOCALAPPDATA%\luaenv` ディレクトリに Lua 環境をインストールしています。
+    `PATH` 環境変数を設定しておくとよいでしょう。
 
         ```
         set LUAENV=%LOCALAPPDATA%\luaenv
-        python -m pip install git+https://github.com/luarocks/hererocks --user
+        python3 -m pip install git+https://github.com/luarocks/hererocks --user
         set PATH=%APPDATA%\Python\Scripts;%PATH%
         hererocks "%LUAENV%" -l 5.2 -r latest
         set PATH=%LUAENV%\bin;%PATH%
