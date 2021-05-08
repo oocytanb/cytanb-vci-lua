@@ -9,7 +9,7 @@
 -- **`cytanb.lua` をモジュールとして利用する場合は、次の行を有効にすること。**
 -- local __CYTANB_EXPORT_MODULE = true
 
----@type cytanb @See `cytanb_annotations.lua`
+---@type cytanb @Final Version. See `cytanb_annotations.lua`
 local cytanb = (function ()
     local makeImpl = function (_ENV)
         if not require or not vci then
@@ -2264,7 +2264,8 @@ local cytanb = (function ()
             ---@field lsp cytanb_local_shared_properties_t @`LocalSharedProperties` を使用する場合は指定する。省略可能。
             ---@field propertyName string @`LocalSharedProperties` を使用する場合は、プロパティ名を指定する。使用しない場合は省略可能。
             ---@field valueTextName string @値をテキスト表示する場合は、`TextMesh Pro` のオブジェクト名を指定する。省略可能。
-            ---@field valueToText fun(source: cytanb_slide_switch_t, value: string): string @ 値をテキスト表示する際に、値を文字列へ変換するための関数を指定することができる。使用しない場合は省略可能。
+            ---@field valueToText fun(source: cytanb_slide_switch_t, value: string): string @値をテキスト表示する際に、値を文字列へ変換するための関数を指定することができる。使用しない場合は省略可能。
+            ---@field alignPeriod TimeSpan @スイッチのコライダーオブジェクトを整列する間隔。省略した場合は 500 ミリ秒。
 
             --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** スライドスイッチを作成する。トリガーでつまみをつかんで値の変更、および、グリップによる値の変更ができる。ユーザー間での値の同期処理は行わないため、必要であれば別途実装すること。
             ---@param parameters cytanb_slide_switch_parameters_t @スライドスイッチを作成するためのパラメーターテーブルを指定する。
@@ -2322,6 +2323,7 @@ local cytanb = (function ()
 
                 local gripWaitTime = TimeSpan.FromMilliseconds(1000)
                 local gripTickPeriod = TimeSpan.FromMilliseconds(50)
+                local alignPeriod = cytanb.NillableValueOrDefault(parameters.alignPeriod, TimeSpan.FromMilliseconds(500))
 
                 local propertyGetter, propertySetter
                 local listenerMap = {}
@@ -2333,6 +2335,7 @@ local cytanb = (function ()
                 local gripPressed = false
                 local gripStartTime = TimeSpan.Zero
                 local gripChangeTime = TimeSpan.Zero
+                local prevAlignTime = TimeSpan.Zero
 
                 local UpdateValue = function (newValue, forceNotification)
                     if forceNotification or newValue ~= value then
@@ -2545,7 +2548,11 @@ local cytanb = (function ()
                                 gripPressed = false
                             end
                         elseif colliderItem.IsMine then
-                            cytanb.AlignSubItemOrigin(baseItem, colliderItem)
+                            local unow = vci.me.UnscaledTime
+                            if unow - alignPeriod >= prevAlignTime then
+                                prevAlignTime = unow
+                                cytanb.AlignSubItemOrigin(baseItem, colliderItem)
+                            end
                         end
                     end
                 }
