@@ -2338,20 +2338,20 @@ local cytanb = (function ()
                 local prevAlignTime = TimeSpan.Zero
 
                 local UpdateValue = function (newValue, forceNotification)
-                    if forceNotification or newValue ~= value then
-                        local oldValue = value
-                        value = newValue
-                        for listener, v in pairs(listenerMap) do
-                            listener(self, value, oldValue)
-                        end
-                    end
-
                     -- 中央値を基準位置の原点として計算する
                     knobItem.SetLocalPosition((newValue - halfValue) / tickFrequency * tickVector)
                     -- cytanb.LogInfo('on update value [', colliderItem.GetName(), ']: value = ', value)
 
                     if nillableValueTextName then
                         vci.assets.SetText(nillableValueTextName, valueToText(newValue, self))
+                    end
+
+                    if forceNotification or newValue ~= value then
+                        local oldValue = value
+                        value = newValue
+                        for listener, v in pairs(listenerMap) do
+                            listener(self, value, oldValue)
+                        end
                     end
                 end
 
