@@ -25,15 +25,21 @@ jobs:
       - name: Install busted
         run: |
           python -m pip install --upgrade pip
-          pip install git+https://github.com/luarocks/hererocks
-          hererocks ${LUAENV} -l ${LUA_VERSION} -r latest
+          python -m pip install git+https://github.com/luarocks/hererocks
+          python -m hererocks ${LUAENV} -l ${LUA_VERSION} -r latest
           source ${LUAENV}/bin/activate
-          luarocks install busted
           luarocks install dkjson
+          luarocks install busted
+          luarocks install luacov
+          luarocks install luacov-multiple --server https://oocytanb.github.io/rocksrepo/
           lua -v
           busted --version
 
       - name: Test with busted
         run: |
           source ${LUAENV}/bin/activate
-          busted src/
+          busted -c src/
+
+      - name: Show coverage summary
+        run: |
+          sed -n -E '/^File.+Hits.+Missed.+Coverage$/,$p' luacov.report.out

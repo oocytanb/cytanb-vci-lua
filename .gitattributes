@@ -1,13 +1,21 @@
-DEPS text eol=lf
-LICENSE text eol=lf
+.busted         text eol=lf
+.editorconfig   text eol=lf
+.gitattributes  text eol=lf
+.gitignore      text eol=lf
+.luacheckrc     text eol=lf
+.luacov         text eol=lf
 
-*.css text eol=lf
-*.htm text eol=lf
-*.html text eol=lf
-*.js text eol=lf
-*.json text eol=lf
-*.lua text eol=lf
-*.md text eol=lf
-*.p5js text eol=lf
-*.ts text eol=lf
-*.txt text eol=lf
+DEPS            text eol=lf
+LICENSE         text eol=lf
+
+*.css           text eol=lf
+*.htm           text eol=lf
+*.html          text eol=lf
+*.js            text eol=lf
+*.json          text eol=lf
+*.lua           text eol=lf
+*.md            text eol=lf
+*.p5js          text eol=lf
+*.ts            text eol=lf
+*.txt           text eol=lf
+*.yml           text eol=lf
