@@ -12,3 +12,8 @@ ehthumbs.db
 
 # vscode
 .vscode/
+
+# Coverage
+coverage
+luacov.stats.out
+luacov.report.out

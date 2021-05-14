@@ -15,9 +15,11 @@ VCI のスクリプトから利用できる Lua のモジュール群です。
 - [MoonSharp](https://www.moonsharp.org/) 2.0.0.0
 - [LuaRocks](https://luarocks.org/)
 - [hererocks](https://github.com/luarocks/hererocks)
-- [busted](https://olivinelabs.com/busted/)
-- [luacheck](https://github.com/luarocks/luacheck)
 - [dkjson](http://dkolf.de/src/dkjson-lua.fsl/)
+- [busted](https://olivinelabs.com/busted/)
+- [luacov](https://github.com/keplerproject/luacov)
+- [luacov-multiple](https://github.com/to-kr/luacov-multiple)
+- [luacheck](https://github.com/luarocks/luacheck)
 
 ## Git
 
@@ -91,13 +93,15 @@ VCI のスクリプトから利用できる Lua のモジュール群です。
     git push origin feature/sample
     ```
 
-## Unit testing
+## Testing
 
 - リポジトリに Push すると自動テストが行われます。
 
 - テスティングフレームワークとして、[busted](https://olivinelabs.com/busted/) を導入しています。
 
 - ローカル環境でテストを実行するには、[LuaRocks](https://luarocks.org/) とともにインストールします。
+
+- コードカバレッジのレポートを生成したり、`luacheck` による静的解析などを行うこともできます。
 
 - Lua 環境を構築する方法として、[hererocks](https://github.com/luarocks/hererocks) を利用することができます。
 
@@ -117,8 +121,11 @@ VCI のスクリプトから利用できる Lua のモジュール群です。
         python3 -m pip install git+https://github.com/luarocks/hererocks --user
         python3 -m hererocks "%LUAENV%" -l 5.2 -r latest
         set PATH=%LUAENV%\bin;%PATH%
-        luarocks install busted
         luarocks install dkjson
+        luarocks install busted
+        luarocks install luacov
+        luarocks install luacov-multiple --server https://oocytanb.github.io/rocksrepo/
+        luarocks install luacheck
         ```
 
     1. `busted` コマンドでテストを実行します。ファイル名に `_spec` が含まれている lua ファイルがテスト対象となります。
@@ -127,9 +134,14 @@ VCI のスクリプトから利用できる Lua のモジュール群です。
         busted src
         ```
 
-    1. そのほか、`luacheck` による静的解析を行うこともできます。
+        コードカバレッジのレポートを生成する場合
+
         ```
-        luarocks install luacheck
+        busted -c src
+        ```
+
+    1. `luacheck` による静的解析を行う場合は、以下を実行します。
+        ```
         luacheck src
         ```
 

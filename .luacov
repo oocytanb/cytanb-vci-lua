@@ -1,0 +1,29 @@
+return {
+    statsfile = 'luacov.stats.out',
+
+    reportfile = 'luacov.report.out',
+
+    deletestats = true,
+
+    include = {
+        'src',
+    },
+
+    exclude = {
+        '.+_min$',
+        '.+_spec$',
+    },
+
+    runreport = true,
+
+    reporter = "multiple",
+
+    multiple = {
+        reporters = { "default", "multiple.html" },
+        -- reporters = { "default", "multiple.cobertura", "multiple.html" },
+
+        cobertura = { reportfile = 'coverage/cobertura.xml' },
+
+        html = { reportfile = 'coverage/index.html' },
+    },
+}
