@@ -1,5 +1,5 @@
--- SPDX-License-Identifier: MIT
--- Copyright (c) 2019 oO (https://github.com/oocytanb)
+--! SPDX-License-Identifier: MIT
+--! Copyright (c) 2019 oO (https://github.com/oocytanb)
 
 -- `cytanb.lua` をモジュールとして利用する場合は、以下の通り。
 --   1. この手順の説明の下にある `local __CYTANB_EXPORT_MODULE = true` の行を有効にする。

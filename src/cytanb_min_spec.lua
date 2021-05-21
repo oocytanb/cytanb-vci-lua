@@ -1,29 +1,7 @@
 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2019 oO (https://github.com/oocytanb)
 
-describe('Test cytanb_min as non-module', function ()
-    local min
-
-    setup(function ()
-        math.randomseed(os.time() - os.clock() * 10000)
-        require('cytanb_fake_vci').vci.fake.Setup(_G)
-        min = require('cytanb_min')
-    end)
-
-    teardown(function ()
-        package.loaded['cytanb_min'] = nil
-        vci.fake.Teardown(_G)
-    end)
-
-    it('Module has not impl', function ()
-        -- モジュールが `nil` を返した場合は、`package.loaded[modname]` に `true` が格納される。`require` の戻り値として、`true` が返される。
-        assert.is_true(min)
-        assert.is_true(package.loaded['cytanb_min'])
-        assert.is_nil(package.loaded['cytanb'])
-    end)
-end)
-
-describe('Test cytanb_min', function ()
+insulate('cytanb_min as module', function ()
     local min, full
 
     setup(function ()
@@ -73,5 +51,27 @@ describe('Test cytanb_min', function ()
             fieldCount = fieldCount + 1
         end
         assert.is_true(fieldCount > 10)
+    end)
+end)
+
+insulate('cytanb_min as non-module', function ()
+    local min
+
+    setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
+        min = require('cytanb_min')
+    end)
+
+    teardown(function ()
+        package.loaded['cytanb_min'] = nil
+        vci.fake.Teardown(_G)
+    end)
+
+    it('should not have impl', function ()
+        -- モジュールが `nil` を返した場合は、`package.loaded[modname]` に `true` が格納される。`require` の戻り値として、`true` が返される。
+        assert.is_true(min)
+        assert.is_true(package.loaded['cytanb_min'])
+        assert.is_nil(package.loaded['cytanb'])
     end)
 end)

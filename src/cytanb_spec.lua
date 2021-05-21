@@ -1,45 +1,8 @@
 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2019 oO (https://github.com/oocytanb)
 
-describe('Test non-module', function ()
-    local module
-    setup(function ()
-        math.randomseed(os.time() - os.clock() * 10000)
-        require('cytanb_fake_vci').vci.fake.Setup(_G)
-        module = require('cytanb')
-    end)
-
-    teardown(function ()
-        package.loaded['cytanb'] = nil
-        vci.fake.Teardown(_G)
-    end)
-
-    it('Module has not impl', function ()
-        -- モジュールが `nil` を返した場合は、`package.loaded[modname]` に `true` が格納される。`require` の戻り値として、`true` が返される。
-        assert.is_true(module)
-        assert.is_true(package.loaded['cytanb'])
-    end)
-end)
-
-describe('Test cytanb owner user', function ()
-    ---@type cytanb
-    local cytanb
-
-    local calcUUIDVariance = false
-
-    setup(function ()
-        math.randomseed(os.time() - os.clock() * 10000)
-        require('cytanb_fake_vci').vci.fake.Setup(_G)
-        _G.__CYTANB_EXPORT_MODULE = true
-        cytanb = require('cytanb')(_ENV)
-    end)
-
-    teardown(function ()
-        package.loaded['cytanb'] = nil
-        _G.__CYTANB_EXPORT_MODULE = nil
-        vci.fake.Teardown(_G)
-    end)
-
+---@param cytanb cytanb
+local OwnerUserTestCases = function (cytanb, options)
     it('Color constants', function ()
         assert.are.same(cytanb.ColorMapSize, cytanb.ColorHueSamples * cytanb.ColorSaturationSamples * cytanb.ColorBrightnessSamples)
     end)
@@ -831,6 +794,18 @@ describe('Test cytanb owner user', function ()
         assert.are.same('(boolean) true', cytanb.Vars(true))
         assert.are.same('(boolean) false', cytanb.Vars(false, '-', '*'))
         assert.are.same('(number) -123.45', cytanb.Vars(-123.45))
+
+        local vt1 = { 'apple', { empty_table = {} }, false }
+        assert.are.same(
+            '(' .. tostring(vt1) .. ') {\n'
+            .. '^1 = (string) "apple",\n'
+            .. '^2 = (' .. tostring(vt1[2]) .. ') {\n'
+            .. '^^empty_table = (' .. tostring(vt1[2].empty_table) .. ') {}\n'
+            .. '^},\n'
+            .. '^3 = (boolean) false\n'
+            .. '}',
+            cytanb.Vars(vt1, '^')
+        )
     end)
 
     it('PosixTime', function ()
@@ -1286,7 +1261,15 @@ describe('Test cytanb owner user', function ()
         assert.are.same('00000000-0000-0000-0000-00000000000098765', uuid_empty .. 98765)
         assert.are.same('069f80ac-e66e-448c-b17c-5a54ea94dccc00000000-0000-0000-0000-000000000000', uuid1 .. uuid_empty)
 
+        assert.is_nil(cytanb.UUIDFromString('069f80ac@e66e-448c-b17c-5a54ea94dccc'))
+        assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e%448c-b17c-5a54ea94dccc'))
+        assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e-448c$b17c-5a54ea94dccc'))
+        assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e-448c-b17cA5a54ea94dccc'))
         assert.is_nil(cytanb.UUIDFromString('G69f80ac-e66e-448c-b17c-5a54ea94dccc'))
+        assert.is_nil(cytanb.UUIDFromString('069f80ac-Z66e-448c-b17c-5a54ea94dccc'))
+        assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e--48c-b17c-5a54ea94dccc'))
+        assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e-448c-Z17c-5a54ea94dccc'))
+        assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e-448c-b17c-Ha54ea94dccc'))
         assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e-448c-b17c-5a54ea94dccc0'))
         assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e-448c-b17c-5a54ea94dcc'))
         assert.is_nil(cytanb.UUIDFromString('069F8ac-E66e448cb17c5A54ea94dcCc'))
@@ -1320,7 +1303,7 @@ describe('Test cytanb owner user', function ()
             end
         end
 
-        if calcUUIDVariance then
+        if options.calcUUIDVariance then
             print('---- UUID Random Variance ----')
             local sum = 0
             for i = 1, sampleSize do
@@ -2429,27 +2412,10 @@ describe('Test cytanb owner user', function ()
         assert.are.same({0.5, 'y', -24}, {cytanb.CalculateSIPrefix(0.5e-24)})
         assert.are.same({-0.0009765625, 'y', -24}, {cytanb.CalculateSIPrefix(-0.0009765625e-24)})
     end)
-end)
+end
 
-describe('Test cytanb guest user', function ()
-    ---@type cytanb
-    local cytanb
-
-    setup(function ()
-        math.randomseed(os.time() - os.clock() * 10000)
-        require('cytanb_fake_vci').vci.fake.Setup(_G)
-        vci.fake.SetAssetsIsMine(false)
-
-        _G.__CYTANB_EXPORT_MODULE = true
-        cytanb = require('cytanb')(_ENV)
-    end)
-
-    teardown(function ()
-        package.loaded['cytanb'] = nil
-        _G.__CYTANB_EXPORT_MODULE = nil
-        vci.fake.Teardown(_G)
-    end)
-
+---@param cytanb cytanb
+local GuestUserTestCases = function (cytanb)
     it('guest InstanceID', function ()
         local cbMap = {
             cbEmpty = function (sender ,name, parameterMap) end
@@ -2478,9 +2444,138 @@ describe('Test cytanb guest user', function ()
             cbMap[key]:revert()
         end
     end)
+end
+
+local InvalidEnvTestCases = function (module)
+    it('should raise error', function ()
+        local s = spy.new(function(message, level) error(message, (level or 1) + 1) end)
+        assert.has_error(function () return module({ error = s }) end)
+        assert.spy(s).was.called(1)
+        assert.spy(s).was.called_with('Invalid _ENV: Enable `__CYTANB_EXPORT_MODULE = true` line and pass valid _ENV of VCI-main if use cytanb.lua as module.',3)
+    end)
+end
+
+insulate('cytanb [with owner user]', function ()
+    local module
+
+    setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
+        _G.__CYTANB_EXPORT_MODULE = true
+        module = require('cytanb')
+    end)
+
+    teardown(function ()
+        package.loaded['cytanb'] = nil
+        _G.__CYTANB_EXPORT_MODULE = nil
+        vci.fake.Teardown(_G)
+    end)
+
+    describe('feature', function ()
+        OwnerUserTestCases(module(_ENV), { calcUUIDVariance = false })
+    end)
 end)
 
-describe('Complex-require', function ()
+insulate('cytanb_min [with owner user]', function ()
+    local module
+
+    setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
+        _G.__CYTANB_EXPORT_MODULE = true
+        module = require('cytanb_min')
+        package.loaded['cytanb'] = cytanb
+    end)
+
+    teardown(function ()
+        package.loaded['cytanb_min'] = nil
+        package.loaded['cytanb'] = nil
+        _G.__CYTANB_EXPORT_MODULE = nil
+        vci.fake.Teardown(_G)
+    end)
+
+    describe('feature', function ()
+        OwnerUserTestCases(module(_ENV), { calcUUIDVariance = false })
+    end)
+end)
+
+insulate('cytanb [with guest user]', function ()
+    local module
+
+    setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
+        vci.fake.SetAssetsIsMine(false)
+
+        _G.__CYTANB_EXPORT_MODULE = true
+        module = require('cytanb')
+    end)
+
+    teardown(function ()
+        package.loaded['cytanb'] = nil
+        _G.__CYTANB_EXPORT_MODULE = nil
+        vci.fake.Teardown(_G)
+    end)
+
+    describe('feature', function ()
+        GuestUserTestCases(module(_ENV))
+    end)
+
+    describe('invalid _ENV', function ()
+        InvalidEnvTestCases(module)
+    end)
+end)
+
+insulate('cytanb_min [with guest user]', function ()
+    local module
+
+    setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
+        vci.fake.SetAssetsIsMine(false)
+
+        _G.__CYTANB_EXPORT_MODULE = true
+        module = require('cytanb_min')
+        package.loaded['cytanb'] = cytanb
+    end)
+
+    teardown(function ()
+        package.loaded['cytanb_min'] = nil
+        package.loaded['cytanb'] = nil
+        _G.__CYTANB_EXPORT_MODULE = nil
+        vci.fake.Teardown(_G)
+    end)
+
+    describe('feature', function ()
+        GuestUserTestCases(module(_ENV))
+    end)
+
+    describe('invalid _ENV', function ()
+        InvalidEnvTestCases(module)
+    end)
+end)
+
+insulate('cytanb as non-module', function ()
+    local module
+    setup(function ()
+        math.randomseed(os.time() - os.clock() * 10000)
+        require('cytanb_fake_vci').vci.fake.Setup(_G)
+        module = require('cytanb')
+    end)
+
+    teardown(function ()
+        package.loaded['cytanb'] = nil
+        vci.fake.Teardown(_G)
+    end)
+
+    it('should not have impl', function ()
+        -- モジュールが `nil` を返した場合は、`package.loaded[modname]` に `true` が格納される。`require` の戻り値として、`true` が返される。
+        assert.is_true(module)
+        assert.is_true(package.loaded['cytanb'])
+    end)
+end)
+
+insulate('Complex-require', function ()
     local sleep = function (sec)
         local startTime = os.clock()
         if os.execute() ~= 0 then
@@ -2495,7 +2590,7 @@ describe('Complex-require', function ()
         while os.clock() - startTime <= sec do end
     end
 
-    it('Comprex-require', function ()
+    it('multiple times', function ()
         local cytanb_g_lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
 
         ---@type cytanb
