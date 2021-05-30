@@ -943,10 +943,15 @@ local cytanb = (function ()
                             str = str .. '\n' .. childIndent
                         end
 
+                        local kt = type(key)
+                        local ks = (kt == 'function' or kt == 'thread' or kt == 'userdata' or kt == 'table')
+                            and '(' .. kt .. ')'
+                            or tostring(key)
+
                         if type(val) == 'table' and refTable[val] and refTable[val] > 0 then
-                            str = str .. key .. ' = (' .. tostring(val) .. ')'
+                            str = str .. ks .. ' = (' .. tostring(val) .. ')'
                         else
-                            str = str .. key .. ' = ' .. cytanb.Vars(val, padding, childIndent, refTable)
+                            str = str .. ks .. ' = ' .. cytanb.Vars(val, padding, childIndent, refTable)
                         end
                     end
 
