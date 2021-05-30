@@ -140,7 +140,7 @@ const format_body = (
   let start_index = 0;
   let end_index = 0;
 
-  const re = /(end,|end\)\(\),)([a-z,A-Z]\w*)=(?:function|\(function\(\))/g;
+  const re = /(end(?:\)\(\))?,)([a-z,A-Z]\w*)=(?:function|\(function\(\))/g;
   for (const m of min_source.matchAll(re)) {
     if (function_set.has(m[2]) && m.index && m.input) {
       const next_index = m.index + m[1].length;

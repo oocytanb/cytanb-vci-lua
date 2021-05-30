@@ -788,6 +788,12 @@ local OwnerUserTestCases = function (cytanb, options)
         assert.are.same(1024, metaTarget15.qux.hogera)
         assert.are.same('#hash', metaTarget15.tag)
         assert.are.same('#sub_hash', metaTarget15.qux.sub_tag)
+
+        local cir_40 = { hoge = 256 }
+        cir_40.ref = cir_40
+        assert.has_error(function ()
+            cytanb.Extend({}, cir_40, true)
+        end)
     end)
 
     it('Vars', function ()
@@ -805,6 +811,83 @@ local OwnerUserTestCases = function (cytanb, options)
             .. '^3 = (boolean) false\n'
             .. '}',
             cytanb.Vars(vt1, '^')
+        )
+
+        local vt2 = {
+            [0] = function () end
+        }
+
+        assert.are.same(
+            '(' .. tostring(vt2) .. ') {\n'
+            .. '  0 = (function)\n'
+            .. '}',
+            cytanb.Vars(vt2)
+        )
+
+        local vt3 = {
+            [97.5] = false
+        }
+
+        assert.are.same(
+            '(' .. tostring(vt3) .. ') {'
+            .. '97.5 = (boolean) false'
+            .. '}',
+            cytanb.Vars(vt3, '__NOLF', '*')
+        )
+
+        local vt4 = {
+            [false] = 0
+        }
+
+        assert.are.same(
+            '(' .. tostring(vt4) .. ') {\n'
+            .. '*>false = (number) 0\n'
+            .. '*}',
+            cytanb.Vars(vt4, '>', '*')
+        )
+
+
+        local vt5 = {
+            [true] = coroutine.create(function () end)
+        }
+
+        assert.are.same(
+            '(' .. tostring(vt5) .. ') {\n'
+            .. '*true = (thread)\n'
+            .. '*}',
+            cytanb.Vars(vt5, '', '*')
+        )
+
+        local vt6 = {
+            [function () end] = 'BAR'
+        }
+
+        assert.are.same(
+            '(' .. tostring(vt6) .. ') {\n'
+            .. '  (function) = (string) "BAR"\n'
+            .. '}',
+            cytanb.Vars(vt6)
+        )
+
+        local vt7 = {
+            [coroutine.create(function() end)] = 'CO'
+        }
+
+        assert.are.same(
+            '(' .. tostring(vt7) .. ') {\n'
+            .. '  (thread) = (string) "CO"\n'
+            .. '}',
+            cytanb.Vars(vt7)
+        )
+
+        local vt8 = {}
+        vt8.ref = vt8
+
+        assert.are.same(
+            '(' .. tostring(vt8) .. ') {\n'
+            .. '  ref = (' .. tostring(vt8) .. ')\n'
+            .. '}',
+            cytanb.Vars(vt8)
         )
     end)
 
@@ -913,6 +996,14 @@ local OwnerUserTestCases = function (cytanb, options)
         callCount = callCount + 1
         assert.stub(print).was.called(callCount)
         assert.stub(print).was.called_with('LOG LEVEL 32 | custom level')
+        cytanb.Log(33, nil)
+        callCount = callCount + 1
+        assert.stub(print).was.called(callCount)
+        assert.stub(print).was.called_with('LOG LEVEL 33 | ')
+        cytanb.Log(34)
+        callCount = callCount + 1
+        assert.stub(print).was.called(callCount)
+        assert.stub(print).was.called_with('LOG LEVEL 34 | ')
 
         cytanb.SetLogLevel(cytanb.LogLevelDebug)
         cytanb.SetOutputLogLevelEnabled(false)
@@ -1273,6 +1364,7 @@ local OwnerUserTestCases = function (cytanb, options)
         assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e-448c-b17c-5a54ea94dccc0'))
         assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e-448c-b17c-5a54ea94dcc'))
         assert.is_nil(cytanb.UUIDFromString('069F8ac-E66e448cb17c5A54ea94dcCc'))
+        assert.is_nil(cytanb.UUIDFromString('069f80ac-e66e-448c-b17c-5a54Za94dccc'))
 
         assert.is_nil(cytanb.UUIDFromString('帰弱怲帳弴崵崶強常弹孡形幣孤履てぁ⽂千恄居商0000000000'))
         assert.is_nil(cytanb.UUIDFromString('帰弱怲帳弴崵崶強-常弹孡形-幣孤履てЭぁ⽂千恄-居商0000000000'))
@@ -1691,6 +1783,17 @@ local OwnerUserTestCases = function (cytanb, options)
                 column = cytanb.Vector4ToTable(Vector4.__new(5, 6, -7, 8))
             })
         )
+
+        -- @TODO ignore invalid type keys (`function` or `thread` or `userdata`)
+        -- local fun_key = function () end
+        -- local co_key = coroutine.create(function () end)
+        -- assert.are.same(
+        --     {},
+        --     cytanb.TableToSerializable({
+        --         [fun_key] = 123,
+        --         [co_key] = 456
+        --     })
+        -- )
 
         local circularTable = {foo = 123.25}
         circularTable.ref = circularTable
