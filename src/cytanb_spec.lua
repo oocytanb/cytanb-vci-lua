@@ -14,13 +14,12 @@ local OwnerUserTestCases = function (cytanb, options)
 
     it('OwnID', function ()
         local id = cytanb.OwnID()
-        assert.is_true(0 < #id)
+        assert.is_true(#id > 0)
         assert.is_equal(id, vci.studio.GetLocalAvatar().GetId())
     end)
 
     it('ClientID', function ()
-        assert.are.same(36, #cytanb.ClientID())
-        assert.is_truthy(cytanb.UUIDFromString(cytanb.ClientID()))
+        assert.is_true(#cytanb.OwnID() > 0)
     end)
 
     it('Nillable', function ()
@@ -2694,19 +2693,13 @@ insulate('Complex-require', function ()
     end
 
     it('multiple times', function ()
-        local cytanb_g_lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
-
         ---@type cytanb
         local cytanb
 
         require('cytanb_fake_vci').vci.fake.Setup(_G)
         _G.__CYTANB_EXPORT_MODULE = true
         cytanb = require('cytanb')(_ENV)
-        local firstPmap = _G[cytanb_g_lspid]
         local firstPosixTime = cytanb.PosixTime()
-        local firstClientId = firstPmap.clientID
-
-        assert.are.same('string', type(firstClientId))
 
         package.loaded['cytanb'] = nil
         _G.__CYTANB_EXPORT_MODULE = nil
@@ -2717,15 +2710,7 @@ insulate('Complex-require', function ()
         require('cytanb_fake_vci').vci.fake.Setup(_G)
         _G.__CYTANB_EXPORT_MODULE = true
         cytanb = require('cytanb')(_ENV)
-        local secondPmap = _G[cytanb_g_lspid]
         local secondPosixTime = cytanb.PosixTime()
-        local secondClientId = secondPmap.clientID
-
-        assert.are.same('string', type(secondClientId))
-
-        assert.are_not.same(firstPmap, secondPmap)
-        assert.are_not.same(firstClientId, secondClientId)
-
         assert.is_true(firstPosixTime < secondPosixTime)
 
         package.loaded['cytanb'] = nil
@@ -2733,16 +2718,9 @@ insulate('Complex-require', function ()
         vci.fake.Teardown(_G)
 
         require('cytanb_fake_vci').vci.fake.Setup(_G)
-        _G[cytanb_g_lspid] = firstPmap
         _G.__CYTANB_EXPORT_MODULE = true
         cytanb = require('cytanb')(_ENV)
-        local thirdPmap = _G[cytanb_g_lspid]
         local thirdPosixTime = cytanb.PosixTime()
-        local thirdClientId = thirdPmap.clientID
-
-        assert.are.same(firstPmap, thirdPmap)
-        assert.are.same(firstClientId, thirdClientId)
-
         assert.is_true(firstPosixTime < thirdPosixTime)
     end)
 end)

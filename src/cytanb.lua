@@ -53,9 +53,6 @@ local cytanb = (function ()
         --- 自身の ID の文字列。
         local ownID = ''
 
-        --- クライアント ID の文字列。
-        local clientID
-
         local cytanb
 
         local SearchStartsWithPred = function (position, searchLen)
@@ -595,10 +592,9 @@ local cytanb = (function ()
                 return ownID
             end,
 
-            --- クライアント ID を取得する。ユーザーローカルで生成される。
-            -- @deprecated
+            --@deprecated 廃止予定。クライアント ID を取得する。
             ClientID = function ()
-                return clientID
+                return cytanb.OwnID()
             end,
 
             NillableHasValue = function (nillable)
@@ -1717,9 +1713,9 @@ local cytanb = (function ()
                 end
             end)(),
 
-            ---@class cytanb_local_shared_properties_t ローカルの共有プロパティ
+            ---@class cytanb_local_shared_properties_t deprecated 廃止予定。ローカルの共有プロパティ
 
-            --- **EXPERIMENTAL:実験的な機能のため変更される可能性がある。** ローカルの共有プロパティを作成する。
+            --- deprecated 廃止予定。ローカルの共有プロパティを作成する。
             ---@param lspid string @プロパティ ID の文字列を指定する。プロパティを識別するための固定 ID。
             ---@param loadid string @ロード ID の文字列を指定する。スクリプトがロードされるごとに生成される一意な ID。
             ---@return cytanb_local_shared_properties_t
@@ -2266,7 +2262,7 @@ local cytanb = (function ()
             ---@field tickFrequency number @目盛りの間隔。値の範囲を割り切れる数値を指定する。ゼロ以下である場合はエラーとなる。省略した場合は値の範囲を 10 等分した値。
             ---@field tickVector Vector3 @1 目盛りのベクトル。ゼロに近いベクトルを指定した場合はエラーとなる。省略した場合は `Vector3.__new(0.01, 0.0, 0.0)`
             ---@field snapToTick boolean @目盛りにスナップするかを指定する。省略した場合は `true`。
-            ---@field lsp cytanb_local_shared_properties_t @`LocalSharedProperties` を使用する場合は指定する。省略可能。
+            ---@field lsp cytanb_local_shared_properties_t @deprecated 廃止予定。`LocalSharedProperties` を使用する場合は指定する。省略可能。
             ---@field propertyName string @`LocalSharedProperties` を使用する場合は、プロパティ名を指定する。使用しない場合は省略可能。
             ---@field valueTextName string @値をテキスト表示する場合は、`TextMesh Pro` のオブジェクト名を指定する。省略可能。
             ---@field valueToText fun(source: cytanb_slide_switch_t, value: string): string @値をテキスト表示する際に、値を文字列へ変換するための関数を指定することができる。使用しない場合は省略可能。
@@ -2840,23 +2836,6 @@ local cytanb = (function ()
             [cytanb.LogLevelDebug] = 'DEBUG',
             [cytanb.LogLevelTrace] = 'TRACE'
         }
-
-        clientID = (function ()
-            local lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
-            local pmap = _G[lspid]
-            if not pmap then
-                pmap = {}
-                _G[lspid] = pmap
-            end
-
-            local rClientID = pmap.clientID
-            if type(rClientID) ~= 'string' then
-                rClientID = tostring(cytanb.RandomUUID())
-                pmap.clientID = rClientID
-            end
-
-            return rClientID
-        end)()
 
         return cytanb
     end
