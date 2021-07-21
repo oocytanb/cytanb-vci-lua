@@ -1,6 +1,10 @@
 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2019 oO (https://github.com/oocytanb)
 
+local MakeEnv = function (main_env)
+    return setmetatable({}, { __index = main_env })
+end
+
 ---@param cytanb cytanb
 local OwnerUserTestCases = function (cytanb, options)
     it('Color constants', function ()
@@ -2574,7 +2578,7 @@ insulate('cytanb [with owner user]', function ()
     end)
 
     describe('feature', function ()
-        OwnerUserTestCases(module(_ENV), { calcUUIDVariance = false })
+        OwnerUserTestCases(module(MakeEnv(_ENV)), { calcUUIDVariance = false })
     end)
 end)
 
@@ -2597,7 +2601,7 @@ insulate('cytanb_min [with owner user]', function ()
     end)
 
     describe('feature', function ()
-        OwnerUserTestCases(module(_ENV), { calcUUIDVariance = false })
+        OwnerUserTestCases(module(MakeEnv(_ENV)), { calcUUIDVariance = false })
     end)
 end)
 
@@ -2620,7 +2624,7 @@ insulate('cytanb [with guest user]', function ()
     end)
 
     describe('feature', function ()
-        GuestUserTestCases(module(_ENV))
+        GuestUserTestCases(module(MakeEnv(_ENV)))
     end)
 
     describe('invalid _ENV', function ()
@@ -2649,7 +2653,7 @@ insulate('cytanb_min [with guest user]', function ()
     end)
 
     describe('feature', function ()
-        GuestUserTestCases(module(_ENV))
+        GuestUserTestCases(module(MakeEnv(_ENV)))
     end)
 
     describe('invalid _ENV', function ()
@@ -2692,13 +2696,95 @@ insulate('Complex-require', function ()
         while os.clock() - startTime <= sec do end
     end
 
+    it('lsp container', function ()
+        local lsp_container_id = '137a14de-3cbe-48fe-8c5f-7226dce4db01'
+
+        ---@type cytanb
+        local cytanb
+
+        do
+            require('cytanb_fake_vci').vci.fake.Setup(_G)
+
+            _G.__CYTANB_EXPORT_MODULE = true
+            local module_env = MakeEnv(_ENV)
+
+            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(module_env[lsp_container_id])
+
+            cytanb = require('cytanb')(module_env)
+            assert.are.equal(_G, cytanb.LspContainer())
+
+            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(module_env[lsp_container_id])
+
+            package.loaded['cytanb'] = nil
+            _G.__CYTANB_EXPORT_MODULE = nil
+            vci.fake.Teardown(_G)
+        end
+
+        do
+            require('cytanb_fake_vci').vci.fake.Setup(_G)
+
+            _G.__CYTANB_EXPORT_MODULE = true
+            local module_env = MakeEnv(_ENV)
+            module_env._G = false
+
+            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(module_env[lsp_container_id])
+
+            cytanb = require('cytanb')(module_env)
+
+            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(module_env[lsp_container_id])
+
+            assert.are.same({}, cytanb.LspContainer())
+
+            assert.is_not_nil(_G.package[lsp_container_id])
+            assert.is_nil(module_env[lsp_container_id])
+
+            package.loaded['cytanb'] = nil
+            _G.__CYTANB_EXPORT_MODULE = nil
+            vci.fake.Teardown(_G)
+        end
+
+        do
+            require('cytanb_fake_vci').vci.fake.Setup(_G)
+
+            _G.__CYTANB_EXPORT_MODULE = true
+            local module_env = MakeEnv(_ENV)
+            module_env._G = false
+            module_env.package = false
+
+            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(module_env[lsp_container_id])
+
+            cytanb = require('cytanb')(module_env)
+
+            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(module_env[lsp_container_id])
+            assert.is_nil(_ENV[lsp_container_id])
+            assert.is_nil(_G[lsp_container_id])
+
+            assert.are.same({}, cytanb.LspContainer())
+
+            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_not_nil(module_env[lsp_container_id])
+            assert.is_nil(_ENV[lsp_container_id])
+            assert.is_nil(_G[lsp_container_id])
+
+            package.loaded['cytanb'] = nil
+            _G.__CYTANB_EXPORT_MODULE = nil
+            vci.fake.Teardown(_G)
+        end
+    end)
+
     it('multiple times', function ()
         ---@type cytanb
         local cytanb
 
         require('cytanb_fake_vci').vci.fake.Setup(_G)
         _G.__CYTANB_EXPORT_MODULE = true
-        cytanb = require('cytanb')(_ENV)
+        cytanb = require('cytanb')(MakeEnv(_ENV))
         local firstPosixTime = cytanb.PosixTime()
 
         package.loaded['cytanb'] = nil
@@ -2709,7 +2795,7 @@ insulate('Complex-require', function ()
 
         require('cytanb_fake_vci').vci.fake.Setup(_G)
         _G.__CYTANB_EXPORT_MODULE = true
-        cytanb = require('cytanb')(_ENV)
+        cytanb = require('cytanb')(MakeEnv(_ENV))
         local secondPosixTime = cytanb.PosixTime()
         assert.is_true(firstPosixTime < secondPosixTime)
 
@@ -2719,7 +2805,7 @@ insulate('Complex-require', function ()
 
         require('cytanb_fake_vci').vci.fake.Setup(_G)
         _G.__CYTANB_EXPORT_MODULE = true
-        cytanb = require('cytanb')(_ENV)
+        cytanb = require('cytanb')(MakeEnv(_ENV))
         local thirdPosixTime = cytanb.PosixTime()
         assert.is_true(firstPosixTime < thirdPosixTime)
     end)

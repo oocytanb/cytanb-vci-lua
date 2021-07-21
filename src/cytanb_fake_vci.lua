@@ -99,7 +99,14 @@ return (function ()
     end
 
     local cytanb_g_lspid = 'eff3a188-bfc7-4b0e-93cb-90fd1adc508c'
+    local lsp_container_id = '137a14de-3cbe-48fe-8c5f-7226dce4db01'
     local instanceID = ''
+
+    local ClearLsp = function (global_env)
+        global_env[cytanb_g_lspid] = nil
+        global_env[lsp_container_id] = nil
+        global_env.package[lsp_container_id] = nil
+    end
 
     local cytanb
     cytanb = {
@@ -1717,7 +1724,7 @@ return (function ()
             -- fake module
             fake = {
                 Setup = function (target)
-                    _G[cytanb_g_lspid] = nil
+                    ClearLsp(_G)
 
                     for k, v in pairs(fakeModule) do
                         if moonsharpAdditions[k] then
@@ -1771,7 +1778,7 @@ return (function ()
                     studioAvatarMap = {}
 
                     package.loaded[ModuleName] = nil
-                    _G[cytanb_g_lspid] = nil
+                    ClearLsp(_G)
                 end,
 
                 Round = function (num, decimalPlaces)
