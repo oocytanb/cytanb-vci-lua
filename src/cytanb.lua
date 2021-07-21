@@ -1713,6 +1713,73 @@ local cytanb = (function ()
                 end
             end)(),
 
+            --- DO_NOT_USE
+            LspContainer = (function ()
+                local nillableLspContainer = nil
+
+                local containerId = '137a14de-3cbe-48fe-8c5f-7226dce4db01'
+
+                local GlobalContainer = function ()
+                    local target_ = _ENV['_G']
+                    if type(target_) == 'table' then
+                        -- test writable
+                        target_[containerId] = false
+                        local bt = type(target_[containerId]) == 'boolean'
+                        target_[containerId] = nil
+                        return bt and target_ or nil
+                    else
+                        return nil
+                    end
+                end
+
+                local FallbackToPackage = function ()
+                    local target_ = _ENV['package']
+                    if type(target_) == 'table' then
+                        local container_ = target_[containerId]
+                        if type(container_) == 'table' then
+                            return container_
+                        else
+                            target_[containerId] = {}
+                            return target_[containerId]
+                        end
+                    else
+                        return nil
+                    end
+                end
+
+                local FallbackToEnv = function ()
+                    local target_ = _ENV
+                    local container_ = target_[containerId]
+                    if type(container_) == 'table' then
+                        return container_
+                    else
+                        target_[containerId] = {}
+                        return target_[containerId]
+                    end
+                end
+
+                local MakeContainer = function ()
+                    local globalOk, globalValue = pcall(GlobalContainer)
+                    if globalOk and globalValue then
+                        return globalValue
+                    else
+                        local packageOk, packageValue = pcall(FallbackToPackage)
+                        if packageOk and packageValue then
+                            return packageValue
+                        else
+                            return FallbackToEnv()
+                        end
+                    end
+                end
+
+                return function ()
+                    if not nillableLspContainer then
+                        nillableLspContainer = MakeContainer()
+                    end
+                    return nillableLspContainer
+                end
+            end)(),
+
             ---@class cytanb_local_shared_properties_t deprecated 廃止予定。ローカルの共有プロパティ
 
             --- deprecated 廃止予定。ローカルの共有プロパティを作成する。
@@ -1728,17 +1795,18 @@ local cytanb = (function ()
                     error('LocalSharedProperties: Invalid arguments', 2)
                 end
 
-                local aliveMap = _G[aliveLspid]
+                local lspContainer = cytanb.LspContainer()
+                local aliveMap = lspContainer[aliveLspid]
                 if not aliveMap then
                     aliveMap = {}
-                    _G[aliveLspid] = aliveMap
+                    lspContainer[aliveLspid] = aliveMap
                 end
                 aliveMap[loadid] = vci.me.UnscaledTime
 
-                local pmap = _G[lspid]
+                local pmap = lspContainer[lspid]
                 if not pmap then
                     pmap = {[listenerMapKey] = {}}
-                    _G[lspid] = pmap
+                    lspContainer[lspid] = pmap
                 end
                 local listenerMap = pmap[listenerMapKey]
 
