@@ -823,6 +823,11 @@ local cytanb = (function ()
                 return count, beginPos, definitePos
             end,
 
+            --- deprecated VCAS 2.0.8a で `rawget` `rawset` が削除されたため廃止。`target` に、定数フィールドを設定し、target 自身を返す。`name` に、定数名を指定する。`value` に、定数値を指定する。`value` に、関数を指定した場合は getter として呼び出される。
+            ---@param target table
+            ---@param name string
+            ---@param value any
+            ---@return table
             SetConst = function (target, name, value)
                 if type(target) ~= 'table' then
                     error('Cannot set const to non-table target', 2)
@@ -851,6 +856,10 @@ local cytanb = (function ()
                 return target
             end,
 
+            --- deprecated VCAS 2.0.8a で `rawget` `rawset` が削除されたため廃止。`entries` のそれぞれの要素について `SetConst` を行い、target 自身を返す。
+            ---@param target table
+            ---@param entries table<string, any>
+            ---@return table
             SetConstEach = function (target, entries)
                 for k, v in pairs(entries) do
                     cytanb.SetConst(target, k, v)
@@ -1733,7 +1742,7 @@ local cytanb = (function ()
                 end
 
                 local FallbackToPackage = function ()
-                    local target_ = _ENV['package']
+                    local target_ = require('coroutine')
                     if type(target_) == 'table' then
                         local container_ = target_[containerId]
                         if type(container_) == 'table' then
@@ -1780,9 +1789,9 @@ local cytanb = (function ()
                 end
             end)(),
 
-            ---@class cytanb_local_shared_properties_t deprecated 廃止予定。ローカルの共有プロパティ
+            ---@class cytanb_local_shared_properties_t deprecated VCAS 2.0.8a で `_G` が削除されたため廃止。ローカルの共有プロパティ
 
-            --- deprecated 廃止予定。ローカルの共有プロパティを作成する。
+            --- deprecated VCAS 2.0.8a で `_G` が削除されたため廃止。ローカルの共有プロパティを作成する。
             ---@param lspid string @プロパティ ID の文字列を指定する。プロパティを識別するための固定 ID。
             ---@param loadid string @ロード ID の文字列を指定する。スクリプトがロードされるごとに生成される一意な ID。
             ---@return cytanb_local_shared_properties_t
@@ -2330,7 +2339,7 @@ local cytanb = (function ()
             ---@field tickFrequency number @目盛りの間隔。値の範囲を割り切れる数値を指定する。ゼロ以下である場合はエラーとなる。省略した場合は値の範囲を 10 等分した値。
             ---@field tickVector Vector3 @1 目盛りのベクトル。ゼロに近いベクトルを指定した場合はエラーとなる。省略した場合は `Vector3.__new(0.01, 0.0, 0.0)`
             ---@field snapToTick boolean @目盛りにスナップするかを指定する。省略した場合は `true`。
-            ---@field lsp cytanb_local_shared_properties_t @deprecated 廃止予定。`LocalSharedProperties` を使用する場合は指定する。省略可能。
+            ---@field lsp cytanb_local_shared_properties_t @deprecated VCAS 2.0.8a で `_G` が削除されたため廃止。`LocalSharedProperties` を使用する場合は指定する。省略可能。
             ---@field propertyName string @`LocalSharedProperties` を使用する場合は、プロパティ名を指定する。使用しない場合は省略可能。
             ---@field valueTextName string @値をテキスト表示する場合は、`TextMesh Pro` のオブジェクト名を指定する。省略可能。
             ---@field valueToText fun(source: cytanb_slide_switch_t, value: string): string @値をテキスト表示する際に、値を文字列へ変換するための関数を指定することができる。使用しない場合は省略可能。
@@ -2807,7 +2816,7 @@ local cytanb = (function ()
             end
         }
 
-        cytanb.SetConstEach(cytanb, {
+        cytanb.Extend(cytanb, {
             LogLevelOff = 0,
             LogLevelFatal = 100,
             LogLevelError = 200,
@@ -2837,9 +2846,9 @@ local cytanb = (function ()
             DedicatedNotificationMessageName = 'cytanb.notification.698ba55f-2b69-47f2-a68d-bc303994cff3',
             InstanceIDStatePatchingMessageName = 'cytanb.instance_id_state_patching.08504824-2041-42a2-9b2a-97448b4418b0',
             LOCAL_SHARED_PROPERTY_EXPIRED_KEY = '__CYTANB_LOCAL_SHARED_PROPERTY_EXPIRED'
-        })
+        }, false, true)
 
-        cytanb.SetConstEach(cytanb, {
+        cytanb.Extend(cytanb, {
             ColorMapSize = cytanb.ColorHueSamples * cytanb.ColorSaturationSamples * cytanb.ColorBrightnessSamples,
             FatalLogLevel = cytanb.LogLevelFatal,    -- @deprecated
             ErrorLogLevel = cytanb.LogLevelError,    -- @deprecated
@@ -2847,7 +2856,7 @@ local cytanb = (function ()
             InfoLogLevel = cytanb.LogLevelInfo,      -- @deprecated
             DebugLogLevel = cytanb.LogLevelDebug,    -- @deprecated
             TraceLogLevel = cytanb.LogLevelTrace     -- @deprecated
-        })
+        }, false, true)
 
         defaultWhiteSpaceSearchPattern = cytanb.MakeSearchPattern({
             '\t', '\n', '\v', '\f', '\r', ' '

@@ -55,8 +55,6 @@
 ---@field StringTrimEnd fun (str: string): string @`str` の文字列から、 末尾の空白を取り除いた文字列を返す。`StringTrim` も参照のこと。
 ---@field StringTrim fun (str: string): string @`str` の文字列から、 先頭と末尾の空白 ('\t', '\n', '\v', '\f', '\r', ' ') を取り除いた文字列を返す。
 ---@field StringReplace fun (str: string, target: string, replacement: string): string @`str` の文字列から `target` に一致する部分文字列を `replacement` で置換し、その結果の文字列を返す。
----@field SetConst fun (target: table, name: string, value: any): table @`target` に、定数フィールドを設定し、target 自身を返す。`name` に、定数名を指定する。`value` に、定数値を指定する。`value` に、関数を指定した場合は getter として呼び出される。
----@field SetConstEach fun (target: table, entries: table<string, any>): table @`entries` のそれぞれの要素について `SetConst` を行い、target 自身を返す。
 ---@field Extend fun (target: table, source: table, deep: boolean, omitMetaTable: boolean): table @`target` のテーブルフィールドを `source` のテーブルフィールドで拡張し、その結果を返す。`deep` に `true` を指定した場合は、ディープコピーを行う(省略するか `false` を指定した場合は、シャローコピーを行う)。`omitMetaTable` に 'true' を指定した場合は、メタテーブルをコピーしない。ただし、シャローコピーした場合は下位のテーブルの参照値がそのままコピーされる。(省略するか `false` を指定した場合は、コピーする)。
 ---@field Vars fun (v: any, padding: string): string @変数の情報を文字列で返す。`padding` は省略可能。`padding` に '__NOLF' を指定した場合は、インデントおよび改行を行わない。
 ---@field PosixTime fun (optTime: number): number @協定世界時 (UTC) の 1970-01-01T00:00:00Z から、指定した時刻までの経過時間を、秒単位の数値で返す。閏秒が含まれるかはシステム依存。`os.time` の戻り値の意味は実装依存であり、直接その値を計算に使うことができないため、`os.difftime` を利用することで、秒数を取得している。`optTime` には `os.time` 関数で得られる時刻を指定する。省略した場合は、引数なしの `os.time()` で得られる現在時刻となる。
