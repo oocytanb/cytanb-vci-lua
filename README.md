@@ -8,6 +8,27 @@ VCI のスクリプトから利用できる Lua のモジュール群です。
 
 [cytanb-tso-collab](https://github.com/oocytanb/cytanb-tso-collab) は関連するプロジェクトです。
 
+## お知らせ
+
+**VCAS 上の VCI で互換性のない変更が行われています。互換性を保てないソフトウェア上で開発を続けることは困難なため、今後 cytanb.lua に機能追加を行うことはありません。**
+
+VCAS 2.0.8a で、削除された関数・フィールドリスト
+
+- _G
+- collectgarbage
+- rawget
+- rawset
+- rawequal
+- rawlen
+- string.dump
+- package
+- load
+- loadsafe
+- loadfile
+- loadfilesafe
+- dofile
+- dynamic
+
 ## Softwares / Libraries
 
 - [VCI](https://github.com/virtual-cast/VCI) 

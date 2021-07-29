@@ -105,7 +105,7 @@ return (function ()
     local ClearLsp = function (global_env)
         global_env[cytanb_g_lspid] = nil
         global_env[lsp_container_id] = nil
-        global_env.package[lsp_container_id] = nil
+        global_env.coroutine[lsp_container_id] = nil
     end
 
     local cytanb

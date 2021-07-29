@@ -911,7 +911,6 @@ local OwnerUserTestCases = function (cytanb, options)
         assert.is_true(cytanb.LogLevelTrace > cytanb.LogLevelDebug)
         assert.is_true(cytanb.LogLevelAll > cytanb.LogLevelTrace)
         assert.are.same(cytanb.LogLevelAll, 0x7FFFFFFF)
-        assert.has_error(function () cytanb.LogLevelFatal = 123456789 end)
 
         local level = cytanb.GetLogLevel()
         local outputLevel = cytanb.IsOutputLogLevelEnabled()
@@ -2708,13 +2707,13 @@ insulate('Complex-require', function ()
             _G.__CYTANB_EXPORT_MODULE = true
             local module_env = MakeEnv(_ENV)
 
-            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(_G.coroutine[lsp_container_id])
             assert.is_nil(module_env[lsp_container_id])
 
             cytanb = require('cytanb')(module_env)
             assert.are.equal(_G, cytanb.LspContainer())
 
-            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(_G.coroutine[lsp_container_id])
             assert.is_nil(module_env[lsp_container_id])
 
             package.loaded['cytanb'] = nil
@@ -2729,17 +2728,17 @@ insulate('Complex-require', function ()
             local module_env = MakeEnv(_ENV)
             module_env._G = false
 
-            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(_G.coroutine[lsp_container_id])
             assert.is_nil(module_env[lsp_container_id])
 
             cytanb = require('cytanb')(module_env)
 
-            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(_G.coroutine[lsp_container_id])
             assert.is_nil(module_env[lsp_container_id])
 
             assert.are.same({}, cytanb.LspContainer())
 
-            assert.is_not_nil(_G.package[lsp_container_id])
+            assert.is_not_nil(_G.coroutine[lsp_container_id])
             assert.is_nil(module_env[lsp_container_id])
 
             package.loaded['cytanb'] = nil
@@ -2753,21 +2752,28 @@ insulate('Complex-require', function ()
             _G.__CYTANB_EXPORT_MODULE = true
             local module_env = MakeEnv(_ENV)
             module_env._G = false
-            module_env.package = false
 
-            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(_G.coroutine[lsp_container_id])
             assert.is_nil(module_env[lsp_container_id])
 
             cytanb = require('cytanb')(module_env)
 
-            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(_G.coroutine[lsp_container_id])
             assert.is_nil(module_env[lsp_container_id])
             assert.is_nil(_ENV[lsp_container_id])
             assert.is_nil(_G[lsp_container_id])
 
+            module_env.require = function (modname)
+                if modname == 'coroutine' then
+                    return nil
+                else
+                    return _G.require(modname)
+                end
+            end
+
             assert.are.same({}, cytanb.LspContainer())
 
-            assert.is_nil(_G.package[lsp_container_id])
+            assert.is_nil(_G.coroutine[lsp_container_id])
             assert.is_not_nil(module_env[lsp_container_id])
             assert.is_nil(_ENV[lsp_container_id])
             assert.is_nil(_G[lsp_container_id])
