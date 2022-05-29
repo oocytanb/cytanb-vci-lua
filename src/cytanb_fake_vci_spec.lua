@@ -1005,10 +1005,10 @@ describe('Test cytanb_fake_vci', function ()
         assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-msg-vci', commentSource = ''}, 'foo', 'orange')
         assert.stub(cbMap.cb3).was.called(0)
 
-        vci.message.Emit('foo', {'table-data', 'not supported'})
+        vci.message.Emit('foo', {foo = 502, bar = {-1}})
         assert.stub(cbMap.cb1).was.called(3)
         assert.stub(cbMap.cb2).was.called(5)
-        assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-msg-vci', commentSource = ''}, 'foo', nil)
+        assert.stub(cbMap.cb2).was.called_with({type = 'vci', name = 'test-msg-vci', commentSource = ''}, 'foo', {foo = 502, bar = {-1}})
         assert.stub(cbMap.cb3).was.called(0)
 
         vci.message.Emit('bar', 100)

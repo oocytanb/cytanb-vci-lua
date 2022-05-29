@@ -252,6 +252,24 @@ return (function ()
         end
     end
 
+    local MessageValue
+    MessageValue = function (value)
+        local t = type(value)
+        if (t == 'number' or t == 'string' or t == 'boolean') then
+            return value
+        elseif (t == 'nil' or t == 'userdata') then
+            return nil
+        elseif (t == 'table') then
+            local tbl = {}
+            for k, v in pairs(value) do
+                tbl[k] = MessageValue(v)
+            end
+            return tbl
+        else
+            return nil
+        end
+    end
+
     --[[
     local CreateSoftImpactor = function (item, maxForceMagnitude)
         local AssertMaxForceMagnitude = function (forceMagnitude)
@@ -1698,10 +1716,8 @@ return (function ()
                     local value, targetID = ...
                     local nv
                     local t = type(value)
-                    if (t == 'number' or t == 'string' or t == 'boolean') then
-                        nv = value
-                    elseif (t == 'nil' or t == 'table' or t == 'userdata') then
-                        nv = nil
+                    if (t == 'number' or t == 'string' or t == 'boolean' or t == 'table' or t == 'nil' or t == 'userdata') then
+                        nv = MessageValue(value)
                     else
                         -- その他の型の場合は処理しない。
                         return
