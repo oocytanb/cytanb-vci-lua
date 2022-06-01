@@ -751,7 +751,60 @@ insulate('ccs as module', function ()
         '-1')
     end)
 
+    it('record', function ()
+      vci.message.Emit(
+        notification_record_name,
+        {
+          value = 'joined',
+          sender = {
+            type = 'notification',
+            name = '#__CYTANB#__CYTANB',
+            __EXT_ARRAY = { { 'foo', 'bar' }, { 'baz' } },
+            __EXT_TRUE = true,
+            __EXT_FALSE = false,
+          },
+          __EXT_PARAM = 123,
+        })
 
+      assert.stub(cbm.official).was.called(0)
+      assert.stub(cbm.dedicated).was.called(0)
+
+      assert.stub(cbm.record).was.called_with(
+        {
+          type = 'vci',
+          name = 'cytanb_fake_vci',
+          commentSource = '',
+        },
+        notification_record_name,
+        {
+          value = 'joined',
+          sender = {
+            type = 'notification',
+            name = '#__CYTANB#__CYTANB',
+            __EXT_ARRAY = { { 'foo', 'bar' }, { 'baz' } },
+            __EXT_TRUE = true,
+            __EXT_FALSE = false,
+          },
+          __EXT_PARAM = 123,
+        })
+
+      assert.stub(cbm.cytanb).was.called_with(
+        {
+          type = 'notification',
+          name = '#__CYTANB#__CYTANB',
+          commentSource = '',
+          __EXT_ARRAY = { { 'foo', 'bar' }, { 'baz' } },
+          __EXT_TRUE = true,
+          __EXT_FALSE = false,
+          __CYTANB_MESSAGE_ORIGINAL_SENDER = {
+            type = 'vci',
+            name = 'cytanb_fake_vci',
+            commentSource = '',
+          },
+        },
+        'notification',
+        'joined')
+    end)
   end)
 end)
 
