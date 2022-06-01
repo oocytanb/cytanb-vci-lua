@@ -7,7 +7,7 @@
 -- モジュールの利用側は、本ファイルの名前を `ccs.lua` モジュール名を `ccs` として登録した上で、
 -- VCI の `main.lua` から `local ccs = require('ccs')(_ENV)` として利用します。
 
---- cytanb-comment-source v0.9.1
+--- cytanb-comment-source v0.9.2
 local ccs = (function ()
   local make_impl = function (_ENV)
     if not vci then
@@ -413,6 +413,59 @@ end
 ccs.OnNotificationMessage(function(sender, message_name, message)
   print('on notification: name = ' .. sender.name .. ', message = ' .. message)
 end)
+```
+
+## 新形式によるメッセージの送信例
+
+`ccs.OnCommentMessage` と `ccs.OnNotificationMessage` 関数に対して、テーブル形式の
+メッセージを受信できるように、機能拡張を行いました。
+`vci.message.Emit` を使用して、直接テーブル形式を送信できるようになります。
+(**旧 `cytanb.lua` では対応していませんので、ご注意ください。**)
+
+コメントメッセージの形式
+
+```
+vci.message.Emit(
+  'cytanb.comment.record',
+  {
+    value = 'コメントの内容',
+    sender = {
+      type = 'comment',
+      name = 'ユーザー名',
+      commentSource = '送信元',
+    },
+  })
+```
+
+`sender` に独自の拡張パラメーターを追加する場合は、ユニークな名前を付けるようにします。
+
+```
+vci.message.Emit(
+  'cytanb.comment.record',
+  {
+    value = 'コメントの内容',
+    sender = {
+      type = 'comment',
+      name = 'ユーザー名',
+      commentSource = '送信元',
+      __EXT_FOO = '独自の拡張パラメーターの例',
+    },
+  })
+```
+
+通知メッセージの形式
+
+```
+vci.message.Emit(
+  'cytanb.notification.record',
+  {
+    value = 'joined または left',
+    sender = {
+      type = 'notification',
+      name = 'ユーザー名',
+      commentSource = '',
+    },
+  })
 ```
 
 ## Unicode サロゲートペアを考慮して、文字列の処理をする例
