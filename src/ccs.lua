@@ -437,7 +437,7 @@ vci.message.Emit(
   })
 ```
 
-`sender` に独自の拡張パラメーターを追加する場合は、ユニークな名前を付けるようにします。
+`sender` に拡張パラメーターを追加する例
 
 ```
 vci.message.Emit(
@@ -448,7 +448,8 @@ vci.message.Emit(
       type = 'comment',
       name = 'ユーザー名',
       commentSource = '送信元',
-      __EXT_FOO = '独自の拡張パラメーターの例',
+      __EXT_POSIX_TIMESTAMP = 1577836800,
+      __EXT_FOO_BAR = '拡張パラメーターの例',
     },
   })
 ```
