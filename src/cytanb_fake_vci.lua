@@ -19,6 +19,99 @@ return (function ()
 
     local ConstVariablesFieldName = '__CYTANB_CONST_VARIABLES'
 
+    local MoonSharpChar = function (...)
+        local args = table.pack(...)
+        local len = args.n
+        local ls = {}
+        local i = 1
+        while i <= len do
+            local j = i + 1
+            local c = args[i]
+            if c >= 0xD800 and c <= 0xDBFF then
+                -- Surrogate Code Point
+                local lsg = args[j]
+                if lsg and lsg >= 0xDC00 and lsg <= 0xDFFF then
+                    local cp = bit32.bor(
+                        bit32.lshift(
+                            bit32.band(bit32.rshift(c, 6), 0xF) + 1,
+                            16
+                        ),
+                        bit32.lshift(
+                            bit32.band(c, 0x3F),
+                            10
+                        ),
+                        bit32.band(lsg, 0x3FF)
+                    )
+                    table.insert(ls, cp)
+                    j = j + 1
+                else
+                    table.insert(ls, c)
+                end
+            else
+                table.insert(ls, c)
+            end
+            i = i + j
+        end
+
+        return utf8.char(table.unpack(ls))
+    end
+
+    local MoonSharpUnicode = function (str, i, j)
+        local len = string.len(str)
+        local si = math.floor(i == nil and 1 or i >= 0 and i or len + 1 + i)
+        local ei = math.floor(j == nil and si or j >= 0 and j or len + 1 + j)
+
+        if si > ei or si == 0 and ei == 0 then
+            return
+        end
+
+        local sp = math.max(1, si)
+        local tp = 1
+
+        local ls = {}
+        for _, c in utf8.codes(str) do
+            if c <= 0xFFFF then
+                if tp >= sp then
+                    table.insert(ls, c)
+                end
+                tp = tp + 1
+            else
+                local hsg =
+                    bit32.bor(
+                        0xD800,
+                        bit32.lshift(
+                            bit32.band(bit32.rshift(c, 16), 0x1F) - 1,
+                            6
+                        ),
+                        bit32.band(bit32.rshift(c, 10), 0x3F))
+                local lsg =
+                    bit32.bor(
+                        0xDC00,
+                        bit32.band(c, 0x3FF))
+
+                if tp >= sp then
+                    table.insert(ls, hsg)
+                end
+                tp = tp + 1
+
+                if tp > ei then
+                    break
+                end
+
+                if tp >= sp then
+                    table.insert(ls, lsg)
+                end
+                tp = tp + 1
+            end
+
+            if tp > ei then
+                break
+            end
+        end
+
+        return table.unpack(ls)
+    end
+
     local UUIDCompare = function (op1, op2)
         for i = 1, 4 do
             local diff = op1[i] - op2[i]
@@ -737,10 +830,8 @@ return (function ()
                 return i ~= nil
             end,
 
-            unicode = function (str, i, j)
-                -- @TODO implement Unicode conversion
-                return string.byte(str, i, j)
-            end
+            unicode = utf8 and MoonSharpUnicode or string.byte,
+            char = utf8 and MoonSharpChar or string.char,
         },
 
         -- [MoonSharp](https://www.moonsharp.org/additions.html) の拡張。
@@ -1753,7 +1844,7 @@ return (function ()
                     end
 
                     for k, v in pairs(fakeModule[StringModuleName]) do
-                        if target[StringModuleName][k] == nil then
+                        if k == 'char' or target[StringModuleName][k] == nil then
                             target[StringModuleName][k] = v
                         end
                     end

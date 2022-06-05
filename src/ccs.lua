@@ -7,11 +7,31 @@
 -- モジュールの利用側は、本ファイルの名前を `ccs.lua` モジュール名を `ccs` として登録した上で、
 -- VCI の `main.lua` から `local ccs = require('ccs')(_ENV)` として利用します。
 
---- cytanb-comment-source v0.9.2
+--- cytanb-comment-source v0.9.3
 local ccs = (function ()
   local make_impl = function (_ENV)
     if not vci then
       error('Invalid _ENV: vci module is not available', 2)
+    end
+
+    local function is_utf16_supported()
+      if type(string.unicode) == 'function' then
+        local a, b = string.unicode('😀', 1, 2)
+        return a == 0xD83D and b == 0xDE00
+      else
+        return false
+      end
+    end
+
+    local function is_utf8_supported()
+      if type(utf8) == 'table' and
+        type(utf8.codes) == 'function' and
+        type(utf8.codepoint) == 'function'
+      then
+        return utf8.codepoint('😀') == 0x1F600
+      else
+        return false
+      end
     end
 
     ---@generic A
@@ -19,33 +39,74 @@ local ccs = (function ()
     ---@param f fun (prev: A, letter: string, index: number, original_index: number): A
     ---@param init A
     ---@return A
-    local function string_reduce(str, f, init)
-      local len = string.len(str)
+    local function string_reduce_utf16(str, f, init)
       local prev = init
       local ci = 1
       local i = 1
-      while i <= len do
-        local j = i
-
-        if i < len then
-          local hsg = string.unicode(str, i, i)
-          if hsg >= 0xD800 and hsg <= 0xDBFF then
-            -- Surrogate Code Point
-            local k = i + 1
-            local lsg = string.unicode(str, k, k)
-            if lsg >= 0xDC00 and lsg <= 0xDFFF then
-              j = k
-            end
+      local c = string.unicode(str, i, i)
+      while c do
+        local letter
+        local j = i + 1
+        if c >= 0xD800 and c <= 0xDBFF then
+          -- Surrogate Code Point
+          local lsg = string.unicode(str, j, j)
+          if lsg and lsg >= 0xDC00 and lsg <= 0xDFFF then
+            letter = string.char(c, lsg)
+            j = j + 1
+            c = string.unicode(str, j, j)
+          else
+            letter = string.char(c)
+            c = lsg
           end
+        else
+          letter = string.char(c)
+          c = string.unicode(str, j, j)
         end
 
-        prev = f(prev, string.sub(str, i, j), ci, i)
+        prev = f(prev, letter, ci, i)
         ci = ci + 1
-        i = j + 1
+        i = j
       end
 
       return prev
     end
+
+    ---@generic A
+    ---@param str string
+    ---@param f fun (prev: A, letter: string, index: number, original_index: number): A
+    ---@param init A
+    ---@return A
+    local function string_reduce_utf8(str, f, init)
+      local prev = init
+      local ci = 1
+      for i, c in utf8.codes(str) do
+        prev = f(prev, utf8.char(c), ci, i)
+        ci = ci + 1
+      end
+
+      return prev
+    end
+
+    ---@generic A
+    ---@param str string
+    ---@param f fun (prev: A, letter: string, index: number, original_index: number): A
+    ---@param init A
+    ---@return A
+    local function string_reduce_fallback(str, f, init)
+      local prev = init
+      for i = 1, string.len(str) do
+        prev = f(prev, string.sub(str, i, i), i, i)
+      end
+
+      return prev
+    end
+
+    local string_reduce =
+      is_utf16_supported()
+      and string_reduce_utf16
+      or is_utf8_supported()
+      and string_reduce_utf8
+      or string_reduce_fallback
 
     ---@param str string
     ---@param target string
@@ -268,7 +329,9 @@ local ccs = (function ()
             local s = sender
             local m = message
 
-            if type(message) == 'string' and string.startsWith(message, '{') then
+            if type(message) == 'string' and
+              string.sub(message, 1, 1) == '{'
+            then
               local b, decoded = pcall(json.parse, message)
               if b and type(decoded) == 'table' and
                 type(decoded.__CYTANB_INSTANCE_ID) == 'string'
@@ -467,24 +530,5 @@ vci.message.Emit(
       commentSource = '',
     },
   })
-```
-
-## Unicode サロゲートペアを考慮して、文字列の処理をする例
-
-```
-local function append_letter_and_new_line(str, letter)
-  return str .. letter .. ' [len: ' .. string.len(letter) .. ']\n'
-end
-
-local result = ccs.StringReduce('aあ😀', append_letter_and_new_line, '')
-print(result)
-```
-
-出力結果
-
-```
-a [len: 1]
-あ [len: 1]
-😀 [len: 2]
 ```
 --]]

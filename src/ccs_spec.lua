@@ -5,6 +5,265 @@ local function make_env(main_env)
   return setmetatable({}, { __index = main_env })
 end
 
+local utf16_capable = not not (string.unicode or utf8)
+local utf8_capable = not not utf8
+
+if utf16_capable then
+  insulate('ccs String UTF16', function ()
+    local ccs
+    setup(function ()
+      require('cytanb_fake_vci').vci.fake.Setup(_G)
+      _G.__CYTANB_EXPORT_MODULE = true
+      local module = require('ccs')
+      ccs = module(make_env(_ENV))
+    end)
+
+    teardown(function ()
+      package.loaded['ccs'] = nil
+      _G.__CYTANB_EXPORT_MODULE = nil
+      vci.fake.Teardown(_G)
+    end)
+
+    describe('StringReduce', function ()
+      local function tbl_reducer(prev, letter, index, original_index)
+        table.insert(prev, { letter, index, original_index })
+        return prev
+      end
+
+      it('empty', function ()
+        local r = ccs.StringReduce(
+          '',
+          function (prev, letter)
+            error('NEVER')
+            return prev
+          end,
+          {})
+        assert.are.same({}, r)
+      end)
+
+      it('alpha-num', function ()
+        local r = ccs.StringReduce('a9', tbl_reducer, {})
+        assert.are.same(
+          {
+            { 'a', 1, 1 },
+            { '9', 2, 2 }
+          },
+          r)
+      end)
+
+      it('Unicode', function ()
+        local r = ccs.StringReduce('aあ😀', function (prev, letter)
+          return prev .. '-' .. letter
+        end, '')
+        assert.are.same('-a-あ-😀', r)
+      end)
+    end)
+
+    describe('StringReplace', function ()
+      it('empty', function ()
+        assert.are.same('EM', ccs.StringReplace('', '', 'EM'))
+        assert.are.same('', ccs.StringReplace('', 'ab', 'E'))
+      end)
+
+      it('empty target', function ()
+        assert.are.same('EaEbEcEdE', ccs.StringReplace('abcd', '', 'E'))
+      end)
+
+      it('basics', function ()
+        assert.are.same('ba', ccs.StringReplace('aaa', 'aa', 'b'))
+        assert.are.same('XYXYa', ccs.StringReplace('aaaaa', 'aa', 'XY'))
+        assert.are.same('cdcd', ccs.StringReplace('abcdabcdab', 'ab', ''))
+        assert.are.same('abcdabcdab', ccs.StringReplace('abcdabcdab', 'AB', 'XY'))
+      end)
+
+      it('non ascii', function ()
+        assert.are.same('ましましま', ccs.StringReplace('たしました', 'た', 'ま'))
+        assert.are.same('@|㌣|', ccs.StringReplace('#|㌣|', '#', '@'))
+      end)
+
+      it('cytanb escaping', function ()
+        assert.are.same('#__CYTANB_SOLIDUS#__CYTANB#__CYTANB|伯|㌣た⽟千す協㑁低あ|#__CYTANB#__CYTANB', ccs.StringReplace(
+          ccs.StringReplace('/#__CYTANB|伯|㌣た⽟千す協㑁低あ|#__CYTANB', '#__CYTANB', '#__CYTANB#__CYTANB'),
+          '/', '#__CYTANB_SOLIDUS'
+        ))
+      end)
+
+      it('Unicode', function ()
+        assert('/a/あ/😀/b/', ccs.StringReplace('aあ😀b', '', '/'))
+        assert('a/b', ccs.StringReplace('aあ😀b', 'あ😀', '/'))
+      end)
+    end)
+  end)
+end
+
+if utf8_capable then
+  insulate('ccs String UTF8', function ()
+    local ccs
+    setup(function ()
+      require('cytanb_fake_vci').vci.fake.Setup(_G)
+      _G.string.unicode = nil
+      _G.__CYTANB_EXPORT_MODULE = true
+      local module = require('ccs')
+      ccs = module(make_env(_ENV))
+    end)
+
+    teardown(function ()
+      package.loaded['ccs'] = nil
+      _G.__CYTANB_EXPORT_MODULE = nil
+      vci.fake.Teardown(_G)
+    end)
+
+    describe('StringReduce', function ()
+      local function tbl_reducer(prev, letter, index, original_index)
+        table.insert(prev, { letter, index, original_index })
+        return prev
+      end
+
+      it('empty', function ()
+        local r = ccs.StringReduce(
+          '',
+          function (prev, letter)
+            error('NEVER')
+            return prev
+          end,
+          {})
+        assert.are.same({}, r)
+      end)
+
+      it('alpha-num', function ()
+        local r = ccs.StringReduce('a9', tbl_reducer, {})
+        assert.are.same(
+          {
+            { 'a', 1, 1 },
+            { '9', 2, 2 }
+          },
+          r)
+      end)
+
+      it('Unicode', function ()
+        local r = ccs.StringReduce('aあ😀', function (prev, letter)
+          return prev .. '-' .. letter
+        end, '')
+        assert.are.same('-a-あ-😀', r)
+      end)
+    end)
+
+    describe('StringReplace', function ()
+      it('empty', function ()
+        assert.are.same('EM', ccs.StringReplace('', '', 'EM'))
+        assert.are.same('', ccs.StringReplace('', 'ab', 'E'))
+      end)
+
+      it('empty target', function ()
+        assert.are.same('EaEbEcEdE', ccs.StringReplace('abcd', '', 'E'))
+      end)
+
+      it('basics', function ()
+        assert.are.same('ba', ccs.StringReplace('aaa', 'aa', 'b'))
+        assert.are.same('XYXYa', ccs.StringReplace('aaaaa', 'aa', 'XY'))
+        assert.are.same('cdcd', ccs.StringReplace('abcdabcdab', 'ab', ''))
+        assert.are.same('abcdabcdab', ccs.StringReplace('abcdabcdab', 'AB', 'XY'))
+      end)
+
+      it('non ascii', function ()
+        assert.are.same('ましましま', ccs.StringReplace('たしました', 'た', 'ま'))
+        assert.are.same('@|㌣|', ccs.StringReplace('#|㌣|', '#', '@'))
+      end)
+
+      it('cytanb escaping', function ()
+        assert.are.same('#__CYTANB_SOLIDUS#__CYTANB#__CYTANB|伯|㌣た⽟千す協㑁低あ|#__CYTANB#__CYTANB', ccs.StringReplace(
+          ccs.StringReplace('/#__CYTANB|伯|㌣た⽟千す協㑁低あ|#__CYTANB', '#__CYTANB', '#__CYTANB#__CYTANB'),
+          '/', '#__CYTANB_SOLIDUS'
+        ))
+      end)
+
+      it('Unicode', function ()
+        assert('/a/あ/😀/b/', ccs.StringReplace('aあ😀b', '', '/'))
+        assert('a/b', ccs.StringReplace('aあ😀b', 'あ😀', '/'))
+      end)
+    end)
+  end)
+end
+
+insulate('ccs String fallback', function ()
+  local utf8_module
+  local ccs
+  setup(function ()
+    require('cytanb_fake_vci').vci.fake.Setup(_G)
+    utf8_module = _G.utf8
+    _G.utf8 = nil
+    _G.string.unicode = nil
+    _G.__CYTANB_EXPORT_MODULE = true
+    local module = require('ccs')
+    ccs = module(make_env(_ENV))
+  end)
+
+  teardown(function ()
+    package.loaded['ccs'] = nil
+    _G.__CYTANB_EXPORT_MODULE = nil
+    vci.fake.Teardown(_G)
+    _G.utf8 = utf8_module
+  end)
+
+  describe('StringReduce', function ()
+    local function tbl_reducer(prev, letter, index, original_index)
+      table.insert(prev, { letter, index, original_index })
+      return prev
+    end
+
+    it('empty', function ()
+      local r = ccs.StringReduce(
+        '',
+        function (prev, letter)
+          error('NEVER')
+          return prev
+        end,
+        {})
+      assert.are.same({}, r)
+    end)
+
+    it('alpha-num', function ()
+      local r = ccs.StringReduce('a9', tbl_reducer, {})
+      assert.are.same(
+        {
+          { 'a', 1, 1 },
+          { '9', 2, 2 }
+        },
+        r)
+    end)
+  end)
+
+  describe('StringReplace', function ()
+    it('empty', function ()
+      assert.are.same('EM', ccs.StringReplace('', '', 'EM'))
+      assert.are.same('', ccs.StringReplace('', 'ab', 'E'))
+    end)
+
+    it('empty target', function ()
+      assert.are.same('EaEbEcEdE', ccs.StringReplace('abcd', '', 'E'))
+    end)
+
+    it('basics', function ()
+      assert.are.same('ba', ccs.StringReplace('aaa', 'aa', 'b'))
+      assert.are.same('XYXYa', ccs.StringReplace('aaaaa', 'aa', 'XY'))
+      assert.are.same('cdcd', ccs.StringReplace('abcdabcdab', 'ab', ''))
+      assert.are.same('abcdabcdab', ccs.StringReplace('abcdabcdab', 'AB', 'XY'))
+    end)
+
+    it('non ascii', function ()
+      assert.are.same('ましましま', ccs.StringReplace('たしました', 'た', 'ま'))
+      assert.are.same('@|㌣|', ccs.StringReplace('#|㌣|', '#', '@'))
+    end)
+
+    it('cytanb escaping', function ()
+      assert.are.same('#__CYTANB_SOLIDUS#__CYTANB#__CYTANB|伯|㌣た⽟千す協㑁低あ|#__CYTANB#__CYTANB', ccs.StringReplace(
+        ccs.StringReplace('/#__CYTANB|伯|㌣た⽟千す協㑁低あ|#__CYTANB', '#__CYTANB', '#__CYTANB#__CYTANB'),
+        '/', '#__CYTANB_SOLIDUS'
+      ))
+    end)
+  end)
+end)
+
 insulate('ccs as module', function ()
   local ccs
 
@@ -47,7 +306,7 @@ insulate('ccs as module', function ()
   local function on_cytanb_message(name, callback)
     vci.message.On(name, function (sender, message_name, message)
       local decoded = json.parse(message)
-      callback(sender, message_name, decoded)
+      callback(sender, message_name, decoded or tostring(message))
     end)
   end
 
@@ -62,66 +321,6 @@ insulate('ccs as module', function ()
     package.loaded['ccs'] = nil
     _G.__CYTANB_EXPORT_MODULE = nil
     vci.fake.Teardown(_G)
-  end)
-
-  describe('StringReduce', function ()
-    local function tbl_reducer(prev, letter, index, original_index)
-      table.insert(prev, { letter, index, original_index })
-      return prev
-    end
-
-    it('empty', function ()
-      local r = ccs.StringReduce(
-        '',
-        function (prev, letter)
-          error('NEVER')
-          return prev
-        end,
-        {})
-      assert.are.same({}, r)
-    end)
-
-    it('basics', function ()
-      local r = ccs.StringReduce('a9', tbl_reducer, {})
-      assert.are.same(
-        {
-          { 'a', 1, 1 },
-          { '9', 2, 2 }
-        },
-        r)
-    end)
-
-    -- @TODO Unicode Surrogate pair
-  end)
-
-  describe('StringReplace', function ()
-    it('empty', function ()
-      assert.are.same('EM', ccs.StringReplace('', '', 'EM'))
-      assert.are.same('', ccs.StringReplace('', 'ab', 'E'))
-    end)
-
-    it('empty target', function ()
-      assert.are.same('EaEbEcEdE', ccs.StringReplace('abcd', '', 'E'))
-    end)
-
-    it('basics', function ()
-      assert.are.same('ba', ccs.StringReplace('aaa', 'aa', 'b'))
-      assert.are.same('XYXYa', ccs.StringReplace('aaaaa', 'aa', 'XY'))
-      assert.are.same('cdcd', ccs.StringReplace('abcdabcdab', 'ab', ''))
-      assert.are.same('abcdabcdab', ccs.StringReplace('abcdabcdab', 'AB', 'XY'))
-    end)
-
-    it('non ascii', function ()
-      assert.are.same('ましましま', ccs.StringReplace('たしました', 'た', 'ま'))
-      assert.are.same('@|㌣|', ccs.StringReplace('#|㌣|', '#', '@'))
-    end)
-
-    it('cytanb escaping', function ()
-      assert.are.same('#__CYTANB_SOLIDUS#__CYTANB#__CYTANB|伯|㌣た⽟千す協㑁低あ|#__CYTANB#__CYTANB', ccs.StringReplace(
-        ccs.StringReplace('/#__CYTANB|伯|㌣た⽟千す協㑁低あ|#__CYTANB', '#__CYTANB', '#__CYTANB#__CYTANB'),
-        '/', '#__CYTANB_SOLIDUS'
-      ))
-    end)
   end)
 
   describe('CommentMessage', function ()
@@ -151,6 +350,120 @@ insulate('ccs as module', function ()
       for _, v in pairs(cbm) do
         v:revert()
       end
+    end)
+
+    it('Empty comment', function ()
+      vci.fake.EmitVciCommentMessage('', '', '')
+
+      assert.stub(cbm.official).was.called(1)
+      assert.stub(cbm.record).was.called(0)
+      assert.stub(cbm.dedicated).was.called(0)
+
+      assert.stub(cbm.cytanb).was.called_with(
+        {
+          type = 'comment',
+          name = '',
+          commentSource = ''
+        },
+        'comment',
+        '')
+    end)
+
+    it('JSON comment', function ()
+      vci.fake.EmitVciCommentMessage('JS', '{"__CYTANB_MESSAGE_VALUE":"hot"}', 'Twitter')
+
+      assert.stub(cbm.official).was.called(1)
+      assert.stub(cbm.record).was.called(0)
+      assert.stub(cbm.dedicated).was.called(0)
+
+      assert.stub(cbm.cytanb).was.called_with(
+        {
+          type = 'comment',
+          name = 'JS',
+          commentSource = 'Twitter'
+        },
+        'comment',
+        '{"__CYTANB_MESSAGE_VALUE":"hot"}')
+    end)
+
+    it('JSON not cytanb comment', function ()
+      vci.message.Emit(dedicated_comment_name, '{"__CYTANB_MESSAGE_VALUE":987}')
+
+      assert.stub(cbm.official).was.called(0)
+      assert.stub(cbm.record).was.called(0)
+
+      assert.stub(cbm.dedicated).was.called_with(
+        {
+          type = 'vci',
+          name = 'cytanb_fake_vci',
+          commentSource = '',
+        },
+        dedicated_comment_name,
+        {
+          __CYTANB_MESSAGE_VALUE = 987,
+        })
+
+      assert.stub(cbm.cytanb).was.called_with(
+        {
+          type = 'vci',
+          name = 'cytanb_fake_vci',
+          commentSource = '',
+        },
+        'comment',
+        '{"__CYTANB_MESSAGE_VALUE":987}')
+    end)
+
+    it('non JSON comment', function ()
+      vci.message.Emit(dedicated_comment_name, '{"__CYTANB_MESSAGE_VALUE":987')
+
+      assert.stub(cbm.official).was.called(0)
+      assert.stub(cbm.record).was.called(0)
+
+      assert.stub(cbm.dedicated).was.called_with(
+        {
+          type = 'vci',
+          name = 'cytanb_fake_vci',
+          commentSource = '',
+        },
+        dedicated_comment_name,
+        '{"__CYTANB_MESSAGE_VALUE":987')
+
+      assert.stub(cbm.cytanb).was.called_with(
+        {
+          type = 'vci',
+          name = 'cytanb_fake_vci',
+          commentSource = '',
+        },
+        'comment',
+        '{"__CYTANB_MESSAGE_VALUE":987')
+    end)
+
+    it('JSON cytanb comment', function ()
+      vci.message.Emit(dedicated_comment_name, '{"__CYTANB_MESSAGE_VALUE":987,"__CYTANB_INSTANCE_ID":"123abc"}')
+
+      assert.stub(cbm.official).was.called(0)
+      assert.stub(cbm.record).was.called(0)
+
+      assert.stub(cbm.dedicated).was.called_with(
+        {
+          type = 'vci',
+          name = 'cytanb_fake_vci',
+          commentSource = '',
+        },
+        dedicated_comment_name,
+        {
+          __CYTANB_INSTANCE_ID = '123abc',
+          __CYTANB_MESSAGE_VALUE = 987,
+        })
+
+      assert.stub(cbm.cytanb).was.called_with(
+        {
+          type = 'vci',
+          name = 'cytanb_fake_vci',
+          commentSource = '',
+        },
+        'comment',
+        '987')
     end)
 
     it('Showroom comment', function ()
@@ -192,8 +505,7 @@ insulate('ccs as module', function ()
           },
           __CYTANB_MESSAGE_VALUE = 'DummyComment sender-omitted',
           __CYTANB_NO_ESCAPING = true,
-        }
-      )
+        })
 
       assert.stub(cbm.cytanb).was.called_with(
         {
@@ -234,8 +546,7 @@ insulate('ccs as module', function ()
           },
           __CYTANB_MESSAGE_VALUE = 'Dummy Nico/#__CYTANB_SOLIDUS\\z\nLF',
           __CYTANB_NO_ESCAPING = true,
-        }
-      )
+        })
 
       assert.stub(cbm.cytanb).was.called_with(
         {
@@ -276,8 +587,7 @@ insulate('ccs as module', function ()
           },
           __CYTANB_MESSAGE_VALUE = '',
           __CYTANB_NO_ESCAPING = true,
-        }
-      )
+        })
 
       assert.stub(cbm.cytanb).was.called_with(
         {
@@ -318,8 +628,7 @@ insulate('ccs as module', function ()
           },
           __CYTANB_MESSAGE_VALUE = 'test sender-invalid',
           __CYTANB_NO_ESCAPING = true,
-        }
-      )
+        })
 
       assert.stub(cbm.cytanb).was.called_with(
         {
@@ -368,8 +677,7 @@ insulate('ccs as module', function ()
             },
           __CYTANB_MESSAGE_VALUE = 'test sender-loose',
           __CYTANB_NO_ESCAPING = true,
-        }
-      )
+        })
 
       assert.stub(cbm.cytanb).was.called_with(
         {
@@ -415,8 +723,7 @@ insulate('ccs as module', function ()
           },
           __CYTANB_MESSAGE_VALUE = '/test#__CYTANB_SOLIDUS>#__CYTANB_>/>\\>\\n>\\z/',
           __CYTANB_NO_ESCAPING = true,
-        }
-      )
+        })
 
       assert.stub(cbm.cytanb).was.called_with(
         {
@@ -460,8 +767,7 @@ insulate('ccs as module', function ()
           },
           __CYTANB_MESSAGE_VALUE = '{"content":"nested"}',
           __CYTANB_NO_ESCAPING = true,
-        }
-      )
+        })
 
       assert.stub(cbm.cytanb).was.called_with(
         {
@@ -505,8 +811,7 @@ insulate('ccs as module', function ()
           },
           __CYTANB_MESSAGE_VALUE = '#__CYTANB_SOLIDUS#__CYTANB#__CYTANB|伯|㌣た⽟千す協㑁低あ|#__CYTANB#__CYTANB',
           __CYTANB_SPECIAL_TEST_DATA = { true },
-        }
-      )
+        })
 
       assert.stub(cbm.cytanb).was.called_with(
         {
@@ -690,8 +995,7 @@ insulate('ccs as module', function ()
           },
           __CYTANB_MESSAGE_VALUE = 'left',
           __CYTANB_NO_ESCAPING = true,
-        }
-      )
+        })
 
       assert.stub(cbm.cytanb).was.called_with(
         {
@@ -733,8 +1037,7 @@ insulate('ccs as module', function ()
           },
           __CYTANB_MESSAGE_VALUE = '-1',
           __CYTANB_NO_ESCAPING = true,
-        }
-      )
+        })
 
       assert.stub(cbm.cytanb).was.called_with(
         {

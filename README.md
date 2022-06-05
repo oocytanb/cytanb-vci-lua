@@ -134,14 +134,23 @@ VCAS 2.0.8a で、削除された関数・フィールドリスト
     (もしくは [gcc](https://gcc.gnu.org/) を利用することも可能です。)
 
     1. Visual Studio の `Command Prompt` を開き、以下のコマンドを実行します。
-    ここでは、`%LOCALAPPDATA%\luaenv` ディレクトリに Lua 環境をインストールしています。
-    `PATH` 環境変数を設定しておくとよいでしょう。
+    ここでは、`luaenv` ディレクトリに Lua 環境をインストールしています。
 
         ```
-        set LUAENV=%LOCALAPPDATA%\luaenv
         python3 -m pip install git+https://github.com/luarocks/hererocks --user
-        python3 -m hererocks "%LUAENV%" -l 5.2 -r latest
-        set PATH=%LUAENV%\bin;%PATH%
+        python3 -m hererocks "luaenv" -l 5.2 -r latest
+
+    1. Lua が正常にインストールされたことを確認します。
+       `activate` スクリプトを実行することで、環境変数が設定されます。
+
+        ```
+        luaenv\bin\activate
+        lua -v
+        ```
+
+    1. 必要なパッケージをインストールします。
+
+        ```
         luarocks install dkjson
         luarocks install busted
         luarocks install luacov
@@ -155,7 +164,7 @@ VCAS 2.0.8a で、削除された関数・フィールドリスト
         busted src
         ```
 
-        コードカバレッジのレポートを生成する場合
+        コードカバレッジのレポートを生成する場合は、`-c` オプションを追加します。
 
         ```
         busted -c src

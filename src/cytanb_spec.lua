@@ -1191,7 +1191,7 @@ local OwnerUserTestCases = function (cytanb, options)
         assert.are.equal(Vector3.__new(-0.3292928000, 0.5488213000, -0.7683498000), v5)
 
         local a6, v6 = cytanb.QuaternionToAngleAxis(Quaternion.AngleAxis(390, Vector3.__new(3, -5, 7)))
-        assert.are.equal(330, a6)
+        assert.is_true(math.abs(330 - a6) <= 1E-06)
         assert.are.equal(Vector3.__new(-0.3292927000, 0.5488213000, -0.7683498000), v6)
 
         local a40, v40 = cytanb.QuaternionToAngleAxis(Quaternion.__new(10, 20, 30, 40))

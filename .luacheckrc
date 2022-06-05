@@ -5,6 +5,7 @@ files["src/cytanb_min.lua"] = { ignore = { "211" } }
 max_line_length = false
 
 globals = {
+    "utf8",
     "string.contains", "string.startsWith", "string.endsWith", "string.unicode",
     "_MOONSHARP",
     "dynamic",
