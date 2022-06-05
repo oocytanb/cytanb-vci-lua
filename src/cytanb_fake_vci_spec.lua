@@ -2,6 +2,8 @@
 -- Copyright (c) 2019 oO (https://github.com/oocytanb)
 
 describe('Test cytanb_fake_vci', function ()
+    local utf8_capable = not not utf8
+
     local RoundVector3 = function (vec, decimalPlaces)
         return Vector3.__new(
             vci.fake.Round(vec.x, decimalPlaces),
@@ -57,6 +59,105 @@ describe('Test cytanb_fake_vci', function ()
         assert.is_false(string.endsWith('abcdefg', 'ef'))
         assert.is_false(string.endsWith('abcdefg', 'zabcdefg'))
         assert.is_false(string.endsWith('a幡', 'a'))
+    end)
+
+    it('string.unicode', function ()
+        assert.are.same(
+            {n = 0},
+            table.pack(string.unicode('abcdefg', 0, 0))
+        )
+
+        assert.are.same(
+            {97, n = 1},
+            table.pack(string.unicode('abcdefg', 0, 1))
+        )
+
+        assert.are.same(
+            {97, n = 1},
+            table.pack(string.unicode('abcdefg', 1, 1))
+        )
+
+        assert.are.same(
+            {97, 98, n = 2},
+            table.pack(string.unicode('abcdefg', 1, 2))
+        )
+
+        assert.are.same(
+            {98, 99, 100, n = 3},
+            table.pack(string.unicode('abcdefg', 2, 4))
+        )
+
+        assert.are.same(
+            {103, n = 1},
+            table.pack(string.unicode('abcdefg', 7, 8))
+        )
+
+        assert.are.same(
+            {n = 0},
+            table.pack(string.unicode('abcdefg', 8, 9))
+        )
+
+        assert.are.same(
+            {101, 102, 103, n = 3},
+            table.pack(string.unicode('abcdefg', -3, -1))
+        )
+
+        assert.are.same(
+            {n = 0},
+            table.pack(string.unicode('abcdefg', -1, -3))
+        )
+
+        assert.are.same(
+            {n = 0},
+            table.pack(string.unicode('abcdefg', -1, 0))
+        )
+
+        assert.are.same(
+            {99, n = 1},
+            table.pack(string.unicode('abcdefg', -5))
+        )
+
+        assert.are.same(
+            {n = 0},
+            table.pack(string.unicode('abcdefg', 0))
+        )
+
+        assert.are.same(
+            {97, n = 1},
+            table.pack(string.unicode('abcdefg'))
+        )
+
+        if utf8_capable then
+            assert.are.same(
+                {97, n = 1},
+                table.pack(string.unicode('aあ😀b', 1, 1))
+            )
+
+            assert.are.same(
+                {0x3042, n = 1},
+                table.pack(string.unicode('aあ😀b', 2, 2))
+            )
+
+            assert.are.same(
+                {0xD83D, n = 1},
+                table.pack(string.unicode('aあ😀b', 3, 3))
+            )
+
+            assert.are.same(
+                {0xDE00, n = 1},
+                table.pack(string.unicode('aあ😀b', 4, 4))
+            )
+
+            assert.are.same(
+                {98, n = 1},
+                table.pack(string.unicode('aあ😀b', 5, 5))
+            )
+
+            assert.are.same(
+                {0xDE00, 98, n = 2},
+                table.pack(string.unicode('aあ😀b', 4, 6))
+            )
+        end
     end)
 
     it('json', function ()
