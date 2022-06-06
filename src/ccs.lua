@@ -531,4 +531,23 @@ vci.message.Emit(
     },
   })
 ```
+
+## Unicode サロゲートペアを考慮して、文字列の処理をする例
+
+```
+local function append_letter_and_new_line(str, letter)
+  return str .. letter .. ' [len: ' .. string.len(letter) .. ']\n'
+end
+
+local result = ccs.StringReduce('aあ😀', append_letter_and_new_line, '')
+print(result)
+```
+
+出力結果
+
+```
+a [len: 1]
+あ [len: 1]
+😀 [len: 2]
+```
 --]]

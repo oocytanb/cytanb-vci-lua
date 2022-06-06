@@ -33,7 +33,7 @@ const read_header_line = async (state: ReadState) => {
     return { ...state, done: true };
   } else {
     const line = elm.value;
-    const preserved_comment = /^--\!/.test(line);
+    const preserved_comment = /^--!/.test(line);
     const done = !preserved_comment && /^---@type\s+cytanb\s+/.test(line);
 
     const source = state.source + line + '\n';
@@ -75,19 +75,16 @@ const read_module_line = async (state: ReadState) => {
 
 const read_body = async (it: AsyncIterableIterator<string>, source: string) => {
   let translated = source + '\n';
-  while (true) {
-    const elm = await it.next();
-    if (elm.done) {
-      break;
-    }
-
+  let elm = await it.next();
+  while (!elm.done) {
     translated += elm.value + '\n';
+    elm = await it.next();
   }
 
   return translated;
 };
 
-const read_full = async (function_set: Set<string>) => {
+const read_full = async (_function_set: Set<string>) => {
   const stream = fs.createReadStream('../src/cytanb.lua', 'utf-8');
   try {
     const rl = readline.createInterface({
