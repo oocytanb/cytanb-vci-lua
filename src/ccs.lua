@@ -24,14 +24,10 @@ local ccs = (function ()
     end
 
     local function is_utf8_supported()
-      if type(utf8) == 'table' and
-        type(utf8.codes) == 'function' and
-        type(utf8.codepoint) == 'function'
-      then
-        return utf8.codepoint('😀') == 0x1F600
-      else
-        return false
-      end
+      return type(utf8) == 'table'
+        and type(utf8.codes) == 'function'
+        and type(utf8.codepoint) == 'function'
+        and utf8.codepoint('😀') == 0x1F600
     end
 
     ---@generic A
