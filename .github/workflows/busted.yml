@@ -34,7 +34,7 @@ jobs:
           luarocks install dkjson
           luarocks install busted
           luarocks install luacov
-          luarocks install luacov-multiple --server https://oocytanb.github.io/rocksrepo/
+          luarocks install luacov-multiple
           lua -v
           busted --version
 

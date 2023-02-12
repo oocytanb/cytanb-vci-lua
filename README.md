@@ -154,7 +154,7 @@ VCAS 2.0.8a で、削除された関数・フィールドリスト
         luarocks install dkjson
         luarocks install busted
         luarocks install luacov
-        luarocks install luacov-multiple --server https://oocytanb.github.io/rocksrepo/
+        luarocks install luacov-multiple
         luarocks install luacheck
         ```
 
