@@ -84,27 +84,27 @@ VCAS 2.0.8a で、削除された関数・フィールドリスト
     git remote add upstream https://github.com/oocytanb/cytanb-vci-lua.git
     ```
 
-1. リモートの `master` ブランチを `merge` し、フォーク先のリポジトリに `push` します。
+1. リモートの `main` ブランチを `merge` し、フォーク先のリポジトリに `push` します。
     ```
-    git checkout master
+    git checkout main
     git fetch upstream
-    git merge upstream/master
-    git push origin master
+    git merge upstream/main
+    git push origin main
     ```
 
-1. 作業ブランチをチェックアウトし、`merge` あるいは `rebase` して、`master` ブランチの変更を取り込みます。
+1. 作業ブランチをチェックアウトし、`merge` あるいは `rebase` して、`main` ブランチの変更を取り込みます。
     ```
     git checkout feature/sample
     ```
 
     - `merge` して変更を取り込む場合
         ```
-        git merge master
+        git merge main
         ```
 
     - `rebase` して変更を取り込む場合
         ```
-        git rebase master
+        git rebase main
         ```
 
 1. 変更したブランチを `push` します。
